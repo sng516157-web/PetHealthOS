@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" font-family="Georgia, serif">
+  <rect width="800" height="560" fill="#fbf8f1"/>
+  <rect x="16" y="16" width="768" height="528" fill="none" stroke="#b9893f" stroke-width="4"/>
+  <rect x="28" y="28" width="744" height="504" fill="none" stroke="#d8b877" stroke-width="1.5"/>
+  <text x="400" y="92" text-anchor="middle" font-size="34" fill="#7a5418" font-weight="bold">Certificate of Pedigree</text>
+  <text x="400" y="124" text-anchor="middle" font-size="15" fill="#a07b3a">Whisker Lane Cattery &amp; Kennel</text>
+  <line x1="120" y1="148" x2="680" y2="148" stroke="#d8b877" stroke-width="1"/>
+  <text x="80" y="196" font-size="18" fill="#3a3a3a">Name: Mango</text>
+  <text x="80" y="228" font-size="18" fill="#3a3a3a">Breed: Beagle</text>
+  <text x="80" y="260" font-size="18" fill="#3a3a3a">Sex: Male</text>
+  <text x="80" y="292" font-size="18" fill="#3a3a3a">Microchip: 991002000123456</text>
+  <text x="80" y="344" font-size="16" fill="#7a5418" font-weight="bold">Lineage</text>
+  <text x="80" y="376" font-size="16" fill="#3a3a3a">Sire: Cooper of Whisker Lane</text>
+  <text x="80" y="404" font-size="16" fill="#3a3a3a">Dam: Biscuit of Whisker Lane</text>
+  <text x="520" y="470" font-size="14" fill="#a07b3a" font-style="italic">Issued by the breeder</text>
+  <text x="520" y="494" font-size="14" fill="#a07b3a" font-style="italic">Sample document</text>
+</svg>

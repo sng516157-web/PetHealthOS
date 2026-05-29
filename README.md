@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pet Health OS
 
-## Getting Started
+A health **system of record** for pet shops (and breeders/shelters). Log a pet's
+health in plain language, let AI structure and reason about it, run a triage
+assessment to prepare for the vet, and hand the new owner a portable **health
+passport** when the pet is sold or adopted.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Dashboard** — every pet at a glance, "needs attention" surfacing, upcoming care.
+- **Health Log (hybrid)** — write a note naturally; the AI auto-classifies it into
+  a type (illness / vet visit / observation / medication / discomfort / …),
+  severity, a short title, and tags. Browse a filterable timeline.
+- **AI Assistant** — a per-pet chat grounded **only** in that pet's log (no
+  cross-contamination between pets).
+- **Triage** — proactive flags for serious recent entries, plus an on-demand
+  assessment with urgency, concerns, a recommendation, and questions for the vet.
+- **Reminders** — vaccines, medications, deworming, and appointments per pet and
+  across the shop.
+- **Health passport transfer** — generate a read-only public record (`/passport/<token>`)
+  with the full profile + history to give a new owner.
+
+## Architecture
+
+One database, **strict per-pet logical scoping**:
+
+```
+Organization (the shop)
+└── Pet
+    ├── LogEntry      (the health record)
+    ├── Reminder      (schedule)
+    ├── Conversation  (AI chat)
+    ├── TriageReport
+    └── Transfer      (health passport)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The AI is always given exactly one pet's context at query time.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Next.js 16** (App Router) + **React 19** + **Tailwind CSS v4**
+- **Prisma 7** + **SQLite** (via the `better-sqlite3` driver adapter)
+- **Vercel AI SDK** through the AI Gateway, with a graceful rule-based fallback
 
-## Learn More
+## Getting started
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run db:migrate   # apply schema (already applied if dev.db exists)
+npm run db:seed      # load the demo shop (Mango, Luna, Rocky)
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open the app and explore. To enable full natural-language AI, add an AI key to
+`.env` (see the commented lines there):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+AI_GATEWAY_API_KEY="..."
+```
 
-## Deploy on Vercel
+Without a key the app runs in **demo mode**: log structuring and triage use
+deterministic rules, and the assistant summarizes the log. Everything is fully
+functional either way.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Useful scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Script            | What it does                                   |
+| ----------------- | ---------------------------------------------- |
+| `npm run dev`     | Start the dev server                           |
+| `npm run db:seed` | Reset + load demo data                         |
+| `npm run db:reset`| Drop DB, re-migrate, re-seed                   |
+| `npm run db:studio`| Open Prisma Studio                            |
+
+## Notes & next steps (prototype scope)
+
+- Single shop / single login for now (no auth yet) — the data model already has
+  `Organization`, so multi-staff roles slot in cleanly later.
+- SQLite is used for zero-config local dev; swap the Prisma adapter to Postgres
+  (e.g. Neon) for deployment on Vercel.
+- AI chat is currently session-only; the `Conversation`/`Message` tables exist
+  to persist history when you want it.

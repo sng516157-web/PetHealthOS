@@ -1,0 +1,168 @@
+// Pet Health OS — data model
+// One database, strict per-pet logical scoping.
+// SQLite has no native enums, so enum-like fields are Strings validated in app code (see src/lib/constants.ts).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  kind      String   @default("SHOP") // SHOP | BREEDER | SHELTER
+  createdAt DateTime @default(now())
+
+  pets Pet[]
+}
+
+model Pet {
+  id        String    @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  name      String
+  species   String    // DOG | CAT
+  breed     String?
+  sex       String?   // MALE | FEMALE | UNKNOWN
+  birthDate DateTime?
+  weightKg  Float?
+  color     String?
+  microchip String?
+  photoUrl  String?
+  status    String    @default("ACTIVE") // ACTIVE | UNDER_OBSERVATION | TRANSFERRED | ARCHIVED
+  intakeAt  DateTime  @default(now())
+  notes     String?
+
+  // Basic lineage (breeder MVP) — full litter management is Phase 2.
+  sireId    String?
+  sire      Pet?      @relation("Sire", fields: [sireId], references: [id])
+  sireOf    Pet[]     @relation("Sire")
+  damId     String?
+  dam       Pet?      @relation("Dam", fields: [damId], references: [id])
+  damOf     Pet[]     @relation("Dam")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  logs          LogEntry[]
+  reminders     Reminder[]
+  conversations Conversation[]
+  reports       TriageReport[]
+  transfers     Transfer[]
+  attachments   Attachment[]
+
+  @@index([orgId])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  kind      String   @default("OTHER") // VACCINE_CERT | PEDIGREE | LAB_RESULT | PHOTO | OTHER
+  label     String
+  url       String
+  mimeType  String?
+  createdAt DateTime @default(now())
+
+  @@index([petId])
+}
+
+model LogEntry {
+  id         String   @id @default(cuid())
+  petId      String
+  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  occurredAt DateTime @default(now())
+  rawText    String   // the user's freeform entry
+
+  // AI-structured fields (hybrid logging)
+  type       String   @default("OBSERVATION") // ILLNESS | VET_VISIT | OBSERVATION | MEDICATION | DISCOMFORT | MILESTONE | FEEDING | OTHER
+  severity   String   @default("NONE")        // NONE | LOW | MEDIUM | HIGH | CRITICAL
+  title      String?
+  summary    String?
+  tags       String   @default("[]")          // JSON array of strings
+  structured String?                          // JSON blob of extracted fields (symptoms, vitals, meds...)
+  aiProcessed Boolean @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@index([petId, occurredAt])
+}
+
+model Reminder {
+  id        String    @id @default(cuid())
+  petId     String
+  pet       Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  title     String
+  category  String    @default("OTHER") // VACCINE | MEDICATION | DEWORMING | APPOINTMENT | CHECKUP | OTHER
+  dueAt     DateTime
+  recurrence String?  // null | DAILY | WEEKLY | MONTHLY | YEARLY
+  completed Boolean   @default(false)
+  notes     String?
+
+  createdAt DateTime  @default(now())
+
+  @@index([petId, dueAt])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  petId     String
+  pet       Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  title     String    @default("New conversation")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  messages  Message[]
+
+  @@index([petId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role      String   // user | assistant
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model TriageReport {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  urgency   String   @default("ROUTINE") // EMERGENCY | URGENT | SOON | ROUTINE | MONITOR
+  summary   String
+  content   String   // JSON: { concerns, recommendation, vetQuestions, vitalsTrend, relevantLogIds }
+  createdAt DateTime @default(now())
+
+  @@index([petId, createdAt])
+}
+
+model Transfer {
+  id            String    @id @default(cuid())
+  petId         String
+  pet           Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  token         String    @unique
+  newOwnerName  String?
+  newOwnerEmail String?
+  note          String?
+  visibility    String    @default("READONLY_COPY") // READONLY_COPY | SHARED
+  createdAt     DateTime  @default(now())
+  claimedAt     DateTime?
+
+  @@index([petId])
+}
