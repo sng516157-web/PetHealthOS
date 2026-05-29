@@ -111,6 +111,17 @@ export function TransferForm({ petId }: { petId: string }) {
           </div>
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 text-sm has-[:checked]:border-brand-400 has-[:checked]:bg-brand-50/50">
+          <input type="checkbox" name="claimable" defaultChecked className="mt-0.5 accent-brand-600" />
+          <span>
+            <span className="font-medium text-foreground">Let the new owner claim &amp; continue the record</span>
+            <span className="mt-0.5 block text-xs text-muted">
+              They&apos;ll be able to keep {`the pet's`} lifelong history and add to it.
+              Leave unchecked for a view-only passport.
+            </span>
+          </span>
+        </label>
+
         <button
           type="submit"
           disabled={pending}

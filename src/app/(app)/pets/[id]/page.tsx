@@ -6,6 +6,7 @@ import { QuickAddLog } from "@/components/QuickAddLog";
 import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
+import { WeightPanel } from "@/components/WeightPanel";
 import { safeTags } from "@/lib/ai";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 
@@ -75,6 +76,15 @@ export default async function PetOverview({
 
       <div className="space-y-5">
         <RemindersPanel petId={pet.id} reminders={reminders} />
+        <WeightPanel
+          petId={pet.id}
+          weights={pet.weights.map((w) => ({
+            id: w.id,
+            weightKg: w.weightKg,
+            measuredAt: w.measuredAt.toISOString(),
+            note: w.note,
+          }))}
+        />
         <DocumentsPanel
           petId={pet.id}
           attachments={pet.attachments.map((a) => ({

@@ -35,6 +35,7 @@ export async function getPet(id: string) {
       dam: { select: { id: true, name: true, breed: true } },
       attachments: { orderBy: { createdAt: "desc" } },
       logs: { orderBy: { occurredAt: "desc" } },
+      weights: { orderBy: { measuredAt: "asc" } },
       reminders: { orderBy: { dueAt: "asc" } },
       reports: { orderBy: { createdAt: "desc" } },
       conversations: { orderBy: { updatedAt: "desc" } },

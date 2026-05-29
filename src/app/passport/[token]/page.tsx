@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { HeartPulse, ShieldCheck } from "lucide-react";
+import { HeartPulse, ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
 import {
@@ -10,9 +10,10 @@ import {
   Severity,
   ReminderCategory,
 } from "@/lib/constants";
-import { petAge, formatDate } from "@/lib/format";
+import { petAge, formatDate, relativeTime } from "@/lib/format";
 import { safeTags } from "@/lib/ai";
 import { ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
+import { ClaimPassport } from "@/components/ClaimPassport";
 
 export default async function PassportPage({
   params,
@@ -37,10 +38,11 @@ export default async function PassportPage({
   });
   if (!transfer) notFound();
 
-  if (!transfer.claimedAt) {
+  // Track first view (not a claim — claiming is an explicit buyer action).
+  if (!transfer.firstViewedAt) {
     await prisma.transfer.update({
       where: { id: transfer.id },
-      data: { claimedAt: new Date() },
+      data: { firstViewedAt: new Date() },
     });
   }
 
@@ -53,6 +55,23 @@ export default async function PassportPage({
     pet.color,
   ].filter(Boolean);
 
+  // Credibility signal: a record built steadily over time looks different from
+  // one entered the day before sale. Surface that to the buyer.
+  const entryCount = pet.logs.length;
+  const oldest = pet.logs.length
+    ? pet.logs.reduce((a, b) => (a.createdAt < b.createdAt ? a : b)).createdAt
+    : null;
+  const spanDays = oldest
+    ? Math.max(
+        1,
+        Math.round((Date.now() - oldest.getTime()) / 86400000),
+      )
+    : 0;
+  const spanLabel =
+    spanDays >= 60
+      ? `${Math.round(spanDays / 30)} months`
+      : `${spanDays} day${spanDays === 1 ? "" : "s"}`;
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface">
@@ -62,7 +81,7 @@ export default async function PassportPage({
           </div>
           <span className="text-sm font-semibold text-foreground">Pet Health Passport</span>
           <Badge tone="brand" className="ml-auto">
-            <ShieldCheck size={12} /> Verified record
+            <ShieldCheck size={12} /> Tamper-evident
           </Badge>
         </div>
       </header>
@@ -82,6 +101,44 @@ export default async function PassportPage({
             <span className="mt-2 inline-block rounded-full bg-white/70 px-2.5 py-0.5 text-[11px] font-medium text-brand-700 ring-1 ring-inset ring-brand-200">
               Shared record with {pet.org.name}
             </span>
+          )}
+        </div>
+
+        {/* Trust strip — why this record is believable */}
+        {entryCount > 0 && (
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-border bg-surface p-4">
+            <Lock size={18} className="mt-0.5 shrink-0 text-emerald-600" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground">
+                {entryCount} entries logged over {spanLabel}, frozen at handover.
+              </p>
+              <p className="mt-0.5 text-muted">
+                This history was recorded steadily over {pet.name}&apos;s life and
+                locked the moment the passport was issued — it can&apos;t be
+                backdated or edited after the fact.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Claim — only if the breeder enabled it */}
+        <div className="mb-6">
+          {transfer.claimedAt ? (
+            <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+              <CheckCircle2 size={16} />
+              Claimed by {transfer.claimedByName ?? "the new owner"} ·{" "}
+              {formatDate(transfer.claimedAt)}
+            </div>
+          ) : transfer.claimable ? (
+            <ClaimPassport
+              token={transfer.token}
+              petName={pet.name}
+              defaultName={transfer.newOwnerName}
+            />
+          ) : (
+            <p className="rounded-2xl border border-border bg-surface p-4 text-center text-xs text-muted">
+              This is a view-only passport shared by {pet.org.name}.
+            </p>
           )}
         </div>
 
@@ -210,6 +267,10 @@ export default async function PassportPage({
                           ))}
                         </div>
                       )}
+                      <div className="mt-1.5 flex items-center gap-1 text-[11px] text-slate-400">
+                        <Lock size={10} />
+                        logged {relativeTime(l.createdAt)}
+                      </div>
                     </div>
                   </li>
                 );
@@ -219,7 +280,7 @@ export default async function PassportPage({
         </section>
 
         <p className="mt-8 text-center text-xs text-muted">
-          Issued by {pet.org.name} via Pet Health OS · Read-only record
+          Issued by {pet.org.name} via Pet Health OS · History frozen at handover
         </p>
       </main>
     </div>

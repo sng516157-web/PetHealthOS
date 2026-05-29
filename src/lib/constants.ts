@@ -108,6 +108,7 @@ export const URGENCY_META: Record<
 
 export const ATTACHMENT_KINDS = [
   "VACCINE_CERT",
+  "ANTIBODY_TEST",
   "PEDIGREE",
   "LAB_RESULT",
   "PHOTO",
@@ -120,6 +121,9 @@ export const ATTACHMENT_KIND_META: Record<
   { label: string; emoji: string }
 > = {
   VACCINE_CERT: { label: "Vaccination certificate", emoji: "💉" },
+  // Antibody titer results are the proof buyers/industry actually trust
+  // (vaccine claims alone are easily faked). Optional — many shops won't have it.
+  ANTIBODY_TEST: { label: "Antibody test (抗体检测)", emoji: "🧫" },
   PEDIGREE: { label: "Pedigree / registration", emoji: "📜" },
   LAB_RESULT: { label: "Lab / test result", emoji: "🧪" },
   PHOTO: { label: "Photo", emoji: "🖼️" },

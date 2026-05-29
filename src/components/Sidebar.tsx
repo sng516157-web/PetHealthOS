@@ -28,7 +28,7 @@ export function Sidebar({ orgName }: { orgName: string }) {
           <div className="text-sm font-semibold text-foreground">
             Pet Health OS
           </div>
-          <div className="text-[11px] text-muted">Records · Triage · Passports</div>
+          <div className="text-[11px] text-muted">Trusted lifelong health passports</div>
         </div>
       </Link>
 

@@ -68,7 +68,7 @@ export function DocumentsPanel({
         </button>
       </div>
       <p className="mt-0.5 text-xs text-muted">
-        Vaccine certs, pedigree, lab results — shown on the passport.
+        Vaccine certs, antibody tests, pedigree, lab results — shown on the passport.
       </p>
 
       {open && (

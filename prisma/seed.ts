@@ -19,6 +19,7 @@ async function main() {
   await prisma.triageReport.deleteMany();
   await prisma.transfer.deleteMany();
   await prisma.attachment.deleteMany();
+  await prisma.weightEntry.deleteMany();
   await prisma.reminder.deleteMany();
   await prisma.logEntry.deleteMany();
   await prisma.pet.deleteMany();
@@ -85,6 +86,28 @@ async function main() {
       url: "/uploads/sample-pedigree.svg",
       mimeType: "image/svg+xml",
     },
+  });
+
+  // Antibody titer result — the proof buyers actually trust (optional).
+  await prisma.attachment.create({
+    data: {
+      petId: mango.id,
+      kind: "ANTIBODY_TEST",
+      label: "Distemper/Parvo antibody titer",
+      url: "/uploads/sample-pedigree.svg",
+      mimeType: "image/svg+xml",
+    },
+  });
+
+  // Weekly growth weights — the daily-use ritual that builds a credible history.
+  await prisma.weightEntry.createMany({
+    data: [
+      { petId: mango.id, weightKg: 6.1, measuredAt: daysAgo(40) },
+      { petId: mango.id, weightKg: 6.5, measuredAt: daysAgo(33) },
+      { petId: mango.id, weightKg: 6.8, measuredAt: daysAgo(26) },
+      { petId: mango.id, weightKg: 7.0, measuredAt: daysAgo(12) },
+      { petId: mango.id, weightKg: 7.2, measuredAt: daysAgo(3) },
+    ],
   });
 
   await prisma.logEntry.createMany({

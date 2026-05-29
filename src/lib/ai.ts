@@ -95,7 +95,7 @@ export async function structureLogEntry(
       model: MODEL,
       schema: StructuredLog,
       system:
-        "You are a veterinary intake assistant for a pet shop. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing).",
+        "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing).",
       prompt: `Pet: ${petSummaryLine(pet)}\n\nLog entry: "${rawText}"`,
     });
     return object;

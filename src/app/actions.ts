@@ -66,6 +66,13 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
 }
 
 export async function deleteLogEntry(petId: string, id: string) {
+  const entry = await prisma.logEntry.findUnique({ where: { id } });
+  if (entry?.lockedAt) {
+    return {
+      error:
+        "This entry is part of a passport that's already been issued and can't be edited.",
+    };
+  }
   await prisma.logEntry.delete({ where: { id } });
   revalidatePath(`/pets/${petId}`);
   return { ok: true };
@@ -159,6 +166,7 @@ export async function createTransfer(petId: string, formData: FormData) {
     String(formData.get("visibility") || "READONLY_COPY") === "SHARED"
       ? "SHARED"
       : "READONLY_COPY";
+  const claimable = formData.get("claimable") === "on";
 
   await prisma.transfer.create({
     data: {
@@ -168,7 +176,15 @@ export async function createTransfer(petId: string, formData: FormData) {
       newOwnerEmail: String(formData.get("newOwnerEmail") || "") || null,
       note: String(formData.get("note") || "") || null,
       visibility,
+      claimable,
     },
+  });
+
+  // Credibility: freeze the pre-transfer history at the moment of issue so it
+  // can't be retroactively edited/backdated. Buyers can trust what they see.
+  await prisma.logEntry.updateMany({
+    where: { petId, lockedAt: null },
+    data: { lockedAt: new Date() },
   });
 
   // Homecoming milestone — keeps one continuous lifelong timeline, and marks
@@ -196,4 +212,56 @@ export async function createTransfer(petId: string, formData: FormData) {
   revalidatePath(`/pets/${petId}`);
   revalidatePath(`/pets/${petId}/transfer`);
   return { token };
+}
+
+// Buyer claims a passport to keep & continue the record. Only allowed if the
+// breeder enabled claiming; otherwise the passport stays view-only.
+// (Real account creation — WeChat / phone OTP — comes with the consumer surface.)
+export async function claimPassport(token: string, formData: FormData) {
+  const transfer = await prisma.transfer.findUnique({ where: { token } });
+  if (!transfer) return { error: "Passport not found" };
+  if (!transfer.claimable)
+    return { error: "This passport hasn't been made claimable by the breeder." };
+  if (transfer.claimedAt) return { error: "This passport is already claimed." };
+
+  const claimedByName =
+    String(formData.get("claimedByName") || "").trim() ||
+    transfer.newOwnerName ||
+    "New owner";
+
+  await prisma.transfer.update({
+    where: { id: transfer.id },
+    data: { claimedAt: new Date(), claimedByName },
+  });
+  revalidatePath(`/passport/${token}`);
+  return { ok: true, claimedByName };
+}
+
+export async function addWeight(petId: string, formData: FormData) {
+  const weightRaw = String(formData.get("weightKg") || "").trim();
+  const weightKg = Number(weightRaw);
+  if (!weightRaw || Number.isNaN(weightKg) || weightKg <= 0) {
+    return { error: "Enter a valid weight" };
+  }
+  const measuredRaw = String(formData.get("measuredAt") || "");
+
+  await prisma.weightEntry.create({
+    data: {
+      petId,
+      weightKg,
+      measuredAt: measuredRaw ? new Date(measuredRaw) : new Date(),
+      note: String(formData.get("note") || "") || null,
+    },
+  });
+
+  // Keep the profile's headline weight in sync with the latest measurement.
+  await prisma.pet.update({ where: { id: petId }, data: { weightKg } });
+  revalidatePath(`/pets/${petId}`);
+  return { ok: true };
+}
+
+export async function deleteWeight(petId: string, id: string) {
+  await prisma.weightEntry.delete({ where: { id } });
+  revalidatePath(`/pets/${petId}`);
+  return { ok: true };
 }

@@ -55,8 +55,24 @@ model Pet {
   reports       TriageReport[]
   transfers     Transfer[]
   attachments   Attachment[]
+  weights       WeightEntry[]
 
   @@index([orgId])
+}
+
+// Per-pet weight tracking — the daily-use ritual for breeders (neonate/growth
+// weights). Litter grouping is deferred; this is individual-pet only for now.
+model WeightEntry {
+  id         String   @id @default(cuid())
+  petId      String
+  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  weightKg   Float
+  measuredAt DateTime @default(now())
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([petId, measuredAt])
 }
 
 model Attachment {
@@ -89,6 +105,10 @@ model LogEntry {
   tags       String   @default("[]")          // JSON array of strings
   structured String?                          // JSON blob of extracted fields (symptoms, vitals, meds...)
   aiProcessed Boolean @default(false)
+
+  // Credibility: once a passport is issued, the pre-transfer history is frozen
+  // so it can't be retroactively edited/backdated. lockedAt marks that freeze.
+  lockedAt   DateTime?
 
   createdAt  DateTime @default(now())
 
@@ -161,8 +181,15 @@ model Transfer {
   newOwnerEmail String?
   note          String?
   visibility    String    @default("READONLY_COPY") // READONLY_COPY | SHARED
+
+  // Breeder controls whether the buyer may claim & continue the record. If
+  // false, the passport stays view-only/locked.
+  claimable     Boolean   @default(false)
+
   createdAt     DateTime  @default(now())
-  claimedAt     DateTime?
+  firstViewedAt DateTime? // first time the buyer opened the passport
+  claimedAt     DateTime? // set only when the buyer actually claims it
+  claimedByName String?
 
   @@index([petId])
 }
