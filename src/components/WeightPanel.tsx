@@ -6,6 +6,7 @@ import { Scale, Plus, Trash2, TrendingUp, TrendingDown, Minus } from "lucide-rea
 import { addWeight, deleteWeight } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/client";
 
 export type SerializedWeight = {
   id: string;
@@ -25,6 +26,7 @@ export function WeightPanel({
   weights: SerializedWeight[];
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export function WeightPanel({
     <Card className="p-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <Scale size={16} className="text-brand-500" />
-        Weight
+        {t.weight.title}
         {latest && (
           <span className="ml-1 font-normal text-muted">
             · {latest.weightKg} kg
@@ -94,7 +96,7 @@ export function WeightPanel({
           onClick={() => setOpen((v) => !v)}
           className="ml-auto inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
         >
-          <Plus size={13} /> Add
+          <Plus size={13} /> {t.common.add}
         </button>
       </div>
 
@@ -103,7 +105,7 @@ export function WeightPanel({
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="mb-1 block text-[11px] font-medium text-muted">
-                Weight (kg)
+                {t.weight.weightKg}
               </label>
               <input
                 name="weightKg"
@@ -117,7 +119,7 @@ export function WeightPanel({
             </div>
             <div>
               <label className="mb-1 block text-[11px] font-medium text-muted">
-                Date
+                {t.weight.date}
               </label>
               <input name="measuredAt" type="date" className={inputCls} />
             </div>
@@ -128,15 +130,14 @@ export function WeightPanel({
             disabled={pending}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
           >
-            {pending ? "Saving…" : "Save weight"}
+            {pending ? t.weight.saving : t.weight.save}
           </button>
         </form>
       )}
 
       {chrono.length === 0 ? (
         <p className="mt-3 text-xs text-muted">
-          No weights logged yet. Tracking weight builds a richer, more credible
-          history.
+          {t.weight.none}
         </p>
       ) : (
         <>
@@ -175,7 +176,7 @@ export function WeightPanel({
                 <button
                   onClick={() => remove(w.id)}
                   className="ml-auto text-slate-300 opacity-0 transition hover:text-rose-500 group-hover:opacity-100"
-                  aria-label="Delete weight entry"
+                  aria-label={t.weight.deleteEntry}
                 >
                   <Trash2 size={13} />
                 </button>

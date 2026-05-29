@@ -14,6 +14,9 @@ import { petAge, formatDate, relativeTime } from "@/lib/format";
 import { safeTags } from "@/lib/ai";
 import { ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
 import { ClaimPassport } from "@/components/ClaimPassport";
+import { LocaleToggle } from "@/components/LocaleToggle";
+import { getI18n } from "@/lib/i18n/server";
+import type { Sex } from "@/lib/constants";
 
 export default async function PassportPage({
   params,
@@ -21,6 +24,7 @@ export default async function PassportPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+  const { t } = await getI18n();
   const transfer = await prisma.transfer.findUnique({
     where: { token },
     include: {
@@ -49,7 +53,7 @@ export default async function PassportPage({
   const pet = transfer.pet;
   const meta = [
     pet.breed,
-    pet.sex && pet.sex !== "UNKNOWN" ? pet.sex.toLowerCase() : null,
+    pet.sex && pet.sex !== "UNKNOWN" ? t.sex[pet.sex as Sex] : null,
     petAge(pet.birthDate),
     pet.weightKg ? `${pet.weightKg} kg` : null,
     pet.color,
@@ -69,8 +73,8 @@ export default async function PassportPage({
     : 0;
   const spanLabel =
     spanDays >= 60
-      ? `${Math.round(spanDays / 30)} months`
-      : `${spanDays} day${spanDays === 1 ? "" : "s"}`;
+      ? t.passport.months(Math.round(spanDays / 30))
+      : t.passport.days(spanDays);
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,10 +83,13 @@ export default async function PassportPage({
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white">
             <HeartPulse size={18} />
           </div>
-          <span className="text-sm font-semibold text-foreground">Pet Health Passport</span>
-          <Badge tone="brand" className="ml-auto">
-            <ShieldCheck size={12} /> Tamper-evident
-          </Badge>
+          <span className="text-sm font-semibold text-foreground">{t.passport.title}</span>
+          <div className="ml-auto flex items-center gap-2">
+            <LocaleToggle compact />
+            <Badge tone="brand">
+              <ShieldCheck size={12} /> {t.passport.tamperEvident}
+            </Badge>
+          </div>
         </div>
       </header>
 
@@ -91,15 +98,15 @@ export default async function PassportPage({
           <div className="text-3xl">🎉</div>
           <h2 className="mt-2 text-lg font-semibold text-brand-900">
             {transfer.newOwnerName
-              ? `Welcome to the family, ${transfer.newOwnerName}!`
-              : "Welcome to the family!"}
+              ? t.passport.welcome(transfer.newOwnerName)
+              : t.passport.welcomeNoName}
           </h2>
           <p className="mt-1 text-sm text-brand-800">
-            {pet.name}&apos;s complete health history travels with them. Here it is.
+            {t.passport.travels(pet.name)}
           </p>
           {transfer.visibility === "SHARED" && (
             <span className="mt-2 inline-block rounded-full bg-white/70 px-2.5 py-0.5 text-[11px] font-medium text-brand-700 ring-1 ring-inset ring-brand-200">
-              Shared record with {pet.org.name}
+              {t.passport.sharedWith(pet.org.name)}
             </span>
           )}
         </div>
@@ -110,12 +117,10 @@ export default async function PassportPage({
             <Lock size={18} className="mt-0.5 shrink-0 text-emerald-600" />
             <div className="text-sm">
               <p className="font-medium text-foreground">
-                {entryCount} entries logged over {spanLabel}, frozen at handover.
+                {t.passport.trustHeadline(entryCount, spanLabel)}
               </p>
               <p className="mt-0.5 text-muted">
-                This history was recorded steadily over {pet.name}&apos;s life and
-                locked the moment the passport was issued — it can&apos;t be
-                backdated or edited after the fact.
+                {t.passport.trustBody(pet.name)}
               </p>
             </div>
           </div>
@@ -126,7 +131,7 @@ export default async function PassportPage({
           {transfer.claimedAt ? (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
               <CheckCircle2 size={16} />
-              Claimed by {transfer.claimedByName ?? "the new owner"} ·{" "}
+              {t.passport.claimedBy(transfer.claimedByName ?? t.transferPage.unnamed)} ·{" "}
               {formatDate(transfer.claimedAt)}
             </div>
           ) : transfer.claimable ? (
@@ -137,7 +142,7 @@ export default async function PassportPage({
             />
           ) : (
             <p className="rounded-2xl border border-border bg-surface p-4 text-center text-xs text-muted">
-              This is a view-only passport shared by {pet.org.name}.
+              {t.passport.viewOnly(pet.org.name)}
             </p>
           )}
         </div>
@@ -147,26 +152,26 @@ export default async function PassportPage({
             <PetAvatar species={pet.species} name={pet.name} size="lg" photoUrl={pet.photoUrl} />
             <div>
               <h1 className="text-2xl font-semibold text-foreground">{pet.name}</h1>
-              <p className="mt-1 text-sm capitalize text-muted">
-                {(pet.species === "DOG" ? "Dog" : "Cat") +
+              <p className="mt-1 text-sm text-muted">
+                {(pet.species === "DOG" ? t.species.DOG : t.species.CAT) +
                   (meta.length ? " · " + meta.join(" · ") : "")}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <Field label="Microchip" value={pet.microchip || "—"} />
-            <Field label="Intake date" value={formatDate(pet.intakeAt)} />
-            <Field label="From" value={pet.org.name} />
+            <Field label={t.passport.microchip} value={pet.microchip || "—"} />
+            <Field label={t.passport.intakeDate} value={formatDate(pet.intakeAt)} />
+            <Field label={t.passport.from} value={pet.org.name} />
             {(pet.sire || pet.dam) && (
               <Field
-                label="Parents"
+                label={t.passport.parents}
                 value={[pet.sire?.name, pet.dam?.name].filter(Boolean).join(" × ") || "—"}
               />
             )}
           </div>
           {transfer.note && (
             <div className="mt-4 rounded-xl bg-brand-50/60 p-3 text-sm text-brand-900">
-              <span className="font-medium">Note: </span>
+              <span className="font-medium">{t.passport.note}</span>
               {transfer.note}
             </div>
           )}
@@ -174,7 +179,7 @@ export default async function PassportPage({
 
         {pet.attachments.length > 0 && (
           <section className="mt-6">
-            <h2 className="mb-2 text-sm font-semibold text-foreground">Documents</h2>
+            <h2 className="mb-2 text-sm font-semibold text-foreground">{t.passport.documents}</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {pet.attachments.map((a) => {
                 const m = ATTACHMENT_KIND_META[a.kind as AttachmentKind];
@@ -199,7 +204,7 @@ export default async function PassportPage({
                     )}
                     <div className="p-2.5">
                       <div className="truncate text-sm font-medium text-foreground">{a.label}</div>
-                      <div className="text-xs text-muted">{m?.label}</div>
+                      <div className="text-xs text-muted">{t.attachmentKind[a.kind as AttachmentKind] ?? m?.label}</div>
                     </div>
                   </a>
                 );
@@ -211,7 +216,7 @@ export default async function PassportPage({
         {pet.reminders.length > 0 && (
           <section className="mt-6">
             <h2 className="mb-2 text-sm font-semibold text-foreground">
-              Upcoming care
+              {t.passport.upcomingCare}
             </h2>
             <div className="rounded-2xl border border-border bg-surface divide-y divide-border">
               {pet.reminders.map((r) => {
@@ -230,11 +235,11 @@ export default async function PassportPage({
 
         <section className="mt-6">
           <h2 className="mb-3 text-sm font-semibold text-foreground">
-            Complete health history ({pet.logs.length})
+            {t.passport.completeHistory(pet.logs.length)}
           </h2>
           {pet.logs.length === 0 ? (
             <p className="rounded-2xl border border-border bg-surface p-6 text-sm text-muted">
-              No entries recorded.
+              {t.passport.noEntries}
             </p>
           ) : (
             <ol className="relative space-y-3 border-l border-border pl-6">
@@ -249,11 +254,11 @@ export default async function PassportPage({
                     <div className="rounded-xl border border-border bg-surface p-3.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-medium text-foreground">
-                          {l.title || tm.label}
+                          {l.title || t.logType[l.type as LogType]}
                         </span>
-                        <Badge tone={tm.color as Tone}>{tm.label}</Badge>
+                        <Badge tone={tm.color as Tone}>{t.logType[l.type as LogType]}</Badge>
                         {l.severity !== "NONE" && (
-                          <Badge tone={sm.color as Tone}>{sm.label}</Badge>
+                          <Badge tone={sm.color as Tone}>{t.severity[l.severity as Severity]}</Badge>
                         )}
                         <span className="ml-auto text-[11px] text-slate-400">
                           {formatDate(l.occurredAt)}
@@ -262,14 +267,14 @@ export default async function PassportPage({
                       <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>
                       {safeTags(l.tags).length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {safeTags(l.tags).map((t) => (
-                            <span key={t} className="text-xs text-slate-400">#{t}</span>
+                          {safeTags(l.tags).map((tag) => (
+                            <span key={tag} className="text-xs text-slate-400">#{tag}</span>
                           ))}
                         </div>
                       )}
                       <div className="mt-1.5 flex items-center gap-1 text-[11px] text-slate-400">
                         <Lock size={10} />
-                        logged {relativeTime(l.createdAt)}
+                        {t.passport.logged} {relativeTime(l.createdAt)}
                       </div>
                     </div>
                   </li>
@@ -280,7 +285,7 @@ export default async function PassportPage({
         </section>
 
         <p className="mt-8 text-center text-xs text-muted">
-          Issued by {pet.org.name} via Pet Health OS · History frozen at handover
+          {t.passport.issuedBy(pet.org.name)}
         </p>
       </main>
     </div>

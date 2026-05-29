@@ -9,6 +9,7 @@ import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { WeightPanel } from "@/components/WeightPanel";
 import { safeTags } from "@/lib/ai";
 import { SEVERITY_META, Severity } from "@/lib/constants";
+import { getI18n } from "@/lib/i18n/server";
 
 export default async function PetOverview({
   params,
@@ -16,6 +17,7 @@ export default async function PetOverview({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { t } = await getI18n();
   const pet = await getPet(id);
   if (!pet) notFound();
 
@@ -58,13 +60,13 @@ export default async function PetOverview({
             <AlertTriangle size={20} className="mt-0.5 shrink-0 text-orange-500" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-orange-900">
-                {flagged.length} recent {flagged.length === 1 ? "entry needs" : "entries need"} attention
+                {t.petDetail.attentionTitle(flagged.length)}
               </p>
               <p className="mt-0.5 text-sm text-orange-800">
-                {pet.name} has high-severity items logged recently. Run a triage assessment to prepare for the vet.
+                {t.petDetail.attentionDesc(pet.name)}
               </p>
               <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-orange-900 underline">
-                <Stethoscope size={14} /> Go to triage
+                <Stethoscope size={14} /> {t.petDetail.goToTriage}
               </span>
             </div>
           </Link>
@@ -97,7 +99,7 @@ export default async function PetOverview({
         />
         {pet.notes && (
           <div className="rounded-2xl border border-border bg-surface p-4">
-            <h3 className="text-sm font-semibold text-foreground">Profile notes</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t.petDetail.profileNotes}</h3>
             <p className="mt-2 text-sm text-slate-600">{pet.notes}</p>
           </div>
         )}

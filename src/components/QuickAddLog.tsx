@@ -6,16 +6,11 @@ import { Sparkles, Send } from "lucide-react";
 import { addLogEntry } from "@/app/actions";
 import { Card, Badge, Tone } from "@/components/ui";
 import { LOG_TYPE_META, SEVERITY_META, LogType, Severity } from "@/lib/constants";
-
-const SUGGESTIONS = [
-  "Vomited once this morning, still active",
-  "Ate full meal, energetic on walk",
-  "Slight limp on back leg after playing",
-  "Gave monthly flea & tick treatment",
-];
+import { useI18n } from "@/lib/i18n/client";
 
 export function QuickAddLog({ petId }: { petId: string }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const [pending, startTransition] = useTransition();
   const [lastResult, setLastResult] = useState<{
@@ -47,9 +42,9 @@ export function QuickAddLog({ petId }: { petId: string }) {
     <Card className="p-4">
       <div className="flex items-center gap-2 text-sm font-medium text-foreground">
         <Sparkles size={16} className="text-brand-500" />
-        Log a note
+        {t.quickLog.title}
         <span className="ml-auto text-xs font-normal text-muted">
-          AI structures it automatically
+          {t.quickLog.aiStructures}
         </span>
       </div>
 
@@ -60,12 +55,12 @@ export function QuickAddLog({ petId }: { petId: string }) {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit();
         }}
         rows={3}
-        placeholder="Just write naturally — e.g. 'Threw up after breakfast, seems a bit tired but drinking water'"
+        placeholder={t.quickLog.placeholder}
         className="mt-3 w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
       />
 
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {SUGGESTIONS.map((s) => (
+        {t.quickLog.suggestions.map((s) => (
           <button
             key={s}
             onClick={() => setText(s)}
@@ -77,7 +72,7 @@ export function QuickAddLog({ petId }: { petId: string }) {
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-[11px] text-slate-400">⌘/Ctrl + Enter to save</span>
+        <span className="text-[11px] text-slate-400">{t.quickLog.saveHint}</span>
         <button
           onClick={submit}
           disabled={pending || !text.trim()}
@@ -85,11 +80,11 @@ export function QuickAddLog({ petId }: { petId: string }) {
         >
           {pending ? (
             <>
-              <Sparkles size={15} className="animate-pulse-dot" /> Structuring…
+              <Sparkles size={15} className="animate-pulse-dot" /> {t.quickLog.structuring}
             </>
           ) : (
             <>
-              <Send size={15} /> Save entry
+              <Send size={15} /> {t.quickLog.save}
             </>
           )}
         </button>
@@ -98,15 +93,15 @@ export function QuickAddLog({ petId }: { petId: string }) {
       {lastResult && (
         <div className="mt-3 animate-fade-in rounded-xl border border-brand-100 bg-brand-50/60 p-3">
           <div className="flex items-center gap-2 text-xs text-brand-700">
-            <Sparkles size={13} /> Saved &amp; structured as:
+            <Sparkles size={13} /> {t.quickLog.savedAs}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge tone="slate">
               {LOG_TYPE_META[lastResult.type as LogType].emoji}{" "}
-              {LOG_TYPE_META[lastResult.type as LogType].label}
+              {t.logType[lastResult.type as LogType]}
             </Badge>
             <Badge tone={SEVERITY_META[lastResult.severity as Severity].color as Tone}>
-              {SEVERITY_META[lastResult.severity as Severity].label}
+              {t.severity[lastResult.severity as Severity]}
             </Badge>
             {lastResult.tags.map((t) => (
               <span key={t} className="text-xs text-muted">

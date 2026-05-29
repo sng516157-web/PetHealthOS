@@ -6,6 +6,7 @@ import { Plus, FileText, Trash2, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui";
 import { addAttachment, deleteAttachment } from "@/app/actions";
 import { ATTACHMENT_KINDS, ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n/client";
 
 export type SerializedAttachment = {
   id: string;
@@ -30,6 +31,7 @@ export function DocumentsPanel({
   attachments: SerializedAttachment[];
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -59,16 +61,16 @@ export function DocumentsPanel({
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Documents</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t.documents.title}</h3>
         <button
           onClick={() => setOpen((o) => !o)}
           className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
         >
-          <Plus size={14} /> Add
+          <Plus size={14} /> {t.common.add}
         </button>
       </div>
       <p className="mt-0.5 text-xs text-muted">
-        Vaccine certs, antibody tests, pedigree, lab results — shown on the passport.
+        {t.documents.helper}
       </p>
 
       {open && (
@@ -76,11 +78,11 @@ export function DocumentsPanel({
           <select name="kind" className={inputCls} defaultValue="VACCINE_CERT">
             {ATTACHMENT_KINDS.map((k) => (
               <option key={k} value={k}>
-                {ATTACHMENT_KIND_META[k].label}
+                {t.attachmentKind[k as AttachmentKind]}
               </option>
             ))}
           </select>
-          <input name="label" placeholder="Label (optional)" className={inputCls} />
+          <input name="label" placeholder={t.documents.labelOptional} className={inputCls} />
           <input
             name="file"
             type="file"
@@ -94,14 +96,14 @@ export function DocumentsPanel({
             disabled={pending}
             className="w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
           >
-            {pending ? "Uploading…" : "Upload"}
+            {pending ? t.documents.uploading : t.documents.upload}
           </button>
         </form>
       )}
 
       <div className="mt-3 space-y-2">
         {attachments.length === 0 && (
-          <p className="py-2 text-center text-sm text-muted">No documents yet.</p>
+          <p className="py-2 text-center text-sm text-muted">{t.documents.none}</p>
         )}
         {attachments.map((a) => {
           const meta = ATTACHMENT_KIND_META[a.kind as AttachmentKind];
@@ -117,7 +119,7 @@ export function DocumentsPanel({
               )}
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-foreground">{a.label}</div>
-                <div className="text-xs text-muted">{meta?.label}</div>
+                <div className="text-xs text-muted">{t.attachmentKind[a.kind as AttachmentKind] ?? meta?.label}</div>
               </div>
               <a
                 href={a.url}

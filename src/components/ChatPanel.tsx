@@ -2,15 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Bot, User } from "lucide-react";
+import { useI18n } from "@/lib/i18n/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
-
-const STARTERS = [
-  "What's the latest on this pet's condition?",
-  "Should I be worried about anything?",
-  "Summarize the health history for a new owner.",
-  "What should I tell the vet?",
-];
 
 export function ChatPanel({
   petId,
@@ -21,6 +15,8 @@ export function ChatPanel({
   petName: string;
   aiEnabled: boolean;
 }) {
+  const { t } = useI18n();
+  const STARTERS = t.chat.starters;
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -62,7 +58,7 @@ export function ChatPanel({
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "Sorry, something went wrong reaching the assistant." },
+        { role: "assistant", content: t.chat.error },
       ]);
     } finally {
       setBusy(false);
@@ -76,14 +72,14 @@ export function ChatPanel({
           <Bot size={17} />
         </div>
         <div>
-          <div className="text-sm font-semibold text-foreground">{petName}&apos;s assistant</div>
+          <div className="text-sm font-semibold text-foreground">{t.chat.assistant(petName)}</div>
           <div className="text-[11px] text-muted">
-            Grounded in this pet&apos;s health log only
+            {t.chat.grounded}
           </div>
         </div>
         {!aiEnabled && (
           <span className="ml-auto rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
-            Demo mode
+            {t.common.demoBadge}
           </span>
         )}
       </div>
@@ -95,10 +91,10 @@ export function ChatPanel({
               <Sparkles size={22} />
             </div>
             <p className="mt-3 text-sm font-medium text-foreground">
-              Ask anything about {petName}
+              {t.chat.askAnything(petName)}
             </p>
             <p className="mt-1 max-w-xs text-sm text-muted">
-              I&apos;ll answer using everything in {petName}&apos;s health log.
+              {t.chat.askDesc(petName)}
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {STARTERS.map((s) => (
@@ -117,7 +113,7 @@ export function ChatPanel({
         )}
         {busy && messages[messages.length - 1]?.role === "user" && (
           <div className="flex items-center gap-2 text-sm text-muted">
-            <Sparkles size={15} className="animate-pulse-dot text-brand-500" /> Thinking…
+            <Sparkles size={15} className="animate-pulse-dot text-brand-500" /> {t.chat.thinking}
           </div>
         )}
       </div>
@@ -132,7 +128,7 @@ export function ChatPanel({
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={`Message ${petName}'s assistant…`}
+          placeholder={t.chat.messagePlaceholder(petName)}
           className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
         />
         <button

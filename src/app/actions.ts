@@ -1,12 +1,37 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getActiveOrg, getPetForAI } from "@/lib/data";
 import { structureLogEntry, generateTriage } from "@/lib/ai";
+import { getLocale } from "@/lib/i18n/server";
+import { LOCALE_COOKIE, isLocale } from "@/lib/i18n/config";
+
+export async function setLocale(locale: string) {
+  if (!isLocale(locale)) return { error: "Unsupported locale" };
+  const store = await cookies();
+  store.set(LOCALE_COOKIE, locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  return { ok: true };
+}
+
+// Save an uploaded file into public/uploads and return its public URL.
+async function saveUpload(file: File): Promise<string> {
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
+  const fileName = `${randomBytes(8).toString("hex")}.${ext}`;
+  const dir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, fileName), bytes);
+  return `/uploads/${fileName}`;
+}
 
 export async function addPet(formData: FormData) {
   const org = await getActiveOrg();
@@ -15,6 +40,12 @@ export async function addPet(formData: FormData) {
 
   const birthDateRaw = String(formData.get("birthDate") || "");
   const weightRaw = String(formData.get("weightKg") || "");
+
+  const photo = formData.get("photo") as File | null;
+  let photoUrl: string | null = null;
+  if (photo && photo.size > 0 && photo.size <= 8 * 1024 * 1024) {
+    photoUrl = await saveUpload(photo);
+  }
 
   const pet = await prisma.pet.create({
     data: {
@@ -26,6 +57,7 @@ export async function addPet(formData: FormData) {
       color: String(formData.get("color") || "") || null,
       birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
       weightKg: weightRaw ? Number(weightRaw) : null,
+      photoUrl,
       notes: String(formData.get("notes") || "") || null,
       sireId: String(formData.get("sireId") || "") || null,
       damId: String(formData.get("damId") || "") || null,
@@ -43,7 +75,8 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
   const pet = await prisma.pet.findUnique({ where: { id: petId } });
   if (!pet) return { error: "Pet not found" };
 
-  const structured = await structureLogEntry(text, pet);
+  const locale = await getLocale();
+  const structured = await structureLogEntry(text, pet, locale);
 
   await prisma.logEntry.create({
     data: {
@@ -114,7 +147,8 @@ export async function generateTriageReport(petId: string) {
   const pet = await getPetForAI(petId);
   if (!pet) return { error: "Pet not found" };
 
-  const result = await generateTriage(pet, pet.logs);
+  const locale = await getLocale();
+  const result = await generateTriage(pet, pet.logs, locale);
   const report = await prisma.triageReport.create({
     data: {
       petId,
@@ -133,24 +167,32 @@ export async function addAttachment(petId: string, formData: FormData) {
   if (!file || file.size === 0) return { error: "Choose a file to upload" };
   if (file.size > 8 * 1024 * 1024) return { error: "File must be under 8 MB" };
 
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
-  const fileName = `${randomBytes(8).toString("hex")}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, fileName), bytes);
+  const url = await saveUpload(file);
 
   await prisma.attachment.create({
     data: {
       petId,
       kind: String(formData.get("kind") || "OTHER"),
       label: String(formData.get("label") || "") || file.name,
-      url: `/uploads/${fileName}`,
+      url,
       mimeType: file.type || null,
     },
   });
   revalidatePath(`/pets/${petId}`);
   return { ok: true };
+}
+
+export async function updatePetPhoto(petId: string, formData: FormData) {
+  const file = formData.get("photo") as File | null;
+  if (!file || file.size === 0) return { error: "Choose an image" };
+  if (file.size > 8 * 1024 * 1024) return { error: "Image must be under 8 MB" };
+
+  const url = await saveUpload(file);
+  await prisma.pet.update({ where: { id: petId }, data: { photoUrl: url } });
+  revalidatePath(`/pets/${petId}`);
+  revalidatePath("/pets");
+  revalidatePath("/");
+  return { ok: true, url };
 }
 
 export async function deleteAttachment(petId: string, id: string) {

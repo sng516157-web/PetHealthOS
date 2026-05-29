@@ -7,6 +7,8 @@ import { GenerateTriageButton } from "@/components/GenerateTriageButton";
 import { URGENCY_META, SEVERITY_META, Urgency, Severity } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
 import type { TriageResult } from "@/lib/ai";
+import { getI18n } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/en";
 
 export default async function TriagePage({
   params,
@@ -14,6 +16,7 @@ export default async function TriagePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { t } = await getI18n();
   const pet = await prisma.pet.findUnique({
     where: { id },
     include: { reports: { orderBy: { createdAt: "desc" }, take: 5 } },
@@ -27,10 +30,9 @@ export default async function TriagePage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-lg">
-          <h2 className="text-lg font-semibold text-foreground">Triage & vet report</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t.triage.title}</h2>
           <p className="mt-1 text-sm text-muted">
-            An AI assessment of {pet.name}&apos;s current health log to help you
-            decide on care and communicate clearly with a veterinarian.
+            {t.triage.subtitle(pet.name)}
           </p>
         </div>
         <GenerateTriageButton petId={pet.id} hasExisting={Boolean(latest)} />
@@ -38,23 +40,22 @@ export default async function TriagePage({
 
       {!hasAI() && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <strong>Demo mode:</strong> triage uses a rule-based assessment from
-          log severity. Connect an AI key for a richer clinical-style report.
+          <strong>{t.common.demoBadge}:</strong> {t.triage.demoNote}
         </div>
       )}
 
       {!report ? (
         <EmptyState
           icon={<Stethoscope size={40} />}
-          title="No triage report yet"
-          description={`Generate a triage assessment to summarize ${pet.name}'s condition and prepare for a vet visit.`}
+          title={t.triage.none}
+          description={t.triage.noneDesc(pet.name)}
         />
       ) : (
         <div className="space-y-5">
-          <UrgencyBanner urgency={report.urgency as Urgency} />
+          <UrgencyBanner urgency={report.urgency as Urgency} t={t} />
 
           <Card className="p-5">
-            <SectionHead icon={<Stethoscope size={16} />} title="Summary" />
+            <SectionHead icon={<Stethoscope size={16} />} title={t.triage.summary} />
             <p className="mt-2 text-sm leading-relaxed text-slate-700">{report.summary}</p>
             <p className="mt-3 rounded-lg bg-background p-3 text-sm font-medium text-foreground">
               👉 {report.recommendation}
@@ -63,14 +64,14 @@ export default async function TriagePage({
 
           {report.concerns.length > 0 && (
             <Card className="p-5">
-              <SectionHead icon={<AlertCircle size={16} />} title="Concerns" />
+              <SectionHead icon={<AlertCircle size={16} />} title={t.triage.concerns} />
               <div className="mt-3 space-y-3">
                 {report.concerns.map((c, i) => (
                   <div key={i} className="rounded-xl border border-border p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-medium text-foreground">{c.issue}</span>
                       <Badge tone={SEVERITY_META[c.severity as Severity].color as Tone}>
-                        {SEVERITY_META[c.severity as Severity].label}
+                        {t.severity[c.severity as Severity]}
                       </Badge>
                     </div>
                     <p className="mt-1 text-sm text-slate-600">{c.detail}</p>
@@ -82,7 +83,7 @@ export default async function TriagePage({
 
           {report.vetQuestions.length > 0 && (
             <Card className="p-5">
-              <SectionHead icon={<MessageSquareText size={16} />} title="What to tell / ask your vet" />
+              <SectionHead icon={<MessageSquareText size={16} />} title={t.triage.vetQuestions} />
               <ul className="mt-3 space-y-2">
                 {report.vetQuestions.map((q, i) => (
                   <li key={i} className="flex gap-2 text-sm text-slate-700">
@@ -96,7 +97,7 @@ export default async function TriagePage({
 
           {report.positiveSigns.length > 0 && (
             <Card className="p-5">
-              <SectionHead icon={<CheckCircle2 size={16} />} title="Reassuring signs" />
+              <SectionHead icon={<CheckCircle2 size={16} />} title={t.triage.reassuring} />
               <ul className="mt-3 space-y-1.5">
                 {report.positiveSigns.map((p, i) => (
                   <li key={i} className="flex gap-2 text-sm text-slate-700">
@@ -109,7 +110,7 @@ export default async function TriagePage({
           )}
 
           <p className="text-center text-xs text-muted">
-            Generated {formatDateTime(latest.createdAt)} · Not a substitute for professional veterinary advice.
+            {t.triage.generatedAt} {formatDateTime(latest.createdAt)} · {t.triage.disclaimer}
           </p>
         </div>
       )}
@@ -126,7 +127,7 @@ function SectionHead({ icon, title }: { icon: React.ReactNode; title: string }) 
   );
 }
 
-function UrgencyBanner({ urgency }: { urgency: Urgency }) {
+function UrgencyBanner({ urgency, t }: { urgency: Urgency; t: Dictionary }) {
   const meta = URGENCY_META[urgency];
   const toneRing: Record<string, string> = {
     rose: "border-rose-200 bg-rose-50",
@@ -141,8 +142,8 @@ function UrgencyBanner({ urgency }: { urgency: Urgency }) {
         {urgency === "EMERGENCY" || urgency === "URGENT" ? "🚨" : urgency === "ROUTINE" ? "✅" : "⚠️"}
       </div>
       <div>
-        <Badge tone={meta.color as Tone}>{meta.label}</Badge>
-        <p className="mt-1.5 text-sm font-medium text-foreground">{meta.blurb}</p>
+        <Badge tone={meta.color as Tone}>{t.urgency[urgency].label}</Badge>
+        <p className="mt-1.5 text-sm font-medium text-foreground">{t.urgency[urgency].blurb}</p>
       </div>
     </div>
   );

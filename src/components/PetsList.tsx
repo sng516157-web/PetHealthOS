@@ -6,6 +6,8 @@ import { Search, Plus } from "lucide-react";
 import { Badge, Card, PetAvatar, EmptyState, Tone } from "@/components/ui";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 import { petAge, relativeTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/client";
+import type { PetStatus } from "@/lib/constants";
 
 type PetItem = {
   id: string;
@@ -31,14 +33,8 @@ const STATUS_TONE: Record<string, Tone> = {
   ARCHIVED: "slate",
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: "Active",
-  UNDER_OBSERVATION: "Observation",
-  TRANSFERRED: "Transferred",
-  ARCHIVED: "Archived",
-};
-
 export function PetsList({ pets }: { pets: PetItem[] }) {
+  const { t } = useI18n();
   const [q, setQ] = useState("");
   const [species, setSpecies] = useState<"ALL" | "DOG" | "CAT">("ALL");
 
@@ -59,7 +55,7 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by name or breed…"
+            placeholder={t.pets.searchPlaceholder}
             className="w-full rounded-xl border border-border bg-surface py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
         </div>
@@ -72,7 +68,7 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
                 species === s ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:text-foreground"
               }`}
             >
-              {s === "ALL" ? "All" : s === "DOG" ? "Dogs" : "Cats"}
+              {s === "ALL" ? t.species.all : s === "DOG" ? t.species.dogs : t.species.cats}
             </button>
           ))}
         </div>
@@ -81,14 +77,14 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
       {filtered.length === 0 ? (
         <div className="mt-6">
           <EmptyState
-            title="No pets found"
-            description={q ? "Try a different search." : "Add your first pet to get started."}
+            title={t.pets.noPetsFound}
+            description={q ? t.pets.tryDifferent : t.pets.addFirst}
             action={
               <Link
                 href="/pets/new"
                 className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
               >
-                <Plus size={16} /> Add pet
+                <Plus size={16} /> {t.common.addPet}
               </Link>
             }
           />
@@ -104,11 +100,11 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate font-semibold text-foreground">{p.name}</span>
                       <Badge tone={STATUS_TONE[p.status] ?? "slate"}>
-                        {STATUS_LABEL[p.status] ?? p.status}
+                        {t.statusShort[p.status as PetStatus] ?? p.status}
                       </Badge>
                     </div>
                     <div className="truncate text-xs text-muted">
-                      {p.breed || (p.species === "DOG" ? "Dog" : "Cat")}
+                      {p.breed || (p.species === "DOG" ? t.species.DOG : t.species.CAT)}
                       {petAge(p.birthDate) ? ` · ${petAge(p.birthDate)}` : ""}
                     </div>
                   </div>
@@ -117,7 +113,7 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
                   {p.last ? (
                     <div className="flex items-center gap-2">
                       <Badge tone={SEVERITY_META[p.last.severity as Severity].color as Tone}>
-                        {SEVERITY_META[p.last.severity as Severity].label}
+                        {t.severity[p.last.severity as Severity]}
                       </Badge>
                       <span className="truncate text-xs text-muted">
                         {p.last.title || p.last.rawText}
@@ -127,7 +123,7 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
                       </span>
                     </div>
                   ) : (
-                    <span className="text-xs text-muted">No entries yet</span>
+                    <span className="text-xs text-muted">{t.pets.noEntriesYet}</span>
                   )}
                 </div>
               </Card>

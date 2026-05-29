@@ -11,6 +11,7 @@ import {
   ReminderCategory,
 } from "@/lib/constants";
 import { formatDate, relativeTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/client";
 
 export type SerializedReminder = {
   id: string;
@@ -32,6 +33,7 @@ export function RemindersPanel({
   reminders: SerializedReminder[];
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -58,46 +60,46 @@ export function RemindersPanel({
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Reminders & schedule</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t.remindersPanel.title}</h3>
         <button
           onClick={() => setOpen((o) => !o)}
           className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
         >
-          <Plus size={14} /> Add
+          <Plus size={14} /> {t.common.add}
         </button>
       </div>
 
       {open && (
         <form action={add} className="mt-3 space-y-2 rounded-xl border border-border bg-background p-3">
-          <input name="title" required placeholder="e.g. Rabies vaccine" className={inputCls} />
+          <input name="title" required placeholder={t.remindersPanel.titlePlaceholder} className={inputCls} />
           <div className="grid grid-cols-2 gap-2">
             <select name="category" className={inputCls} defaultValue="VACCINE">
               {REMINDER_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {REMINDER_CATEGORY_META[c].label}
+                  {t.reminderCat[c as ReminderCategory]}
                 </option>
               ))}
             </select>
             <input name="dueAt" type="date" required className={inputCls} />
           </div>
           <select name="recurrence" className={inputCls} defaultValue="">
-            <option value="">One-time</option>
-            <option value="MONTHLY">Monthly</option>
-            <option value="YEARLY">Yearly</option>
+            <option value="">{t.remindersPanel.oneTime}</option>
+            <option value="MONTHLY">{t.remindersPanel.monthly}</option>
+            <option value="YEARLY">{t.remindersPanel.yearly}</option>
           </select>
           <button
             type="submit"
             disabled={pending}
             className="w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
           >
-            Add reminder
+            {t.remindersPanel.addReminder}
           </button>
         </form>
       )}
 
       <div className="mt-3 space-y-2">
         {pendingItems.length === 0 && done.length === 0 && (
-          <p className="py-3 text-center text-sm text-muted">No reminders yet.</p>
+          <p className="py-3 text-center text-sm text-muted">{t.remindersPanel.noneYet}</p>
         )}
         {pendingItems.map((r) => {
           const meta = REMINDER_CATEGORY_META[r.category as ReminderCategory];
@@ -107,7 +109,7 @@ export function RemindersPanel({
               <button
                 onClick={() => toggle(r.id)}
                 className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-slate-300 text-transparent transition hover:border-brand-500 hover:text-brand-500"
-                aria-label="Mark done"
+                aria-label={t.remindersPanel.markDone}
               >
                 <Check size={13} />
               </button>

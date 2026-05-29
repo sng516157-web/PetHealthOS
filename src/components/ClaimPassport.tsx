@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Check } from "lucide-react";
 import { claimPassport } from "@/app/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 export function ClaimPassport({
   token,
@@ -15,6 +16,7 @@ export function ClaimPassport({
   defaultName?: string | null;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -32,17 +34,16 @@ export function ClaimPassport({
     return (
       <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-5 text-center">
         <p className="text-sm font-medium text-brand-900">
-          Keep {petName}&apos;s record for life
+          {t.claim.keepForLife(petName)}
         </p>
         <p className="mx-auto mt-1 max-w-md text-sm text-brand-800">
-          Claim this passport to continue the same timeline — log health, get
-          reminders, and ask the AI assistant about {petName}. It&apos;s free.
+          {t.claim.desc(petName)}
         </p>
         <button
           onClick={() => setOpen(true)}
           className="mt-3 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
         >
-          <Heart size={15} /> Claim &amp; keep it
+          <Heart size={15} /> {t.claim.claimKeep}
         </button>
       </div>
     );
@@ -53,19 +54,18 @@ export function ClaimPassport({
       <form action={submit} className="mx-auto max-w-sm space-y-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-brand-800">
-            Your name
+            {t.claim.yourName}
           </label>
           <input
             name="claimedByName"
             defaultValue={defaultName ?? ""}
             required
-            placeholder="e.g. Jordan Lee"
+            placeholder={t.claim.yourNamePlaceholder}
             className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
         </div>
         <p className="text-[11px] text-brand-700">
-          A full account (WeChat / phone) comes with the mobile app — for now this
-          links the record to you.
+          {t.claim.accountNote}
         </p>
         {error && <p className="text-xs text-rose-600">{error}</p>}
         <button
@@ -74,10 +74,10 @@ export function ClaimPassport({
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-60"
         >
           {pending ? (
-            "Claiming…"
+            t.claim.claiming
           ) : (
             <>
-              <Check size={15} /> Confirm claim
+              <Check size={15} /> {t.claim.confirm}
             </>
           )}
         </button>

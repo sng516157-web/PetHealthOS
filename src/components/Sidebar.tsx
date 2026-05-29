@@ -9,15 +9,18 @@ import {
   HeartPulse,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/client";
+import { LocaleToggle } from "@/components/LocaleToggle";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/pets", label: "Pets", icon: PawPrint },
-  { href: "/reminders", label: "Reminders", icon: BellRing },
+  { href: "/", key: "dashboard" as const, icon: LayoutDashboard, exact: true },
+  { href: "/pets", key: "pets" as const, icon: PawPrint },
+  { href: "/reminders", key: "reminders" as const, icon: BellRing },
 ];
 
 export function Sidebar({ orgName }: { orgName: string }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface px-4 py-5 md:flex">
       <Link href="/" className="flex items-center gap-2.5 px-2">
@@ -26,9 +29,9 @@ export function Sidebar({ orgName }: { orgName: string }) {
         </div>
         <div className="leading-tight">
           <div className="text-sm font-semibold text-foreground">
-            Pet Health OS
+            {t.common.appName}
           </div>
-          <div className="text-[11px] text-muted">Trusted lifelong health passports</div>
+          <div className="text-[11px] text-muted">{t.nav.tagline}</div>
         </div>
       </Link>
 
@@ -50,18 +53,21 @@ export function Sidebar({ orgName }: { orgName: string }) {
               )}
             >
               <Icon size={18} className={active ? "text-brand-600" : "text-slate-400"} />
-              {item.label}
+              {t.nav[item.key]}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto rounded-xl border border-border bg-background p-3">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-muted">
-          Organization
-        </div>
-        <div className="mt-1 truncate text-sm font-semibold text-foreground">
-          {orgName}
+      <div className="mt-auto space-y-3">
+        <LocaleToggle />
+        <div className="rounded-xl border border-border bg-background p-3">
+          <div className="text-[11px] font-medium uppercase tracking-wide text-muted">
+            {t.nav.organization}
+          </div>
+          <div className="mt-1 truncate text-sm font-semibold text-foreground">
+            {orgName}
+          </div>
         </div>
       </div>
     </aside>
@@ -70,8 +76,9 @@ export function Sidebar({ orgName }: { orgName: string }) {
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { t } = useI18n();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface/95 backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-border bg-surface/95 backdrop-blur md:hidden">
       {NAV.map((item) => {
         const active = item.exact
           ? pathname === item.href
@@ -87,10 +94,13 @@ export function MobileNav() {
             )}
           >
             <Icon size={20} />
-            {item.label}
+            {t.nav[item.key]}
           </Link>
         );
       })}
+      <div className="flex items-center px-2">
+        <LocaleToggle compact />
+      </div>
     </nav>
   );
 }

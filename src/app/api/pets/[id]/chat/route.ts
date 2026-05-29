@@ -1,6 +1,7 @@
 import { streamText } from "ai";
 import { getPetForAI } from "@/lib/data";
-import { hasAI, buildPetContext, petSummaryLine, safeTags } from "@/lib/ai";
+import { hasAI, buildPetContext, petSummaryLine, safeTags, languageInstruction } from "@/lib/ai";
+import { getLocale } from "@/lib/i18n/server";
 
 const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
 
@@ -12,6 +13,7 @@ export async function POST(
 ) {
   const { id } = await params;
   const { messages } = (await req.json()) as { messages: ClientMessage[] };
+  const locale = await getLocale();
 
   const pet = await getPetForAI(id);
   if (!pet) {
@@ -30,11 +32,12 @@ Rules:
 - You are NOT a veterinarian and must not give a definitive diagnosis. Explain possibilities, suggest what to monitor, flag urgency.
 - For anything concerning, recommend contacting a veterinarian.
 - Be warm, concise, and practical. Use short paragraphs or bullets.
+- ${languageInstruction(locale)}
 
 ${context}`;
 
   if (!hasAI()) {
-    return mockStream(pet, messages);
+    return mockStream(pet, messages, locale);
   }
 
   const result = streamText({
@@ -49,19 +52,25 @@ ${context}`;
 function mockStream(
   pet: NonNullable<Awaited<ReturnType<typeof getPetForAI>>>,
   messages: ClientMessage[],
+  locale: "en" | "zh" = "en",
 ) {
   const last = messages[messages.length - 1]?.content ?? "";
   const recent = pet.logs.slice(0, 3);
   const lines: string[] = [];
+  const zh = locale === "zh";
   lines.push(
-    `Here's what I can see in ${pet.name}'s health log (demo mode — no AI key connected):\n`,
+    zh
+      ? `以下是我在 ${pet.name} 的健康记录中看到的内容（演示模式 —— 未连接 AI 密钥）：\n`
+      : `Here's what I can see in ${pet.name}'s health log (demo mode — no AI key connected):\n`,
   );
   if (recent.length === 0) {
     lines.push(
-      `There are no log entries yet. Add some notes on the Health Log tab and I'll be able to reason about them.`,
+      zh
+        ? `目前还没有记录。在『健康记录』标签页添加一些内容，我就能据此为你分析。`
+        : `There are no log entries yet. Add some notes on the Health Log tab and I'll be able to reason about them.`,
     );
   } else {
-    lines.push(`**Recent entries:**`);
+    lines.push(zh ? `**最近的记录：**` : `**Recent entries:**`);
     for (const l of recent) {
       const tags = safeTags(l.tags);
       lines.push(
@@ -69,7 +78,9 @@ function mockStream(
       );
     }
     lines.push(
-      `\nYou asked: "${last}". With an AI key connected (set AI_GATEWAY_API_KEY), I'd answer this in natural language grounded in ${petSummaryLine(pet)}'s full history above. For anything concerning, please consult a veterinarian.`,
+      zh
+        ? `\n你问的是：“${last}”。连接 AI 密钥后（设置 AI_GATEWAY_API_KEY），我就能基于上面 ${petSummaryLine(pet)} 的完整历史，用自然语言回答这个问题。如有任何令人担心的情况，请咨询兽医。`
+        : `\nYou asked: "${last}". With an AI key connected (set AI_GATEWAY_API_KEY), I'd answer this in natural language grounded in ${petSummaryLine(pet)}'s full history above. For anything concerning, please consult a veterinarian.`,
     );
   }
   const text = lines.join("\n");

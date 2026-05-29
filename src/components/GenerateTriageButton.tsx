@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Stethoscope, RefreshCw } from "lucide-react";
 import { generateTriageReport } from "@/app/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 export function GenerateTriageButton({
   petId,
@@ -13,6 +14,7 @@ export function GenerateTriageButton({
   hasExisting: boolean;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [pending, startTransition] = useTransition();
 
   function run() {
@@ -30,11 +32,11 @@ export function GenerateTriageButton({
     >
       {pending ? (
         <>
-          <RefreshCw size={16} className="animate-spin" /> Assessing…
+          <RefreshCw size={16} className="animate-spin" /> {t.triage.assessing}
         </>
       ) : (
         <>
-          <Stethoscope size={16} /> {hasExisting ? "Re-run triage" : "Generate triage"}
+          <Stethoscope size={16} /> {hasExisting ? t.triage.rerun : t.triage.generate}
         </>
       )}
     </button>

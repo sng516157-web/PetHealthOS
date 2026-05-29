@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/client";
 
 export function PetTabs({ petId }: { petId: string }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const base = `/pets/${petId}`;
   const tabs = [
-    { href: base, label: "Health Log", exact: true },
-    { href: `${base}/chat`, label: "AI Assistant" },
-    { href: `${base}/triage`, label: "Triage" },
-    { href: `${base}/transfer`, label: "Transfer" },
+    { href: base, label: t.tabs.healthLog, exact: true },
+    { href: `${base}/chat`, label: t.tabs.aiAssistant },
+    { href: `${base}/triage`, label: t.tabs.triage },
+    { href: `${base}/transfer`, label: t.tabs.transfer },
   ];
   return (
     <div className="flex gap-1 overflow-x-auto border-b border-border">

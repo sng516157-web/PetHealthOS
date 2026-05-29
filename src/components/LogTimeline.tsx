@@ -12,6 +12,7 @@ import {
   Severity,
 } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/client";
 
 export type SerializedLog = {
   id: string;
@@ -32,6 +33,7 @@ export function LogTimeline({
   logs: SerializedLog[];
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [filter, setFilter] = useState<string>("ALL");
   const [, startTransition] = useTransition();
 
@@ -52,8 +54,8 @@ export function LogTimeline({
   if (logs.length === 0) {
     return (
       <EmptyState
-        title="No log entries yet"
-        description="Add your first note above. The AI will categorize it and build this pet's health timeline."
+        title={t.timeline.noEntries}
+        description={t.timeline.noEntriesDesc}
       />
     );
   }
@@ -62,11 +64,11 @@ export function LogTimeline({
     <div>
       <div className="mb-4 flex flex-wrap gap-1.5">
         <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")}>
-          All ({logs.length})
+          {t.timeline.all(logs.length)}
         </FilterChip>
-        {types.map((t) => (
-          <FilterChip key={t} active={filter === t} onClick={() => setFilter(t)}>
-            {LOG_TYPE_META[t as LogType].emoji} {LOG_TYPE_META[t as LogType].label}
+        {types.map((ty) => (
+          <FilterChip key={ty} active={filter === ty} onClick={() => setFilter(ty)}>
+            {LOG_TYPE_META[ty as LogType].emoji} {t.logType[ty as LogType]}
           </FilterChip>
         ))}
       </div>
@@ -85,11 +87,11 @@ export function LogTimeline({
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium text-foreground">
-                        {l.title || typeMeta.label}
+                        {l.title || t.logType[l.type as LogType]}
                       </span>
-                      <Badge tone={typeMeta.color as Tone}>{typeMeta.label}</Badge>
+                      <Badge tone={typeMeta.color as Tone}>{t.logType[l.type as LogType]}</Badge>
                       {l.severity !== "NONE" && (
-                        <Badge tone={sevMeta.color as Tone}>{sevMeta.label}</Badge>
+                        <Badge tone={sevMeta.color as Tone}>{t.severity[l.severity as Severity]}</Badge>
                       )}
                     </div>
                     <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>
@@ -106,7 +108,7 @@ export function LogTimeline({
                   <button
                     onClick={() => remove(l.id)}
                     className="shrink-0 rounded-lg p-1.5 text-slate-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-500 group-hover:opacity-100"
-                    aria-label="Delete entry"
+                    aria-label={t.timeline.deleteEntry}
                   >
                     <Trash2 size={15} />
                   </button>

@@ -5,8 +5,10 @@ import { Card, Badge, EmptyState, Tone } from "@/components/ui";
 import { ReminderToggle } from "@/components/ReminderToggle";
 import { REMINDER_CATEGORY_META, ReminderCategory } from "@/lib/constants";
 import { formatDate, relativeTime } from "@/lib/format";
+import { getI18n } from "@/lib/i18n/server";
 
 export default async function RemindersPage() {
+  const { t } = await getI18n();
   const org = await getActiveOrg();
   const reminders = await prisma.reminder.findMany({
     where: { pet: { orgId: org.id } },
@@ -18,26 +20,26 @@ export default async function RemindersPage() {
   const week = 1000 * 60 * 60 * 24 * 7;
   const active = reminders.filter((r) => !r.completed);
   const groups = {
-    Overdue: active.filter((r) => r.dueAt.getTime() < now),
-    "This week": active.filter(
+    [t.remindersPage.overdue]: active.filter((r) => r.dueAt.getTime() < now),
+    [t.remindersPage.thisWeek]: active.filter(
       (r) => r.dueAt.getTime() >= now && r.dueAt.getTime() < now + week,
     ),
-    Upcoming: active.filter((r) => r.dueAt.getTime() >= now + week),
+    [t.remindersPage.upcoming]: active.filter((r) => r.dueAt.getTime() >= now + week),
   };
   const completed = reminders.filter((r) => r.completed);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 md:px-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">Reminders</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t.remindersPage.title}</h1>
       <p className="mt-1 text-sm text-muted">
-        Vaccines, medications and appointments across all pets.
+        {t.remindersPage.subtitle}
       </p>
 
       {active.length === 0 && completed.length === 0 ? (
         <div className="mt-6">
           <EmptyState
-            title="No reminders"
-            description="Open a pet and add a reminder from the Health Log tab."
+            title={t.remindersPage.none}
+            description={t.remindersPage.noneDesc}
           />
         </div>
       ) : (
@@ -83,7 +85,7 @@ export default async function RemindersPage() {
 
           {completed.length > 0 && (
             <section>
-              <h2 className="mb-2 text-sm font-semibold text-muted">Completed</h2>
+              <h2 className="mb-2 text-sm font-semibold text-muted">{t.remindersPage.completed}</h2>
               <Card className="divide-y divide-border">
                 {completed.map((r) => (
                   <div key={r.id} className="flex items-center gap-3 p-3.5 opacity-60">

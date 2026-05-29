@@ -2,21 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { Badge, PetAvatar, Tone } from "@/components/ui";
+import { Badge, Tone } from "@/components/ui";
 import { PetTabs } from "@/components/PetTabs";
+import { PetPhotoUpload } from "@/components/PetPhotoUpload";
 import { petAge } from "@/lib/format";
+import { getI18n } from "@/lib/i18n/server";
+import type { PetStatus, Sex } from "@/lib/constants";
 
 const STATUS_TONE: Record<string, Tone> = {
   ACTIVE: "emerald",
   UNDER_OBSERVATION: "amber",
   TRANSFERRED: "violet",
   ARCHIVED: "slate",
-};
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: "Active",
-  UNDER_OBSERVATION: "Under observation",
-  TRANSFERRED: "Transferred",
-  ARCHIVED: "Archived",
 };
 
 export default async function PetLayout({
@@ -27,6 +24,7 @@ export default async function PetLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { t } = await getI18n();
   const pet = await prisma.pet.findUnique({
     where: { id },
     include: {
@@ -38,7 +36,7 @@ export default async function PetLayout({
 
   const meta = [
     pet.breed,
-    pet.sex && pet.sex !== "UNKNOWN" ? pet.sex.toLowerCase() : null,
+    pet.sex && pet.sex !== "UNKNOWN" ? t.sex[pet.sex as Sex] : null,
     petAge(pet.birthDate),
     pet.weightKg ? `${pet.weightKg} kg` : null,
     pet.color,
@@ -50,26 +48,31 @@ export default async function PetLayout({
         href="/pets"
         className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
       >
-        <ChevronLeft size={16} /> Pets
+        <ChevronLeft size={16} /> {t.petDetail.back}
       </Link>
 
       <div className="mt-4 flex items-center gap-4">
-        <PetAvatar species={pet.species} name={pet.name} size="lg" photoUrl={pet.photoUrl} />
+        <PetPhotoUpload
+          petId={pet.id}
+          species={pet.species}
+          name={pet.name}
+          photoUrl={pet.photoUrl}
+        />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">{pet.name}</h1>
             <Badge tone={STATUS_TONE[pet.status] ?? "slate"} dot>
-              {STATUS_LABEL[pet.status] ?? pet.status}
+              {t.status[pet.status as PetStatus] ?? pet.status}
             </Badge>
           </div>
-          <p className="mt-1 text-sm capitalize text-muted">
-            {(pet.species === "DOG" ? "Dog" : "Cat") + (meta.length ? " · " + meta.join(" · ") : "")}
+          <p className="mt-1 text-sm text-muted">
+            {(pet.species === "DOG" ? t.species.DOG : t.species.CAT) + (meta.length ? " · " + meta.join(" · ") : "")}
           </p>
           {(pet.sire || pet.dam) && (
             <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
               {pet.sire && (
                 <span>
-                  Sire:{" "}
+                  {t.petDetail.sire}:{" "}
                   <Link href={`/pets/${pet.sire.id}`} className="font-medium text-brand-600 hover:underline">
                     {pet.sire.name}
                   </Link>
@@ -77,7 +80,7 @@ export default async function PetLayout({
               )}
               {pet.dam && (
                 <span>
-                  Dam:{" "}
+                  {t.petDetail.dam}:{" "}
                   <Link href={`/pets/${pet.dam.id}`} className="font-medium text-brand-600 hover:underline">
                     {pet.dam.name}
                   </Link>

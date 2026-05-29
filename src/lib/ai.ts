@@ -2,8 +2,16 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { LOG_TYPES, SEVERITY, URGENCY } from "./constants";
 import { petAge } from "./format";
+import type { Locale } from "./i18n/config";
 
 const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
+
+// Instruction appended to every AI prompt so the model replies in the user's UI language.
+export function languageInstruction(locale: Locale): string {
+  return locale === "zh"
+    ? "请使用简体中文回答。所有输出字段（标题、摘要、标签、关注点、建议、问题等）都必须是简体中文。"
+    : "Respond in English.";
+}
 
 export function hasAI(): boolean {
   return Boolean(
@@ -88,6 +96,7 @@ export type StructuredLogResult = z.infer<typeof StructuredLog>;
 export async function structureLogEntry(
   rawText: string,
   pet: PetLike,
+  locale: Locale = "en",
 ): Promise<StructuredLogResult> {
   if (!hasAI()) return heuristicStructure(rawText);
   try {
@@ -95,7 +104,8 @@ export async function structureLogEntry(
       model: MODEL,
       schema: StructuredLog,
       system:
-        "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing).",
+        "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing). " +
+        languageInstruction(locale),
       prompt: `Pet: ${petSummaryLine(pet)}\n\nLog entry: "${rawText}"`,
     });
     return object;
@@ -169,24 +179,26 @@ export type TriageResult = z.infer<typeof TriageSchema>;
 export async function generateTriage(
   pet: PetLike,
   logs: LogLike[],
+  locale: Locale = "en",
 ): Promise<TriageResult> {
-  if (!hasAI()) return heuristicTriage(pet, logs);
+  if (!hasAI()) return heuristicTriage(pet, logs, locale);
   try {
     const { object } = await generateObject({
       model: MODEL,
       schema: TriageSchema,
       system:
-        "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log. Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the log.",
+        "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log. Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the log. " +
+        languageInstruction(locale),
       prompt: `${buildPetContext(pet, logs)}\n\nProduce a triage assessment for communicating with a veterinarian.`,
     });
     return object;
   } catch (e) {
     console.error("generateTriage failed, using heuristic", e);
-    return heuristicTriage(pet, logs);
+    return heuristicTriage(pet, logs, locale);
   }
 }
 
-function heuristicTriage(pet: PetLike, logs: LogLike[]): TriageResult {
+function heuristicTriage(pet: PetLike, logs: LogLike[], locale: Locale = "en"): TriageResult {
   const recent = logs
     .filter((l) => l.occurredAt.getTime() > Date.now() - 1000 * 60 * 60 * 24 * 14)
     .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
@@ -205,6 +217,21 @@ function heuristicTriage(pet: PetLike, logs: LogLike[]): TriageResult {
   const maxRank = concerns.reduce((m, c) => Math.max(m, rank[c.severity]), 0);
   const urgency: TriageResult["urgency"] =
     maxRank >= 4 ? "EMERGENCY" : maxRank === 3 ? "URGENT" : maxRank === 2 ? "SOON" : concerns.length ? "MONITOR" : "ROUTINE";
+
+  if (locale === "zh") {
+    return {
+      urgency,
+      summary: concerns.length
+        ? `${pet.name} 近期记录中有 ${concerns.length} 项值得注意的内容。这是基于规则的总结 —— 连接 AI 密钥可获得更深入的评估。`
+        : `过去两周内未发现 ${pet.name} 有明显需要关注的问题。`,
+      concerns,
+      recommendation: concerns.length
+        ? "请把这份报告分享给你的兽医，并密切观察。"
+        : "继续日常护理并坚持记录。",
+      vetQuestions: concerns.map((c) => `可能的原因是什么：${c.issue}？`),
+      positiveSigns: [],
+    };
+  }
 
   return {
     urgency,

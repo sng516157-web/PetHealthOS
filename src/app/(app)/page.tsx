@@ -10,9 +10,11 @@ import {
   Severity,
 } from "@/lib/constants";
 import { petAge, relativeTime } from "@/lib/format";
+import { getI18n } from "@/lib/i18n/server";
 
 export default async function Dashboard() {
-  const [org, pets, reminders] = await Promise.all([
+  const [{ t }, org, pets, reminders] = await Promise.all([
+    getI18n(),
     getActiveOrg(),
     getPetsWithStats(),
     getUpcomingReminders(),
@@ -37,34 +39,34 @@ export default async function Dashboard() {
         <div>
           <p className="text-sm text-muted">{org.name}</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
-            Today&apos;s overview
+            {t.dashboard.overview}
           </h1>
         </div>
         <Link
           href="/pets/new"
           className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
         >
-          <Plus size={16} /> Add pet
+          <Plus size={16} /> {t.common.addPet}
         </Link>
       </header>
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard icon={<PawPrint size={18} />} label="Pets" value={pets.length} tone="brand" />
+        <StatCard icon={<PawPrint size={18} />} label={t.dashboard.statPets} value={pets.length} tone="brand" />
         <StatCard
           icon={<Activity size={18} />}
-          label="Need attention"
+          label={t.dashboard.statAttention}
           value={attention.length}
           tone={attention.length ? "orange" : "emerald"}
         />
         <StatCard
           icon={<BellRing size={18} />}
-          label="Due this week"
+          label={t.dashboard.statDueWeek}
           value={dueSoon.length}
           tone={dueSoon.length ? "amber" : "emerald"}
         />
         <StatCard
           icon={<Activity size={18} />}
-          label="Log entries"
+          label={t.dashboard.statLogs}
           value={pets.reduce((s, p) => s + p._count.logs, 0)}
           tone="sky"
         />
@@ -73,12 +75,12 @@ export default async function Dashboard() {
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <SectionTitle
-            title="Needs attention"
-            subtitle="Pets under observation or with recent serious entries"
+            title={t.dashboard.needsAttention}
+            subtitle={t.dashboard.needsAttentionSub}
           />
           {attention.length === 0 ? (
             <Card className="p-6 text-sm text-muted">
-              All pets are looking healthy. 🐾
+              {t.dashboard.allHealthy}
             </Card>
           ) : (
             <div className="space-y-3">
@@ -93,7 +95,7 @@ export default async function Dashboard() {
                           <span className="font-semibold text-foreground">{p.name}</span>
                           {p.status === "UNDER_OBSERVATION" && (
                             <Badge tone="amber" dot>
-                              Observation
+                              {t.statusShort.UNDER_OBSERVATION}
                             </Badge>
                           )}
                         </div>
@@ -105,7 +107,7 @@ export default async function Dashboard() {
                       </div>
                       {last && (
                         <Badge tone={SEVERITY_META[last.severity as Severity].color as Tone}>
-                          {SEVERITY_META[last.severity as Severity].label}
+                          {t.severity[last.severity as Severity]}
                         </Badge>
                       )}
                       <ArrowRight size={16} className="text-slate-300" />
@@ -118,10 +120,10 @@ export default async function Dashboard() {
 
           <div className="pt-2">
             <SectionTitle
-              title="All pets"
+              title={t.dashboard.allPets}
               action={
                 <Link href="/pets" className="text-sm font-medium text-brand-600 hover:text-brand-700">
-                  View all
+                  {t.dashboard.viewAll}
                 </Link>
               }
             />
@@ -136,7 +138,7 @@ export default async function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium text-foreground">{p.name}</div>
                       <div className="truncate text-xs text-muted">
-                        {p.breed || (p.species === "DOG" ? "Dog" : "Cat")}
+                        {p.breed || (p.species === "DOG" ? t.species.DOG : t.species.CAT)}
                         {petAge(p.birthDate) ? ` · ${petAge(p.birthDate)}` : ""}
                       </div>
                     </div>
@@ -153,9 +155,9 @@ export default async function Dashboard() {
         </div>
 
         <div className="space-y-4">
-          <SectionTitle title="Upcoming reminders" />
+          <SectionTitle title={t.dashboard.upcomingReminders} />
           {reminders.length === 0 ? (
-            <Card className="p-6 text-sm text-muted">No reminders scheduled.</Card>
+            <Card className="p-6 text-sm text-muted">{t.dashboard.noReminders}</Card>
           ) : (
             <Card className="divide-y divide-border">
               {reminders.slice(0, 8).map((r) => {
