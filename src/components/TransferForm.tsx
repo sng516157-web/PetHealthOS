@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Link2, Copy, Check, Send } from "lucide-react";
+import { Link2, Copy, Check, Send, Download } from "lucide-react";
+import QRCode from "qrcode";
 import { createTransfer } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/client";
@@ -17,6 +18,7 @@ export function TransferForm({ petId }: { petId: string }) {
   const [pending, startTransition] = useTransition();
   const [token, setToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [qr, setQr] = useState<string | null>(null);
 
   const link =
     token && typeof window !== "undefined"
@@ -24,6 +26,13 @@ export function TransferForm({ petId }: { petId: string }) {
       : token
         ? `/passport/${token}`
         : null;
+
+  useEffect(() => {
+    if (!link) return;
+    QRCode.toDataURL(link, { margin: 1, width: 256 })
+      .then(setQr)
+      .catch(() => setQr(null));
+  }, [link]);
 
   function submit(formData: FormData) {
     startTransition(async () => {
@@ -62,6 +71,20 @@ export function TransferForm({ petId }: { petId: string }) {
             {copied ? t.transferForm.copied : t.transferForm.copy}
           </button>
         </div>
+        {qr && (
+          <div className="mt-4 flex flex-col items-center gap-2 rounded-xl border border-border bg-background p-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qr} alt="passport QR" className="h-40 w-40 rounded-lg" />
+            <p className="text-center text-xs text-muted">{t.transferForm.qrHint}</p>
+            <a
+              href={qr}
+              download="pet-health-passport-qr.png"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
+            >
+              <Download size={13} /> {t.transferForm.downloadQr}
+            </a>
+          </div>
+        )}
         <a
           href={link}
           target="_blank"

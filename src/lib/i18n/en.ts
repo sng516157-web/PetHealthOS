@@ -229,6 +229,9 @@ export const en = {
     copy: "Copy",
     copied: "Copied",
     openPreview: "Open passport preview →",
+    qrHint: "Show this QR to the new owner at handover.",
+    downloadQr: "Download QR",
+    showQr: "Show QR code",
   },
   claim: {
     keepForLife: (name: string) => `Keep ${name}'s record for life`,
@@ -302,6 +305,8 @@ export const en = {
     issuedBy: (org: string) => `Issued by ${org} via Pet Health OS · History frozen at handover`,
     months: (n: number) => `${n} months`,
     days: (n: number) => `${n} day${n === 1 ? "" : "s"}`,
+    print: "Print / Save as PDF",
+    scanToOpen: "Scan to open this passport",
   },
   photo: {
     change: "Change photo",

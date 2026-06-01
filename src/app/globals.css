@@ -71,3 +71,22 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
+
+/* Print: produce a clean passport handout (browser "Save as PDF"). */
+@media print {
+  html,
+  body {
+    background: #ffffff;
+  }
+  /* Keep brand/severity colors in the printed output. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-shadow-none {
+    box-shadow: none !important;
+  }
+}

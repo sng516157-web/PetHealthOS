@@ -228,6 +228,9 @@ export const zh: Dictionary = {
     copy: "复制",
     copied: "已复制",
     openPreview: "打开护照预览 →",
+    qrHint: "交付时向新主人出示此二维码。",
+    downloadQr: "下载二维码",
+    showQr: "显示二维码",
   },
   claim: {
     keepForLife: (name: string) => `永久保留 ${name} 的档案`,
@@ -300,6 +303,8 @@ export const zh: Dictionary = {
     issuedBy: (org: string) => `由 ${org} 通过 宠物健康 OS 签发 · 历史已在交付时冻结`,
     months: (n: number) => `${n} 个月`,
     days: (n: number) => `${n} 天`,
+    print: "打印 / 保存为 PDF",
+    scanToOpen: "扫码打开此护照",
   },
   photo: {
     change: "更换照片",

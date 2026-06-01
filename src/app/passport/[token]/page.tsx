@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import QRCode from "qrcode";
 import { HeartPulse, ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
@@ -15,6 +17,7 @@ import { safeTags } from "@/lib/ai";
 import { ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
 import { ClaimPassport } from "@/components/ClaimPassport";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { PrintButton } from "@/components/PrintButton";
 import { getI18n } from "@/lib/i18n/server";
 import type { Sex } from "@/lib/constants";
 
@@ -76,6 +79,13 @@ export default async function PassportPage({
       ? t.passport.months(Math.round(spanDays / 30))
       : t.passport.days(spanDays);
 
+  // Absolute passport URL → QR so a printed/handed-over passport is self-linking.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const passportUrl = `${proto}://${host}/passport/${token}`;
+  const qrDataUrl = await QRCode.toDataURL(passportUrl, { margin: 1, width: 240 });
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface">
@@ -85,7 +95,10 @@ export default async function PassportPage({
           </div>
           <span className="text-sm font-semibold text-foreground">{t.passport.title}</span>
           <div className="ml-auto flex items-center gap-2">
-            <LocaleToggle compact />
+            <PrintButton />
+            <div className="no-print">
+              <LocaleToggle compact />
+            </div>
             <Badge tone="brand">
               <ShieldCheck size={12} /> {t.passport.tamperEvident}
             </Badge>
@@ -127,7 +140,7 @@ export default async function PassportPage({
         )}
 
         {/* Claim — only if the breeder enabled it */}
-        <div className="mb-6">
+        <div className="mb-6 no-print">
           {transfer.claimedAt ? (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
               <CheckCircle2 size={16} />
@@ -284,7 +297,17 @@ export default async function PassportPage({
           )}
         </section>
 
-        <p className="mt-8 text-center text-xs text-muted">
+        <div className="mt-8 flex flex-col items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qrDataUrl}
+            alt={passportUrl}
+            className="h-28 w-28 rounded-xl ring-1 ring-border"
+          />
+          <span className="text-xs text-muted">{t.passport.scanToOpen}</span>
+        </div>
+
+        <p className="mt-4 text-center text-xs text-muted">
           {t.passport.issuedBy(pet.org.name)}
         </p>
       </main>
