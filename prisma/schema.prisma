@@ -1,6 +1,6 @@
 // Pet Health OS — data model
 // One database, strict per-pet logical scoping.
-// SQLite has no native enums, so enum-like fields are Strings validated in app code (see src/lib/constants.ts).
+// Enum-like fields are Strings validated in app code (see src/lib/constants.ts).
 
 generator client {
   provider = "prisma-client"
@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Organization {

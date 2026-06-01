@@ -22,11 +22,20 @@ export async function setLocale(locale: string) {
   return { ok: true };
 }
 
-// Save an uploaded file into public/uploads and return its public URL.
+// Persist an uploaded file and return its public URL.
+// In production (Vercel) the filesystem is read-only, so use Vercel Blob when a
+// token is present; otherwise fall back to public/uploads for local dev.
 async function saveUpload(file: File): Promise<string> {
-  const bytes = Buffer.from(await file.arrayBuffer());
   const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
   const fileName = `${randomBytes(8).toString("hex")}.${ext}`;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import("@vercel/blob");
+    const blob = await put(`uploads/${fileName}`, file, { access: "public" });
+    return blob.url;
+  }
+
+  const bytes = Buffer.from(await file.arrayBuffer());
   const dir = path.join(process.cwd(), "public", "uploads");
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, fileName), bytes);
