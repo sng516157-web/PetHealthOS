@@ -14,23 +14,27 @@ export function petAge(birthDate?: Date | string | null): string | null {
   return `${years} yr ${rem} mo`;
 }
 
+const MONTHS_SHORT = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+// Deterministic, locale/timezone-independent date format (e.g. "Jun 2, 2026").
+// Avoids toLocaleDateString, which renders differently on the server vs. the
+// client and causes React hydration mismatches.
 export function formatDate(d: Date | string): string {
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
 }
 
+// Deterministic date + time (UTC) to keep server/client output identical.
 export function formatDateTime(d: Date | string): string {
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const h24 = date.getUTCHours();
+  const period = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  const min = String(date.getUTCMinutes()).padStart(2, "0");
+  return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}, ${h12}:${min} ${period}`;
 }
 
 export function relativeTime(d: Date | string): string {

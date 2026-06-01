@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { getOrgPlan, getUserPlan, petLimit } from "./plans";
 
 // Single-org prototype: resolve (or lazily create) the active organization.
 export async function getActiveOrg() {
@@ -116,4 +117,21 @@ export async function getUserNotifications(userId: string) {
     take: 50,
     include: { pet: { select: { id: true, name: true, species: true } } },
   });
+}
+
+// ---- Billing / quota usage ----
+
+export async function getOrgUsage() {
+  const org = await getActiveOrg();
+  const plan = getOrgPlan(org.plan);
+  const count = await prisma.pet.count({ where: { orgId: org.id } });
+  return { org, plan, count, limit: petLimit(plan, org.extraPetSlots) };
+}
+
+export async function getUserUsage(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return null;
+  const plan = getUserPlan(user.plan);
+  const count = await prisma.pet.count({ where: { ownerUserId: userId } });
+  return { user, plan, count, limit: petLimit(plan, user.extraPetSlots) };
 }

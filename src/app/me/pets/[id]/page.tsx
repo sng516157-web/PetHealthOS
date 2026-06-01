@@ -68,7 +68,7 @@ export default async function MePetPage({
 
       <div className="flex items-start gap-2 rounded-xl border border-brand-200 bg-brand-50/50 p-3 text-xs text-brand-800">
         <Lock size={14} className="mt-0.5 shrink-0" />
-        {t.me.continueNote(pet.org.name)}
+        {pet.org ? t.me.continueNote(pet.org.name) : t.me.selfPetNote}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

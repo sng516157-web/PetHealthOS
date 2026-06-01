@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { HeartPulse } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { SignInForm } from "@/components/SignInForm";
+import { AuthCard } from "@/components/AuthCard";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -26,17 +26,7 @@ export default async function LoginPage() {
           <LocaleToggle compact />
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <h1 className="text-lg font-semibold text-foreground">
-            {t.auth.signInTitle}
-          </h1>
-          <p className="mt-1 mb-4 text-sm text-muted">{t.auth.signInSubtitle}</p>
-          <SignInForm />
-        </div>
-
-        <p className="mt-4 text-center text-xs text-muted">
-          {t.auth.noAccountHint}
-        </p>
+        <AuthCard />
       </div>
     </div>
   );

@@ -17,27 +17,52 @@ model Organization {
   kind      String   @default("SHOP") // SHOP | BREEDER | SHELTER
   createdAt DateTime @default(now())
 
+  // Billing — plan key (see src/lib/plans.ts). extraPetSlots = paid overage
+  // capacity purchased on top of the plan's included pets.
+  plan          String @default("STARTER") // STARTER | SHOP
+  extraPetSlots Int    @default(0)
+
   pets          Pet[]
   notifications Notification[]
 }
 
-// Consumer account — created when a buyer claims a pet's health passport.
+// Consumer account — created when a buyer claims a passport or self-registers.
+// Auth is via email+password and/or phone (OTP); either identifier may be null.
 model User {
   id           String   @id @default(cuid())
-  email        String   @unique
+  email        String?  @unique
+  phone        String?  @unique
   name         String
-  passwordHash String
+  passwordHash String?
   createdAt    DateTime @default(now())
+
+  plan          String @default("FREE") // FREE | PLUS
+  extraPetSlots Int    @default(0)
 
   pets          Pet[]          @relation("OwnerUser")
   claims        Transfer[]
   notifications Notification[]
 }
 
+// Short-lived phone verification codes for SMS OTP sign-in / registration.
+model PhoneOtp {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
 model Pet {
   id        String    @id @default(cuid())
-  orgId     String
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // Null for consumer self-added pets (no breeder org). Breeder-managed pets
+  // always belong to an organization.
+  orgId     String?
+  org       Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   name      String
   species   String    // DOG | CAT

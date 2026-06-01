@@ -54,6 +54,7 @@ export default async function PassportPage({
   }
 
   const pet = transfer.pet;
+  const orgName = pet.org?.name ?? t.common.appName;
   const meta = [
     pet.breed,
     pet.sex && pet.sex !== "UNKNOWN" ? t.sex[pet.sex as Sex] : null,
@@ -119,7 +120,7 @@ export default async function PassportPage({
           </p>
           {transfer.visibility === "SHARED" && (
             <span className="mt-2 inline-block rounded-full bg-white/70 px-2.5 py-0.5 text-[11px] font-medium text-brand-700 ring-1 ring-inset ring-brand-200">
-              {t.passport.sharedWith(pet.org.name)}
+              {t.passport.sharedWith(orgName)}
             </span>
           )}
         </div>
@@ -155,7 +156,7 @@ export default async function PassportPage({
             />
           ) : (
             <p className="rounded-2xl border border-border bg-surface p-4 text-center text-xs text-muted">
-              {t.passport.viewOnly(pet.org.name)}
+              {t.passport.viewOnly(orgName)}
             </p>
           )}
         </div>
@@ -174,7 +175,7 @@ export default async function PassportPage({
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <Field label={t.passport.microchip} value={pet.microchip || "—"} />
             <Field label={t.passport.intakeDate} value={formatDate(pet.intakeAt)} />
-            <Field label={t.passport.from} value={pet.org.name} />
+            <Field label={t.passport.from} value={orgName} />
             {(pet.sire || pet.dam) && (
               <Field
                 label={t.passport.parents}
@@ -308,7 +309,7 @@ export default async function PassportPage({
         </div>
 
         <p className="mt-4 text-center text-xs text-muted">
-          {t.passport.issuedBy(pet.org.name)}
+          {t.passport.issuedBy(orgName)}
         </p>
       </main>
     </div>

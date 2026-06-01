@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PawPrint } from "lucide-react";
+import { PawPrint, Plus, CreditCard } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnedPets, getUserNotifications } from "@/lib/data";
 import { Card, Badge, EmptyState, PetAvatar, Tone } from "@/components/ui";
@@ -26,17 +26,31 @@ export default async function MeHome() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {t.me.greeting(user.name)}
-        </h1>
-        <p className="mt-1 text-sm text-muted">{t.me.subtitle}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {t.me.greeting(user.name)}
+          </h1>
+          <p className="mt-1 text-sm text-muted">{t.me.subtitle}</p>
+        </div>
+        <Link
+          href="/me/billing"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
+        >
+          <CreditCard size={13} /> {t.me.billing}
+        </Link>
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-foreground">
-          {t.me.yourPets}
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">{t.me.yourPets}</h2>
+          <Link
+            href="/me/pets/new"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700"
+          >
+            <Plus size={14} /> {t.me.addPet}
+          </Link>
+        </div>
         {pets.length === 0 ? (
           <EmptyState
             icon={<PawPrint size={22} />}

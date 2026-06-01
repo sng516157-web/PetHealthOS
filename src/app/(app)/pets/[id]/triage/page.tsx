@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { hasAI } from "@/lib/ai";
 import { Card, Badge, Tone, EmptyState } from "@/components/ui";
 import { GenerateTriageButton } from "@/components/GenerateTriageButton";
+import { Markdown } from "@/components/Markdown";
 import { URGENCY_META, SEVERITY_META, Urgency, Severity } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
 import type { TriageResult } from "@/lib/ai";
@@ -56,10 +57,12 @@ export default async function TriagePage({
 
           <Card className="p-5">
             <SectionHead icon={<Stethoscope size={16} />} title={t.triage.summary} />
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{report.summary}</p>
-            <p className="mt-3 rounded-lg bg-background p-3 text-sm font-medium text-foreground">
-              👉 {report.recommendation}
-            </p>
+            <div className="mt-2 text-slate-700">
+              <Markdown>{report.summary}</Markdown>
+            </div>
+            <div className="mt-3 rounded-lg bg-background p-3 text-foreground">
+              <Markdown>{`👉 ${report.recommendation}`}</Markdown>
+            </div>
           </Card>
 
           {report.concerns.length > 0 && (
@@ -74,7 +77,9 @@ export default async function TriagePage({
                         {t.severity[c.severity as Severity]}
                       </Badge>
                     </div>
-                    <p className="mt-1 text-sm text-slate-600">{c.detail}</p>
+                    <div className="mt-1 text-slate-600">
+                      <Markdown>{c.detail}</Markdown>
+                    </div>
                   </div>
                 ))}
               </div>

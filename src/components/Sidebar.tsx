@@ -7,6 +7,7 @@ import {
   PawPrint,
   BellRing,
   Bell,
+  CreditCard,
   HeartPulse,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -18,6 +19,7 @@ const NAV = [
   { href: "/pets", key: "pets" as const, icon: PawPrint },
   { href: "/reminders", key: "reminders" as const, icon: BellRing },
   { href: "/notifications", key: "notifications" as const, icon: Bell },
+  { href: "/billing", key: "billing" as const, icon: CreditCard },
 ];
 
 export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: number }) {

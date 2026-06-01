@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, CheckCheck, Clock } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
+import { formatDate } from "@/lib/format";
 import { EmptyState } from "@/components/ui";
 import {
   markNotificationRead,
@@ -109,7 +110,7 @@ export function NotificationList({
                     <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted">
                       <Clock size={11} />
                       {t.notifications.due}{" "}
-                      {new Date(n.dueAt).toLocaleDateString()}
+                      {formatDate(n.dueAt)}
                     </span>
                   )}
                 </span>

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { addPet } from "@/app/actions";
+import { addOwnedPet } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -11,31 +11,18 @@ const inputCls =
   "w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 const labelCls = "block text-xs font-medium text-muted mb-1.5";
 
-export type ParentOption = {
-  id: string;
-  name: string;
-  species: string;
-  sex: string | null;
-  breed: string | null;
-};
-
-export function NewPetForm({ parents }: { parents: ParentOption[] }) {
+export function OwnedPetForm() {
   const router = useRouter();
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null);
-  const [species, setSpecies] = useState("DOG");
-
-  const sameSpecies = parents.filter((p) => p.species === species);
-  const sires = sameSpecies.filter((p) => p.sex !== "FEMALE");
-  const dams = sameSpecies.filter((p) => p.sex !== "MALE");
 
   function onSubmit(formData: FormData) {
     setError(null);
     setQuotaLimit(null);
     startTransition(async () => {
-      const res = await addPet(formData);
+      const res = await addOwnedPet(formData);
       if (res && "quota" in res && res.quota) {
         setQuotaLimit(res.limit ?? null);
         return;
@@ -44,7 +31,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
         setError(res.error);
         return;
       }
-      if ("id" in res && res.id) router.push(`/pets/${res.id}`);
+      if ("id" in res && res.id) router.push(`/me/pets/${res.id}`);
     });
   }
 
@@ -58,12 +45,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
           </div>
           <div>
             <label className={labelCls}>{t.newPet.species}</label>
-            <select
-              name="species"
-              className={inputCls}
-              value={species}
-              onChange={(e) => setSpecies(e.target.value)}
-            >
+            <select name="species" className={inputCls} defaultValue="DOG">
               <option value="DOG">{t.species.DOG}</option>
               <option value="CAT">{t.species.CAT}</option>
             </select>
@@ -92,7 +74,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
             <label className={labelCls}>{t.newPet.weight}</label>
             <input name="weightKg" type="number" step="0.1" className={inputCls} placeholder={t.newPet.weightPlaceholder} />
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className={labelCls}>
               {t.newPet.photo} <span className="font-normal normal-case">({t.common.optional})</span>
             </label>
@@ -103,37 +85,6 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
               className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-brand-700"
             />
           </div>
-
-          <div className="sm:col-span-2 mt-1 border-t border-border pt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              {t.newPet.lineage} <span className="font-normal normal-case">({t.common.optional})</span>
-            </p>
-          </div>
-          <div>
-            <label className={labelCls}>{t.newPet.sireFather}</label>
-            <select name="sireId" className={inputCls} defaultValue="">
-              <option value="">{t.common.none}</option>
-              {sires.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.breed ? ` · ${p.breed}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>{t.newPet.damMother}</label>
-            <select name="damId" className={inputCls} defaultValue="">
-              <option value="">{t.common.none}</option>
-              {dams.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.breed ? ` · ${p.breed}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="sm:col-span-2">
             <label className={labelCls}>{t.newPet.notes}</label>
             <textarea name="notes" rows={3} className={inputCls} placeholder={t.newPet.notesPlaceholder} />
@@ -146,7 +97,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
             <p className="font-medium">{t.billing.quotaTitle}</p>
             <p className="mt-0.5 text-xs">{t.billing.quotaDesc(quotaLimit)}</p>
             <Link
-              href="/billing"
+              href="/me/billing"
               className="mt-2 inline-flex rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
             >
               {t.billing.upgrade}

@@ -2,12 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
-import { getActiveOrg, getPetForAI } from "@/lib/data";
+import { getActiveOrg, getPetForAI, getOrgUsage, getUserUsage } from "@/lib/data";
 import { structureLogEntry, generateTriage } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
 import { LOCALE_COOKIE, isLocale } from "@/lib/i18n/config";
@@ -18,6 +18,12 @@ import {
   clearSession,
   getCurrentUser,
 } from "@/lib/auth";
+import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
+import {
+  startCheckout,
+  type CheckoutScope,
+  type Provider,
+} from "@/lib/billing";
 
 export async function setLocale(locale: string) {
   if (!isLocale(locale)) return { error: "Unsupported locale" };
@@ -54,6 +60,12 @@ export async function addPet(formData: FormData) {
   const org = await getActiveOrg();
   const name = String(formData.get("name") || "").trim();
   if (!name) return { error: "Name is required" };
+
+  // Hard quota: cannot exceed the plan's effective pet limit.
+  const usage = await getOrgUsage();
+  if (usage.count >= usage.limit) {
+    return { error: "QUOTA_REACHED", quota: true, limit: usage.limit };
+  }
 
   const birthDateRaw = String(formData.get("birthDate") || "");
   const weightRaw = String(formData.get("weightKg") || "");
@@ -307,7 +319,7 @@ export async function claimPassport(token: string, formData: FormData) {
   // Reuse an existing account (verify password) or create a new one.
   let user = await prisma.user.findUnique({ where: { email } });
   if (user) {
-    if (!verifyPassword(password, user.passwordHash))
+    if (!user.passwordHash || !verifyPassword(password, user.passwordHash))
       return { error: "An account with this email exists — wrong password." };
   } else {
     user = await prisma.user.create({
@@ -350,7 +362,7 @@ export async function signIn(formData: FormData) {
   if (!email || !password) return { error: "Email and password required" };
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !verifyPassword(password, user.passwordHash))
+  if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash))
     return { error: "Incorrect email or password" };
 
   await setSession(user.id);
@@ -420,4 +432,131 @@ export async function deleteWeight(petId: string, id: string) {
   revalidatePath(`/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
+}
+
+// ---- Owner self-registration (no transfer required) ----
+
+export async function register(formData: FormData) {
+  const name = String(formData.get("name") || "").trim() || "Pet owner";
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+
+  if (!email || !/.+@.+\..+/.test(email)) return { error: "Enter a valid email" };
+  if (password.length < 6)
+    return { error: "Password must be at least 6 characters" };
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return { error: "An account with this email already exists." };
+
+  const user = await prisma.user.create({
+    data: { email, name, passwordHash: hashPassword(password) },
+  });
+  await setSession(user.id);
+  return { ok: true };
+}
+
+export async function requestPhoneOtp(formData: FormData) {
+  const phone = normalizePhone(String(formData.get("phone") || ""));
+  if (!isValidPhone(phone)) return { error: "INVALID_PHONE" };
+  return requestOtp(phone);
+}
+
+export async function verifyPhoneOtp(formData: FormData) {
+  const phone = normalizePhone(String(formData.get("phone") || ""));
+  const code = String(formData.get("code") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+
+  const res = await verifyOtp(phone, code);
+  if ("error" in res) return res;
+
+  let user = await prisma.user.findUnique({ where: { phone } });
+  if (!user) {
+    user = await prisma.user.create({
+      data: { phone, name: name || "Pet owner" },
+    });
+  } else if (name && user.name === "Pet owner") {
+    user = await prisma.user.update({ where: { id: user.id }, data: { name } });
+  }
+  await setSession(user.id);
+  return { ok: true };
+}
+
+export async function addOwnedPet(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in first" };
+
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return { error: "Name is required" };
+
+  const usage = await getUserUsage(user.id);
+  if (usage && usage.count >= usage.limit) {
+    return { error: "QUOTA_REACHED", quota: true, limit: usage.limit };
+  }
+
+  const birthDateRaw = String(formData.get("birthDate") || "");
+  const weightRaw = String(formData.get("weightKg") || "");
+
+  const photo = formData.get("photo") as File | null;
+  let photoUrl: string | null = null;
+  if (photo && photo.size > 0 && photo.size <= 8 * 1024 * 1024) {
+    photoUrl = await saveUpload(photo);
+  }
+
+  const pet = await prisma.pet.create({
+    data: {
+      ownerUserId: user.id,
+      name,
+      species: String(formData.get("species") || "DOG"),
+      breed: String(formData.get("breed") || "") || null,
+      sex: String(formData.get("sex") || "UNKNOWN"),
+      color: String(formData.get("color") || "") || null,
+      birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
+      weightKg: weightRaw ? Number(weightRaw) : null,
+      photoUrl,
+      notes: String(formData.get("notes") || "") || null,
+    },
+  });
+  revalidatePath("/me");
+  return { id: pet.id };
+}
+
+// ---- Billing ----
+
+async function baseUrlFromHeaders(): Promise<string> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto =
+    h.get("x-forwarded-proto") ??
+    (process.env.NODE_ENV === "production" ? "https" : "http");
+  return `${proto}://${host}`;
+}
+
+export async function startPlanCheckout(formData: FormData) {
+  const scopeKind = String(formData.get("scope") || "");
+  const planKey = String(formData.get("plan") || "");
+  const provider = String(formData.get("provider") || "stripe") as Provider;
+
+  let scope: CheckoutScope;
+  if (scopeKind === "org") {
+    const org = await getActiveOrg();
+    scope = { kind: "org", id: org.id };
+  } else if (scopeKind === "user") {
+    const user = await getCurrentUser();
+    if (!user) return { error: "Please sign in first" };
+    scope = { kind: "user", id: user.id };
+  } else {
+    return { error: "UNKNOWN_SCOPE" };
+  }
+
+  const baseUrl = await baseUrlFromHeaders();
+  const result = await startCheckout({ scope, planKey, provider, baseUrl });
+
+  if ("error" in result) return { error: result.error };
+  if ("url" in result) return { url: result.url };
+
+  // Activated immediately (free or demo mode).
+  revalidatePath("/billing");
+  revalidatePath("/me/billing");
+  revalidatePath("/pricing");
+  return { ok: true, demo: result.demo ?? false };
 }

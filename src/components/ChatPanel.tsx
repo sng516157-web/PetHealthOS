@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Bot, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
+import { Markdown } from "@/components/Markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -155,13 +156,13 @@ function Bubble({ msg }: { msg: Msg }) {
         {isUser ? <User size={15} /> : <Bot size={15} />}
       </div>
       <div
-        className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm ${
+        className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${
           isUser
-            ? "bg-brand-600 text-white"
+            ? "whitespace-pre-wrap bg-brand-600 text-white"
             : "bg-background text-slate-700 ring-1 ring-inset ring-border"
         }`}
       >
-        {msg.content || "…"}
+        {isUser ? msg.content || "…" : <Markdown>{msg.content || "…"}</Markdown>}
       </div>
     </div>
   );
