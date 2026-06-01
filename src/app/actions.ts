@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
@@ -10,6 +11,13 @@ import { getActiveOrg, getPetForAI } from "@/lib/data";
 import { structureLogEntry, generateTriage } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
 import { LOCALE_COOKIE, isLocale } from "@/lib/i18n/config";
+import {
+  hashPassword,
+  verifyPassword,
+  setSession,
+  clearSession,
+  getCurrentUser,
+} from "@/lib/auth";
 
 export async function setLocale(locale: string) {
   if (!isLocale(locale)) return { error: "Unsupported locale" };
@@ -103,6 +111,7 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
 
   await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/");
   return { ok: true, structured };
 }
@@ -117,6 +126,7 @@ export async function deleteLogEntry(petId: string, id: string) {
   }
   await prisma.logEntry.delete({ where: { id } });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
 
@@ -136,6 +146,7 @@ export async function addReminder(petId: string, formData: FormData) {
     },
   });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/reminders");
   return { ok: true };
 }
@@ -148,6 +159,7 @@ export async function toggleReminder(id: string) {
     data: { completed: !r.completed },
   });
   revalidatePath(`/pets/${r.petId}`);
+  revalidatePath(`/me/pets/${r.petId}`);
   revalidatePath("/reminders");
   return { ok: true };
 }
@@ -167,6 +179,7 @@ export async function generateTriageReport(petId: string) {
     },
   });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   revalidatePath(`/pets/${petId}/triage`);
   return { id: report.id };
 }
@@ -188,6 +201,7 @@ export async function addAttachment(petId: string, formData: FormData) {
     },
   });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
 
@@ -199,6 +213,7 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
   const url = await saveUpload(file);
   await prisma.pet.update({ where: { id: petId }, data: { photoUrl: url } });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/pets");
   revalidatePath("/");
   return { ok: true, url };
@@ -207,6 +222,7 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
 export async function deleteAttachment(petId: string, id: string) {
   await prisma.attachment.delete({ where: { id } });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
 
@@ -261,13 +277,14 @@ export async function createTransfer(petId: string, formData: FormData) {
     data: { status: "TRANSFERRED" },
   });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   revalidatePath(`/pets/${petId}/transfer`);
   return { token };
 }
 
-// Buyer claims a passport to keep & continue the record. Only allowed if the
-// breeder enabled claiming; otherwise the passport stays view-only.
-// (Real account creation — WeChat / phone OTP — comes with the consumer surface.)
+// Buyer claims a passport: creates (or signs into) a real consumer account,
+// becomes the pet's owner, and starts a session. Only allowed if the breeder
+// enabled claiming; otherwise the passport stays view-only.
 export async function claimPassport(token: string, formData: FormData) {
   const transfer = await prisma.transfer.findUnique({ where: { token } });
   if (!transfer) return { error: "Passport not found" };
@@ -275,17 +292,103 @@ export async function claimPassport(token: string, formData: FormData) {
     return { error: "This passport hasn't been made claimable by the breeder." };
   if (transfer.claimedAt) return { error: "This passport is already claimed." };
 
-  const claimedByName =
+  const name =
     String(formData.get("claimedByName") || "").trim() ||
     transfer.newOwnerName ||
     "New owner";
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+
+  if (!email || !/.+@.+\..+/.test(email))
+    return { error: "Enter a valid email" };
+  if (password.length < 6)
+    return { error: "Password must be at least 6 characters" };
+
+  // Reuse an existing account (verify password) or create a new one.
+  let user = await prisma.user.findUnique({ where: { email } });
+  if (user) {
+    if (!verifyPassword(password, user.passwordHash))
+      return { error: "An account with this email exists — wrong password." };
+  } else {
+    user = await prisma.user.create({
+      data: { email, name, passwordHash: hashPassword(password) },
+    });
+  }
 
   await prisma.transfer.update({
     where: { id: transfer.id },
-    data: { claimedAt: new Date(), claimedByName },
+    data: { claimedAt: new Date(), claimedByName: name, claimedByUserId: user.id },
   });
+
+  // Buyer becomes the owner and continues the timeline; the pet stays in the
+  // breeder's org as their read-only copy.
+  const pet = await prisma.pet.update({
+    where: { id: transfer.petId },
+    data: { ownerUserId: user.id },
+    include: { org: true },
+  });
+
+  // Let the breeder know their pet found its home.
+  await prisma.notification.create({
+    data: {
+      petId: pet.id,
+      orgId: pet.orgId,
+      kind: "CLAIM",
+      title: `${name} claimed ${pet.name}'s passport`,
+      body: `${pet.name} now has a lifelong owner account. The handover history stays frozen.`,
+    },
+  });
+
+  await setSession(user.id);
   revalidatePath(`/passport/${token}`);
-  return { ok: true, claimedByName };
+  return { ok: true, claimedByName: name };
+}
+
+export async function signIn(formData: FormData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+  if (!email || !password) return { error: "Email and password required" };
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !verifyPassword(password, user.passwordHash))
+    return { error: "Incorrect email or password" };
+
+  await setSession(user.id);
+  return { ok: true };
+}
+
+export async function signOut() {
+  await clearSession();
+  redirect("/login");
+}
+
+export async function markNotificationRead(id: string) {
+  await prisma.notification.update({
+    where: { id },
+    data: { readAt: new Date() },
+  });
+  revalidatePath("/notifications");
+  revalidatePath("/me");
+  return { ok: true };
+}
+
+export async function markAllNotificationsRead() {
+  const user = await getCurrentUser();
+  if (user) {
+    await prisma.notification.updateMany({
+      where: { userId: user.id, readAt: null },
+      data: { readAt: new Date() },
+    });
+    revalidatePath("/me");
+  } else {
+    const org = await getActiveOrg();
+    await prisma.notification.updateMany({
+      where: { orgId: org.id, readAt: null },
+      data: { readAt: new Date() },
+    });
+    revalidatePath("/notifications");
+  }
+  return { ok: true };
 }
 
 export async function addWeight(petId: string, formData: FormData) {
@@ -308,11 +411,13 @@ export async function addWeight(petId: string, formData: FormData) {
   // Keep the profile's headline weight in sync with the latest measurement.
   await prisma.pet.update({ where: { id: petId }, data: { weightKg } });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
 
 export async function deleteWeight(petId: string, id: string) {
   await prisma.weightEntry.delete({ where: { id } });
   revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }

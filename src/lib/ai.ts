@@ -1,10 +1,9 @@
-import { generateObject } from "ai";
+import { generateObject, type LanguageModel } from "ai";
+import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import { LOG_TYPES, SEVERITY, URGENCY } from "./constants";
 import { petAge } from "./format";
 import type { Locale } from "./i18n/config";
-
-const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
 
 // Instruction appended to every AI prompt so the model replies in the user's UI language.
 export function languageInstruction(locale: Locale): string {
@@ -15,10 +14,20 @@ export function languageInstruction(locale: Locale): string {
 
 export function hasAI(): boolean {
   return Boolean(
-    process.env.AI_GATEWAY_API_KEY ||
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+      process.env.AI_GATEWAY_API_KEY ||
       process.env.OPENAI_API_KEY ||
       process.env.ANTHROPIC_API_KEY,
   );
+}
+
+// Resolve the active model. Prefer a directly-wired Google Gemini key; otherwise
+// fall back to a Vercel AI Gateway "provider/model" string.
+export function getModel(): LanguageModel {
+  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    return google(process.env.GOOGLE_AI_MODEL ?? "gemini-2.5-flash");
+  }
+  return (process.env.AI_MODEL ?? "openai/gpt-4o-mini") as LanguageModel;
 }
 
 type PetLike = {
@@ -101,7 +110,7 @@ export async function structureLogEntry(
   if (!hasAI()) return heuristicStructure(rawText);
   try {
     const { object } = await generateObject({
-      model: MODEL,
+      model: getModel(),
       schema: StructuredLog,
       system:
         "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing). " +
@@ -184,7 +193,7 @@ export async function generateTriage(
   if (!hasAI()) return heuristicTriage(pet, logs, locale);
   try {
     const { object } = await generateObject({
-      model: MODEL,
+      model: getModel(),
       schema: TriageSchema,
       system:
         "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log. Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the log. " +

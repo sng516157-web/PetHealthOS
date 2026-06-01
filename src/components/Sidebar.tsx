@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   PawPrint,
   BellRing,
+  Bell,
   HeartPulse,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -16,9 +17,10 @@ const NAV = [
   { href: "/", key: "dashboard" as const, icon: LayoutDashboard, exact: true },
   { href: "/pets", key: "pets" as const, icon: PawPrint },
   { href: "/reminders", key: "reminders" as const, icon: BellRing },
+  { href: "/notifications", key: "notifications" as const, icon: Bell },
 ];
 
-export function Sidebar({ orgName }: { orgName: string }) {
+export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: number }) {
   const pathname = usePathname();
   const { t } = useI18n();
   return (
@@ -54,6 +56,11 @@ export function Sidebar({ orgName }: { orgName: string }) {
             >
               <Icon size={18} className={active ? "text-brand-600" : "text-slate-400"} />
               {t.nav[item.key]}
+              {item.key === "notifications" && unread > 0 && (
+                <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[11px] font-semibold text-white">
+                  {unread}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -74,7 +81,7 @@ export function Sidebar({ orgName }: { orgName: string }) {
   );
 }
 
-export function MobileNav() {
+export function MobileNav({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
   const { t } = useI18n();
   return (
@@ -89,11 +96,14 @@ export function MobileNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium",
+              "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium",
               active ? "text-brand-600" : "text-slate-500",
             )}
           >
             <Icon size={20} />
+            {item.key === "notifications" && unread > 0 && (
+              <span className="absolute right-1/4 top-1.5 h-2 w-2 rounded-full bg-brand-600" />
+            )}
             {t.nav[item.key]}
           </Link>
         );

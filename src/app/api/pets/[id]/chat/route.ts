@@ -1,9 +1,7 @@
 import { streamText } from "ai";
 import { getPetForAI } from "@/lib/data";
-import { hasAI, buildPetContext, petSummaryLine, safeTags, languageInstruction } from "@/lib/ai";
+import { hasAI, getModel, buildPetContext, petSummaryLine, safeTags, languageInstruction } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
-
-const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
 
 type ClientMessage = { role: "user" | "assistant"; content: string };
 
@@ -41,7 +39,7 @@ ${context}`;
   }
 
   const result = streamText({
-    model: MODEL,
+    model: getModel(),
     system,
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
   });

@@ -26,7 +26,7 @@ export function ClaimPassport({
     startTransition(async () => {
       const res = await claimPassport(token, formData);
       if (res?.error) setError(res.error);
-      else router.refresh();
+      else router.push("/me");
     });
   }
 
@@ -61,6 +61,33 @@ export function ClaimPassport({
             defaultValue={defaultName ?? ""}
             required
             placeholder={t.claim.yourNamePlaceholder}
+            className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-brand-800">
+            {t.auth.email}
+          </label>
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder={t.claim.emailPlaceholder}
+            className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-brand-800">
+            {t.auth.password}
+          </label>
+          <input
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            autoComplete="new-password"
+            placeholder={t.claim.passwordPlaceholder}
             className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
         </div>

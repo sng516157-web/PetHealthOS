@@ -17,7 +17,21 @@ model Organization {
   kind      String   @default("SHOP") // SHOP | BREEDER | SHELTER
   createdAt DateTime @default(now())
 
-  pets Pet[]
+  pets          Pet[]
+  notifications Notification[]
+}
+
+// Consumer account — created when a buyer claims a pet's health passport.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  pets          Pet[]          @relation("OwnerUser")
+  claims        Transfer[]
+  notifications Notification[]
 }
 
 model Pet {
@@ -38,6 +52,11 @@ model Pet {
   intakeAt  DateTime  @default(now())
   notes     String?
 
+  // Consumer owner once a buyer claims the passport. The pet stays in the
+  // breeder org (their read-only copy); the owner continues the timeline.
+  ownerUserId String?
+  ownerUser   User?    @relation("OwnerUser", fields: [ownerUserId], references: [id])
+
   // Basic lineage (breeder MVP) — full litter management is Phase 2.
   sireId    String?
   sire      Pet?      @relation("Sire", fields: [sireId], references: [id])
@@ -56,8 +75,10 @@ model Pet {
   transfers     Transfer[]
   attachments   Attachment[]
   weights       WeightEntry[]
+  notifications Notification[]
 
   @@index([orgId])
+  @@index([ownerUserId])
 }
 
 // Per-pet weight tracking — the daily-use ritual for breeders (neonate/growth
@@ -191,5 +212,35 @@ model Transfer {
   claimedAt     DateTime? // set only when the buyer actually claims it
   claimedByName String?
 
+  // The consumer account that claimed this passport.
+  claimedByUserId String?
+  claimedByUser   User?   @relation(fields: [claimedByUserId], references: [id])
+
   @@index([petId])
+}
+
+// In-app notification (e.g. a reminder coming due). Recipient is exactly one of
+// a breeder org or a consumer user. Email delivery is layered on top via cron
+// when an email provider key is configured.
+model Notification {
+  id     String @id @default(cuid())
+  petId  String
+  pet    Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  orgId  String?
+  org    Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reminderId String?
+  kind       String    @default("REMINDER") // REMINDER | CLAIM | SYSTEM
+  title      String
+  body       String?
+  dueAt      DateTime?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([orgId, readAt])
+  @@index([userId, readAt])
+  @@index([reminderId])
 }

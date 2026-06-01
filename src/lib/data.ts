@@ -72,3 +72,48 @@ export async function getUpcomingReminders() {
     include: { pet: true },
   });
 }
+
+// ---- Consumer (buyer) account scoping ----
+
+export async function getOwnedPets(userId: string) {
+  return prisma.pet.findMany({
+    where: { ownerUserId: userId },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      logs: { orderBy: { occurredAt: "desc" }, take: 1 },
+      _count: { select: { logs: true } },
+    },
+  });
+}
+
+export async function getOwnedPet(userId: string, id: string) {
+  const pet = await getPet(id);
+  if (!pet || pet.ownerUserId !== userId) return null;
+  return pet;
+}
+
+// ---- Notifications ----
+
+export async function getOrgNotifications() {
+  const org = await getActiveOrg();
+  return prisma.notification.findMany({
+    where: { orgId: org.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    include: { pet: { select: { id: true, name: true, species: true } } },
+  });
+}
+
+export async function getOrgUnreadCount() {
+  const org = await getActiveOrg();
+  return prisma.notification.count({ where: { orgId: org.id, readAt: null } });
+}
+
+export async function getUserNotifications(userId: string) {
+  return prisma.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    include: { pet: { select: { id: true, name: true, species: true } } },
+  });
+}
