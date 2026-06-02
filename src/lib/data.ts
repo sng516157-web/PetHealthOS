@@ -1,8 +1,11 @@
+import { cache } from "react";
 import { prisma } from "./prisma";
 import { getOrgPlan, getUserPlan, petLimit } from "./plans";
 
 // Single-org prototype: resolve (or lazily create) the active organization.
-export async function getActiveOrg() {
+// Wrapped in cache() so the many callers in one request (layout + page + data
+// helpers) share a single DB lookup instead of repeating it.
+export const getActiveOrg = cache(async () => {
   let org = await prisma.organization.findFirst({
     orderBy: { createdAt: "asc" },
   });
@@ -12,7 +15,7 @@ export async function getActiveOrg() {
     });
   }
   return org;
-}
+});
 
 export async function getPetsWithStats() {
   const org = await getActiveOrg();

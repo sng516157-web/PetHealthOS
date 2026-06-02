@@ -124,7 +124,7 @@ export async function structureLogEntry(
   }
 }
 
-function heuristicStructure(raw: string): StructuredLogResult {
+export function heuristicStructure(raw: string): StructuredLogResult {
   const t = raw.toLowerCase();
   const has = (...words: string[]) => words.some((w) => t.includes(w));
 

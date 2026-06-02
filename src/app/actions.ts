@@ -2,13 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { cookies, headers } from "next/headers";
 import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getActiveOrg, getPetForAI, getOrgUsage, getUserUsage } from "@/lib/data";
-import { structureLogEntry, generateTriage } from "@/lib/ai";
+import {
+  structureLogEntry,
+  generateTriage,
+  heuristicStructure,
+  hasAI,
+} from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
 import { LOCALE_COOKIE, isLocale } from "@/lib/i18n/config";
 import {
@@ -105,27 +111,55 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
   if (!pet) return { error: "Pet not found" };
 
   const locale = await getLocale();
-  const structured = await structureLogEntry(text, pet, locale);
 
-  await prisma.logEntry.create({
+  // Save instantly with a fast local heuristic so the UI never waits on the
+  // model. If an AI key is set, refine the structured fields in the background
+  // (Vercel keeps the function warm via after()), so the entry is enriched a
+  // moment later without blocking the click.
+  const initial = heuristicStructure(text);
+  const entry = await prisma.logEntry.create({
     data: {
       petId,
       rawText: text,
       occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
-      type: structured.type,
-      severity: structured.severity,
-      title: structured.title,
-      summary: structured.summary,
-      tags: JSON.stringify(structured.tags),
-      aiProcessed: true,
+      type: initial.type,
+      severity: initial.severity,
+      title: initial.title,
+      summary: initial.summary,
+      tags: JSON.stringify(initial.tags),
+      aiProcessed: false,
     },
   });
 
   await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+
+  if (hasAI()) {
+    after(async () => {
+      try {
+        const structured = await structureLogEntry(text, pet, locale);
+        await prisma.logEntry.update({
+          where: { id: entry.id },
+          data: {
+            type: structured.type,
+            severity: structured.severity,
+            title: structured.title,
+            summary: structured.summary,
+            tags: JSON.stringify(structured.tags),
+            aiProcessed: true,
+          },
+        });
+        revalidatePath(`/pets/${petId}`);
+        revalidatePath(`/me/pets/${petId}`);
+      } catch (e) {
+        console.error("background log structuring failed", e);
+      }
+    });
+  }
+
   revalidatePath(`/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/");
-  return { ok: true, structured };
+  return { ok: true, structured: initial };
 }
 
 export async function deleteLogEntry(petId: string, id: string) {

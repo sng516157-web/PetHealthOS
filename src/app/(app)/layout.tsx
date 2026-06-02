@@ -6,8 +6,10 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const org = await getActiveOrg();
-  const unread = await getOrgUnreadCount();
+  const [org, unread] = await Promise.all([
+    getActiveOrg(),
+    getOrgUnreadCount(),
+  ]);
   return (
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} unread={unread} />

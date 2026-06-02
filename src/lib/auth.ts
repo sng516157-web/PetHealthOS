@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { prisma } from "./prisma";
@@ -66,11 +67,13 @@ export async function clearSession(): Promise<void> {
   store.delete(COOKIE);
 }
 
-export async function getCurrentUser() {
+// Memoized per request: the /me layout and page both resolve the user, so this
+// shares one cookie read + DB lookup instead of repeating it.
+export const getCurrentUser = cache(async () => {
   const store = await cookies();
   const token = store.get(COOKIE)?.value;
   if (!token) return null;
   const userId = readToken(token);
   if (!userId) return null;
   return prisma.user.findUnique({ where: { id: userId } });
-}
+});

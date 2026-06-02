@@ -13,8 +13,9 @@ function createClient() {
   return new PrismaClient({ adapter });
 }
 
+// Reuse a single client across requests (and across hot reloads in dev). On
+// Vercel Fluid Compute the instance is kept warm, so this also reuses the
+// underlying pg connection pool between invocations and avoids reconnecting.
 export const prisma = globalForPrisma.prisma ?? createClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;
