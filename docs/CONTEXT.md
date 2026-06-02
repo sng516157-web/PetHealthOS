@@ -176,12 +176,14 @@ Newest first. One entry per decision/change: date — what — why.
   - Owner page offers **start-fresh** (register) or **scan passport QR** (`html5-qrcode`
     camera + paste-link fallback → `/passport/[token]`). Logged-in users are redirected
     from landing pages to their workspace.
-  - ⚠️ **Prod-data implication (not yet deployed):** with auth now required on `/app`,
-    the legacy single-org prototype data ("My Cattery & Kennel") has no linked user and
-    would be orphaned after deploy. Acceptable for a fresh pilot; if that data must stay
-    reachable, link it to a shop user before deploying. A local test shop account
-    (`shoptest+landing@example.com`, org "晨曦猫舍 Sunrise Cattery") was created during
-    verification and can be removed.
+  - **Deployed to production** (pushed to `main` + `vercel --prod`); migration was
+    already applied to the shared Neon DB.
+  - ⚠️ **Prod-data implication:** with auth now required on `/app`, the legacy
+    single-org prototype data ("My Cattery & Kennel") has no linked user and is now
+    orphaned (unreachable in the UI). Acceptable for a fresh pilot; to reclaim it, set
+    that org's id as `orgId` on a shop `User`. A test shop account
+    (`shoptest+landing@example.com`, org "晨曦猫舍 Sunrise Cattery") created during
+    verification can be removed.
 - **2026-06-02** — Added `AGENTS.md` operating guide + this `CONTEXT.md`. Why:
   preserve context across agents/clones (chat history doesn't travel with the
   repo) and standardise behaviour (ask questions; keep docs updated after every change).
