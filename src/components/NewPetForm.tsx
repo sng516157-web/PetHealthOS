@@ -44,7 +44,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
         setError(res.error);
         return;
       }
-      if ("id" in res && res.id) router.push(`/pets/${res.id}`);
+      if ("id" in res && res.id) router.push(`/app/pets/${res.id}`);
     });
   }
 
@@ -146,7 +146,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
             <p className="font-medium">{t.billing.quotaTitle}</p>
             <p className="mt-0.5 text-xs">{t.billing.quotaDesc(quotaLimit)}</p>
             <Link
-              href="/billing"
+              href="/app/billing"
               className="mt-2 inline-flex rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
             >
               {t.billing.upgrade}

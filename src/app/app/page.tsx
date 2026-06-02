@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PawPrint, BellRing, Activity, Plus, ArrowRight } from "lucide-react";
-import { getPetsWithStats, getUpcomingReminders, getActiveOrg } from "@/lib/data";
+import { getPetsWithStats, getUpcomingReminders, requireActiveOrg } from "@/lib/data";
 import { Badge, Card, PetAvatar, SectionTitle, Tone } from "@/components/ui";
 import {
   LOG_TYPE_META,
@@ -15,7 +15,7 @@ import { getI18n } from "@/lib/i18n/server";
 export default async function Dashboard() {
   const [{ t }, org, pets, reminders] = await Promise.all([
     getI18n(),
-    getActiveOrg(),
+    requireActiveOrg(),
     getPetsWithStats(),
     getUpcomingReminders(),
   ]);
@@ -43,7 +43,7 @@ export default async function Dashboard() {
           </h1>
         </div>
         <Link
-          href="/pets/new"
+          href="/app/pets/new"
           className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
         >
           <Plus size={16} /> {t.common.addPet}
@@ -87,7 +87,7 @@ export default async function Dashboard() {
               {attention.map((p) => {
                 const last = p.logs[0];
                 return (
-                  <Link key={p.id} href={`/pets/${p.id}`}>
+                  <Link key={p.id} href={`/app/pets/${p.id}`}>
                     <Card className="flex items-center gap-4 p-4 transition hover:shadow-md hover:shadow-slate-200/60">
                       <PetAvatar species={p.species} name={p.name} photoUrl={p.photoUrl} />
                       <div className="min-w-0 flex-1">
@@ -122,7 +122,7 @@ export default async function Dashboard() {
             <SectionTitle
               title={t.dashboard.allPets}
               action={
-                <Link href="/pets" className="text-sm font-medium text-brand-600 hover:text-brand-700">
+                <Link href="/app/pets" className="text-sm font-medium text-brand-600 hover:text-brand-700">
                   {t.dashboard.viewAll}
                 </Link>
               }
@@ -132,7 +132,7 @@ export default async function Dashboard() {
             {pets.slice(0, 6).map((p) => {
               const last = p.logs[0];
               return (
-                <Link key={p.id} href={`/pets/${p.id}`}>
+                <Link key={p.id} href={`/app/pets/${p.id}`}>
                   <Card className="flex items-center gap-3 p-4 transition hover:shadow-md hover:shadow-slate-200/60">
                     <PetAvatar species={p.species} name={p.name} size="sm" photoUrl={p.photoUrl} />
                     <div className="min-w-0 flex-1">
@@ -166,7 +166,7 @@ export default async function Dashboard() {
                 return (
                   <Link
                     key={r.id}
-                    href={`/pets/${r.petId}`}
+                    href={`/app/pets/${r.petId}`}
                     className="flex items-center gap-3 p-3.5 transition hover:bg-slate-50"
                   >
                     <span className="text-lg">{meta?.emoji}</span>

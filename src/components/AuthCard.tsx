@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LogIn, UserPlus, Smartphone } from "lucide-react";
+import { LogIn, UserPlus, Smartphone, Store } from "lucide-react";
 import { signIn, register, requestPhoneOtp, verifyPhoneOtp } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/en";
@@ -12,10 +12,21 @@ const inputCls =
 const labelCls = "mb-1 block text-xs font-medium text-slate-600";
 
 type Tab = "signin" | "register" | "phone";
+type AccountType = "owner" | "shop";
 
-export function AuthCard() {
+function dest(type?: string) {
+  return type === "shop" ? "/app" : "/me";
+}
+
+export function AuthCard({
+  accountType = "owner",
+  defaultTab = "signin",
+}: {
+  accountType?: AccountType;
+  defaultTab?: Tab;
+}) {
   const { t } = useI18n();
-  const [tab, setTab] = useState<Tab>("signin");
+  const [tab, setTab] = useState<Tab>(defaultTab);
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "signin", label: t.auth.tabSignIn, icon: <LogIn size={14} /> },
@@ -24,7 +35,7 @@ export function AuthCard() {
   ];
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-soft">
       <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
         {tabs.map((tb) => (
           <button
@@ -42,8 +53,8 @@ export function AuthCard() {
       </div>
 
       {tab === "signin" && <SignInTab t={t} />}
-      {tab === "register" && <RegisterTab t={t} />}
-      {tab === "phone" && <PhoneTab t={t} />}
+      {tab === "register" && <RegisterTab t={t} accountType={accountType} />}
+      {tab === "phone" && <PhoneTab t={t} accountType={accountType} />}
     </div>
   );
 }
@@ -58,7 +69,7 @@ function SignInTab({ t }: { t: Dictionary }) {
     start(async () => {
       const res = await signIn(formData);
       if (res?.error) setError(res.error);
-      else router.push("/me");
+      else router.push(dest(res?.accountType));
     });
   }
 
@@ -80,24 +91,45 @@ function SignInTab({ t }: { t: Dictionary }) {
   );
 }
 
-function RegisterTab({ t }: { t: Dictionary }) {
+function RegisterTab({ t, accountType }: { t: Dictionary; accountType: AccountType }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const isShop = accountType === "shop";
 
   function submit(formData: FormData) {
     setError(null);
     start(async () => {
       const res = await register(formData);
-      if (res?.error) setError(res.error);
-      else router.push("/me");
+      if (res?.error) {
+        setError(res.error === "ORG_NAME_REQUIRED" ? t.auth.errOrgNameRequired : res.error);
+      } else {
+        router.push(dest(res?.accountType));
+      }
     });
   }
 
   return (
     <form action={submit} className="space-y-3">
+      <input type="hidden" name="accountType" value={accountType} />
+      {isShop && (
+        <>
+          <div>
+            <label className={labelCls}>{t.auth.shopName}</label>
+            <input name="orgName" required className={inputCls} placeholder={t.auth.shopNamePlaceholder} />
+          </div>
+          <div>
+            <label className={labelCls}>{t.auth.shopKind}</label>
+            <select name="orgKind" defaultValue="BREEDER" className={inputCls}>
+              <option value="BREEDER">{t.auth.kindBreeder}</option>
+              <option value="SHOP">{t.auth.kindShop}</option>
+              <option value="SHELTER">{t.auth.kindShelter}</option>
+            </select>
+          </div>
+        </>
+      )}
       <div>
-        <label className={labelCls}>{t.auth.name}</label>
+        <label className={labelCls}>{isShop ? t.auth.contactName : t.auth.name}</label>
         <input name="name" required className={inputCls} placeholder={t.auth.namePlaceholder} />
       </div>
       <div>
@@ -110,20 +142,23 @@ function RegisterTab({ t }: { t: Dictionary }) {
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       <button type="submit" disabled={pending} className={primaryBtn}>
-        <UserPlus size={15} /> {pending ? t.auth.registering : t.auth.register}
+        {isShop ? <Store size={15} /> : <UserPlus size={15} />}{" "}
+        {pending ? t.auth.registering : isShop ? t.auth.createShop : t.auth.register}
       </button>
     </form>
   );
 }
 
-function PhoneTab({ t }: { t: Dictionary }) {
+function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"enter" | "code">("enter");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
+  const isShop = accountType === "shop";
 
   function smsError(code: string): string {
     return (t.auth.smsErr as Record<string, string>)[code] ?? code;
@@ -140,6 +175,7 @@ function PhoneTab({ t }: { t: Dictionary }) {
       }
       setPhone(String(formData.get("phone") || ""));
       setName(String(formData.get("name") || ""));
+      setOrgName(String(formData.get("orgName") || ""));
       if (res.devCode) setDevCode(res.devCode);
       setStep("code");
     });
@@ -149,16 +185,24 @@ function PhoneTab({ t }: { t: Dictionary }) {
     setError(null);
     formData.set("phone", phone);
     formData.set("name", name);
+    formData.set("accountType", accountType);
+    if (orgName) formData.set("orgName", orgName);
     start(async () => {
       const res = await verifyPhoneOtp(formData);
       if ("error" in res) setError(smsError(res.error));
-      else router.push("/me");
+      else router.push(dest(res.accountType));
     });
   }
 
   if (step === "enter") {
     return (
       <form action={sendCode} className="space-y-3">
+        {isShop && (
+          <div>
+            <label className={labelCls}>{t.auth.shopName}</label>
+            <input name="orgName" className={inputCls} placeholder={t.auth.shopNamePlaceholder} />
+          </div>
+        )}
         <div>
           <label className={labelCls}>
             {t.auth.name} <span className="font-normal text-muted">({t.common.optional})</span>

@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n/client";
 export function PetTabs({ petId }: { petId: string }) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const base = `/pets/${petId}`;
+  const base = `/app/pets/${petId}`;
   const tabs = [
     { href: base, label: t.tabs.healthLog, exact: true },
     { href: `${base}/chat`, label: t.tabs.aiAssistant },

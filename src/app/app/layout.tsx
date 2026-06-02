@@ -1,13 +1,15 @@
 import { Sidebar, MobileNav } from "@/components/Sidebar";
-import { getActiveOrg, getOrgUnreadCount } from "@/lib/data";
+import { requireActiveOrg, getOrgUnreadCount } from "@/lib/data";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Gate the whole shop workspace: requireActiveOrg() redirects anyone who is
+  // not signed in to a shop account (owners / logged-out) to the /shop landing.
   const [org, unread] = await Promise.all([
-    getActiveOrg(),
+    requireActiveOrg(),
     getOrgUnreadCount(),
   ]);
   return (

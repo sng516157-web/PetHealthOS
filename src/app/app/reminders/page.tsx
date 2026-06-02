@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getActiveOrg } from "@/lib/data";
+import { requireActiveOrg } from "@/lib/data";
 import { Card, Badge, EmptyState, Tone } from "@/components/ui";
 import { ReminderToggle } from "@/components/ReminderToggle";
 import { REMINDER_CATEGORY_META, ReminderCategory } from "@/lib/constants";
@@ -9,7 +9,7 @@ import { getI18n } from "@/lib/i18n/server";
 
 export default async function RemindersPage() {
   const { t } = await getI18n();
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   const reminders = await prisma.reminder.findMany({
     where: { pet: { orgId: org.id } },
     orderBy: { dueAt: "asc" },
@@ -66,7 +66,7 @@ export default async function RemindersPage() {
                             {r.title}
                           </div>
                           <Link
-                            href={`/pets/${r.petId}`}
+                            href={`/app/pets/${r.petId}`}
                             className="text-xs text-muted hover:text-brand-600"
                           >
                             {r.pet.name} · {formatDate(r.dueAt)}

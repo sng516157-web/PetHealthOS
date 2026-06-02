@@ -1,0 +1,250 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  ShieldCheck,
+  Sparkles,
+  CalendarClock,
+  Languages,
+  NotebookPen,
+  MessagesSquare,
+  QrCode,
+  ArrowRight,
+  User,
+  Store,
+  Check,
+} from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n/server";
+import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
+import { PawSureMark } from "@/components/PawSureLogo";
+
+const STEP_ICONS = [NotebookPen, MessagesSquare, QrCode];
+const FEATURE_ICONS = [ShieldCheck, Sparkles, CalendarClock, Languages];
+
+export default async function HomePage() {
+  const user = await getCurrentUser();
+  if (user) redirect(user.orgId ? "/app" : "/me");
+  const { t } = await getI18n();
+  const l = t.landing;
+
+  return (
+    <div className="min-h-screen bg-paper">
+      <LandingHeader t={t} />
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -top-24 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-brand-100/50 blur-3xl" />
+          <div className="absolute right-0 top-40 h-64 w-64 rounded-full bg-[#F4C96B]/20 blur-3xl" />
+        </div>
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:px-8 md:py-24">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-medium text-forest">
+              <Sparkles size={13} /> {l.heroEyebrow}
+            </span>
+            <h1 className="mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-forest md:text-5xl">
+              {l.heroTitle}
+            </h1>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-ink/70">
+              {l.heroSubtitle}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="#choose"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
+              >
+                {l.heroPrimary} <ArrowRight size={16} />
+              </Link>
+              <Link
+                href="#how"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-white px-6 py-3 text-sm font-semibold text-forest transition hover:border-brand-300"
+              >
+                {l.heroSecondary}
+              </Link>
+            </div>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-ink/60">
+              {[l.trust1, l.trust2, l.trust3].map((item) => (
+                <li key={item} className="inline-flex items-center gap-1.5">
+                  <Check size={14} className="text-sage" /> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-sm">
+            <div className="rounded-[2rem] border border-border bg-surface p-7 shadow-soft">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-paper shadow-soft ring-1 ring-inset ring-border">
+                  <PawSureMark className="h-9 w-9" />
+                </span>
+                <div>
+                  <div className="text-sm font-bold text-forest">PawSure 宠诺</div>
+                  <div className="text-xs text-muted">{l.footerTagline}</div>
+                </div>
+              </div>
+              <div className="mt-5 space-y-2.5">
+                {l.steps.map((s, i) => {
+                  const Icon = STEP_ICONS[i];
+                  return (
+                    <div
+                      key={s.title}
+                      className="flex items-center gap-3 rounded-2xl border border-border/70 bg-paper px-3.5 py-3"
+                    >
+                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                        <Icon size={16} />
+                      </span>
+                      <span className="text-sm font-medium text-ink">{s.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how" className="mx-auto max-w-6xl px-5 py-16 md:px-8">
+        <SectionHeading eyebrow={l.howEyebrow} title={l.howTitle} />
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {l.steps.map((s, i) => {
+            const Icon = STEP_ICONS[i];
+            return (
+              <div key={s.title} className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                    <Icon size={20} />
+                  </span>
+                  <span className="text-3xl font-extrabold text-brand-100">{i + 1}</span>
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-forest">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink/70">{s.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="bg-sand/30 py-16">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
+          <SectionHeading eyebrow={l.featuresEyebrow} title={l.featuresTitle} />
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {l.features.map((f, i) => {
+              const Icon = FEATURE_ICONS[i];
+              return (
+                <div key={f.title} className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-forest/10 text-forest">
+                    <Icon size={20} />
+                  </span>
+                  <h3 className="mt-4 text-base font-bold text-forest">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink/70">{f.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Choose path */}
+      <section id="choose" className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+        <SectionHeading eyebrow={l.chooseEyebrow} title={l.chooseTitle} subtitle={l.chooseSubtitle} />
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          <PathCard
+            href="/owner"
+            icon={<User size={22} />}
+            title={l.ownerCardTitle}
+            desc={l.ownerCardDesc}
+            cta={l.ownerCardCta}
+          />
+          <PathCard
+            href="/shop"
+            icon={<Store size={22} />}
+            title={l.shopCardTitle}
+            desc={l.shopCardDesc}
+            cta={l.shopCardCta}
+            highlight
+          />
+        </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="px-5 pb-20 md:px-8">
+        <div className="mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-forest px-8 py-14 text-center shadow-soft">
+          <h2 className="mx-auto max-w-2xl text-2xl font-extrabold leading-tight text-white md:text-3xl">
+            {l.ctaTitle}
+          </h2>
+          <p className="mt-3 text-sm text-white/75">{l.ctaDesc}</p>
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/owner"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-forest transition hover:bg-paper"
+            >
+              <User size={16} /> {l.ownerCardCta}
+            </Link>
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F4C96B] px-6 py-3 text-sm font-semibold text-forest transition hover:brightness-105"
+            >
+              <Store size={16} /> {l.shopCardCta}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <LandingFooter t={t} />
+    </div>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="text-center">
+      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">{eyebrow}</span>
+      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-forest md:text-3xl">{title}</h2>
+      {subtitle && <p className="mx-auto mt-2 max-w-xl text-sm text-ink/65">{subtitle}</p>}
+    </div>
+  );
+}
+
+function PathCard({
+  href,
+  icon,
+  title,
+  desc,
+  cta,
+  highlight,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+  cta: string;
+  highlight?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`group flex flex-col rounded-3xl border p-7 shadow-soft transition hover:-translate-y-0.5 ${
+        highlight ? "border-brand-300 bg-brand-50/40" : "border-border bg-surface"
+      }`}
+    >
+      <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-white">
+        {icon}
+      </span>
+      <h3 className="mt-5 text-xl font-extrabold text-forest">{title}</h3>
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-ink/70">{desc}</p>
+      <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700">
+        {cta} <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
+      </span>
+    </Link>
+  );
+}

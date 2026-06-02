@@ -54,7 +54,7 @@ export default async function PetOverview({
       <div className="space-y-5 lg:col-span-2">
         {flagged.length > 0 && (
           <Link
-            href={`/pets/${pet.id}/triage`}
+            href={`/app/pets/${pet.id}/triage`}
             className="flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 transition hover:bg-orange-100/70"
           >
             <AlertTriangle size={20} className="mt-0.5 shrink-0 text-orange-500" />

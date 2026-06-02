@@ -42,10 +42,19 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
 - **Uploads:** Vercel Blob in prod, local filesystem fallback in dev (`saveUpload`).
 - **i18n:** `en`/`zh` dictionaries in `src/lib/i18n/` (`en.ts` is the source of
   truth; `zh.ts` must mirror its shape — enforced by the `Dictionary` type).
-- **Auth:** custom email+password (scrypt + signed cookies) and phone OTP
-  (`src/lib/sms.ts`, provider-agnostic; dev fallback). `src/lib/auth.ts`.
-- **Route groups:** `(app)` = breeder/org UI (sidebar). `/me` = owner UI. `/passport/[token]`
-  = public passport. `/pricing`, `/billing`, `/me/billing`. `/brand` = design-system showcase.
+- **Auth:** **unified** — one `User` account system (scrypt email+password and/or
+  phone OTP, signed cookies; `src/lib/auth.ts`). A `User` with `orgId` set is a
+  **shop** account (manages an `Organization`); a `User` without `orgId` is an
+  **owner** account. Sign-up picks the type (shop also creates the `Organization`).
+- **Routes:**
+  - `/` = **public landing** (marketing + choose owner/shop + log in). `/owner`,
+    `/shop` = per-type landing pages (explain + login/create). Logged-in users are
+    redirected away from these to their workspace.
+  - `/app/*` = **shop/breeder workspace** (sidebar; moved here from `/`). Gated by
+    `requireActiveOrg()` → redirects non-shop / logged-out users to `/shop`.
+  - `/me/*` = owner workspace. `/passport/[token]` = public passport.
+  - `/login` = shared auth entry; `/pricing`, `/app/billing`, `/me/billing`,
+    `/billing/success|cancelled`; `/brand` = design-system showcase.
 - **Cron:** `/api/cron/reminders` (daily, `vercel.json`), guarded by `CRON_SECRET`.
 
 ---
@@ -80,7 +89,12 @@ Notes:
   `TRANSFERRED`, returns a token → public `/passport/[token]`.
 - **Claim:** if the breeder enabled it, a buyer claims the passport (`claimPassport`),
   which creates/signs into an Owner's Account and sets `ownerUserId`.
-- **Owner self-signup:** `register` / phone OTP → owner adds pets via `addOwnedPet`.
+- **Owner self-signup:** from `/` → `/owner`, "start fresh" → `register` (owner) → `/me`;
+  or "scan a passport QR" (`PassportScanner`: camera via `html5-qrcode` + paste-link
+  fallback) → `/passport/[token]` claim.
+- **Shop signup:** from `/` → `/shop` → `register` with `accountType=shop` creates an
+  `Organization`, links the `User` (`orgId`), and lands in `/app`. `getActiveOrg()`
+  resolves the logged-in user's org; `requireActiveOrg()` enforces it for `/app`.
 - **Billing:** provider-agnostic `startCheckout` — Stripe wired; WeChat Pay/Alipay
   stubbed; demo mode activates plans instantly when no provider is configured.
 
@@ -151,6 +165,23 @@ Notes:
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-02** — Built **public landing pages** (`/`, `/owner`, `/shop`) and switched
+  to **unified auth**. Why (user request): a real front door that explains the product
+  and routes people to the right account.
+  - `User.orgId` added (migration `unified_auth_user_org`); a user with an org = shop,
+    without = owner. Sign-up takes an `accountType`; shop sign-up also creates the org.
+  - Breeder workspace **moved from `/` to `/app`** (route group `(app)` → segment `app`);
+    Sidebar/links/`revalidatePath`/redirects updated. `getActiveOrg()` now resolves the
+    logged-in user's org; `requireActiveOrg()` gates `/app` (redirects to `/shop`).
+  - Owner page offers **start-fresh** (register) or **scan passport QR** (`html5-qrcode`
+    camera + paste-link fallback → `/passport/[token]`). Logged-in users are redirected
+    from landing pages to their workspace.
+  - ⚠️ **Prod-data implication (not yet deployed):** with auth now required on `/app`,
+    the legacy single-org prototype data ("My Cattery & Kennel") has no linked user and
+    would be orphaned after deploy. Acceptable for a fresh pilot; if that data must stay
+    reachable, link it to a shop user before deploying. A local test shop account
+    (`shoptest+landing@example.com`, org "晨曦猫舍 Sunrise Cattery") was created during
+    verification and can be removed.
 - **2026-06-02** — Added `AGENTS.md` operating guide + this `CONTEXT.md`. Why:
   preserve context across agents/clones (chat history doesn't travel with the
   repo) and standardise behaviour (ask questions; keep docs updated after every change).

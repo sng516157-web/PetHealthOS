@@ -10,7 +10,7 @@ export default async function NewPetPage() {
   return (
     <div className="mx-auto max-w-2xl px-5 py-8 md:px-8">
       <Link
-        href="/pets"
+        href="/app/pets"
         className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
       >
         <ChevronLeft size={16} /> {t.petDetail.back}

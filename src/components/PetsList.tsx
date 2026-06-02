@@ -81,7 +81,7 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
             description={q ? t.pets.tryDifferent : t.pets.addFirst}
             action={
               <Link
-                href="/pets/new"
+                href="/app/pets/new"
                 className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 <Plus size={16} /> {t.common.addPet}
@@ -92,7 +92,7 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
       ) : (
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
-            <Link key={p.id} href={`/pets/${p.id}`}>
+            <Link key={p.id} href={`/app/pets/${p.id}`}>
               <Card className="h-full p-4 transition hover:shadow-md hover:shadow-slate-200/60">
                 <div className="flex items-start gap-3">
                   <PetAvatar species={p.species} name={p.name} photoUrl={p.photoUrl} />

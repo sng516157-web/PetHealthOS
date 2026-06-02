@@ -8,18 +8,20 @@ import {
   BellRing,
   Bell,
   CreditCard,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/client";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
+import { signOut } from "@/app/actions";
 
 const NAV = [
-  { href: "/", key: "dashboard" as const, icon: LayoutDashboard, exact: true },
-  { href: "/pets", key: "pets" as const, icon: PawPrint },
-  { href: "/reminders", key: "reminders" as const, icon: BellRing },
-  { href: "/notifications", key: "notifications" as const, icon: Bell },
-  { href: "/billing", key: "billing" as const, icon: CreditCard },
+  { href: "/app", key: "dashboard" as const, icon: LayoutDashboard, exact: true },
+  { href: "/app/pets", key: "pets" as const, icon: PawPrint },
+  { href: "/app/reminders", key: "reminders" as const, icon: BellRing },
+  { href: "/app/notifications", key: "notifications" as const, icon: Bell },
+  { href: "/app/billing", key: "billing" as const, icon: CreditCard },
 ];
 
 export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: number }) {
@@ -27,7 +29,7 @@ export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: num
   const { t } = useI18n();
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface px-4 py-5 md:flex">
-      <Link href="/" className="flex items-center gap-2.5 px-2">
+      <Link href="/app" className="flex items-center gap-2.5 px-2">
         <PawSureMarkTile className="h-9 w-9" />
         <div className="leading-tight">
           <div className="flex items-baseline gap-1.5">
@@ -77,6 +79,15 @@ export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: num
             {orgName}
           </div>
         </div>
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-brand-50/60 hover:text-forest"
+          >
+            <LogOut size={18} className="text-muted" />
+            {t.auth.signOut}
+          </button>
+        </form>
       </div>
     </aside>
   );

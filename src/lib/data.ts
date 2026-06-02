@@ -1,24 +1,32 @@
 import { cache } from "react";
+import { redirect } from "next/navigation";
+import type { Organization } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
+import { getCurrentUser } from "./auth";
 import { getOrgPlan, getUserPlan, petLimit } from "./plans";
 
-// Single-org prototype: resolve (or lazily create) the active organization.
-// Wrapped in cache() so the many callers in one request (layout + page + data
-// helpers) share a single DB lookup instead of repeating it.
-export const getActiveOrg = cache(async () => {
-  let org = await prisma.organization.findFirst({
-    orderBy: { createdAt: "asc" },
-  });
-  if (!org) {
-    org = await prisma.organization.create({
-      data: { name: "My Cattery & Kennel", kind: "BREEDER" },
-    });
-  }
-  return org;
+// Unified auth: the "active org" is the logged-in shop user's organization.
+// A user with an org is a shop/breeder account (/app workspace); a user
+// without one is an owner account (/me). Returns null when there is no shop
+// context (not logged in, or an owner account). Wrapped in cache() so the
+// layout + page + data helpers share a single lookup per request.
+export const getActiveOrg = cache(async (): Promise<Organization | null> => {
+  const user = await getCurrentUser();
+  if (!user?.orgId) return null;
+  return prisma.organization.findUnique({ where: { id: user.orgId } });
 });
 
-export async function getPetsWithStats() {
+// For breeder (/app) pages and actions that must run in a shop context.
+// Redirects unauthenticated/owner users to the shop landing instead of
+// throwing on a null org.
+export async function requireActiveOrg(): Promise<Organization> {
   const org = await getActiveOrg();
+  if (!org) redirect("/shop");
+  return org;
+}
+
+export async function getPetsWithStats() {
+  const org = await requireActiveOrg();
   const pets = await prisma.pet.findMany({
     where: { orgId: org.id },
     orderBy: { updatedAt: "desc" },
@@ -49,7 +57,7 @@ export async function getPet(id: string) {
 
 // Candidate lineage parents: same species, excluding the pet itself.
 export async function getCandidateParents(species?: string, excludeId?: string) {
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   return prisma.pet.findMany({
     where: {
       orgId: org.id,
@@ -69,7 +77,7 @@ export async function getPetForAI(id: string) {
 }
 
 export async function getUpcomingReminders() {
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   return prisma.reminder.findMany({
     where: { pet: { orgId: org.id }, completed: false },
     orderBy: { dueAt: "asc" },
@@ -99,7 +107,7 @@ export async function getOwnedPet(userId: string, id: string) {
 // ---- Notifications ----
 
 export async function getOrgNotifications() {
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   return prisma.notification.findMany({
     where: { orgId: org.id },
     orderBy: { createdAt: "desc" },
@@ -109,7 +117,7 @@ export async function getOrgNotifications() {
 }
 
 export async function getOrgUnreadCount() {
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   return prisma.notification.count({ where: { orgId: org.id, readAt: null } });
 }
 
@@ -125,7 +133,7 @@ export async function getUserNotifications(userId: string) {
 // ---- Billing / quota usage ----
 
 export async function getOrgUsage() {
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   const plan = getOrgPlan(org.plan);
   const count = await prisma.pet.count({ where: { orgId: org.id } });
   return { org, plan, count, limit: petLimit(plan, org.extraPetSlots) };

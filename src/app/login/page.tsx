@@ -8,7 +8,7 @@ import { getI18n } from "@/lib/i18n/server";
 
 export default async function LoginPage() {
   const user = await getCurrentUser();
-  if (user) redirect("/me");
+  if (user) redirect(user.orgId ? "/app" : "/me");
   const { t } = await getI18n();
 
   return (

@@ -31,6 +31,7 @@ Treat documentation as part of "done" — a change isn't complete until `docs/CO
 ## Quick facts
 
 - Stack: Next.js 16 (App Router) · React 19 · Tailwind v4 · Prisma 7 + Postgres (Neon) · Vercel Blob · Google Gemini via AI SDK.
+- Routes & accounts: `/` = public landing, `/owner` + `/shop` = per-type landing/auth. **Unified auth** — a `User` with `orgId` is a **shop** (workspace `/app/*`, gated by `requireActiveOrg()`), without `orgId` is an **owner** (`/me/*`). `/passport/[token]` is the public passport.
 - Deploy: Vercel project `pet-health-os` → https://pet-health-os.vercel.app. DB + compute both in `us-east-1`.
 - Secrets are gitignored. A fresh clone needs `vercel link` then `vercel env pull` (see `.env.example` for the variable inventory).
 - Commands: `npm run dev` · `npx next build` · `npm run db:migrate` · `npm run db:studio`.

@@ -45,7 +45,7 @@ export default async function PetLayout({
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 md:px-8">
       <Link
-        href="/pets"
+        href="/app/pets"
         className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
       >
         <ChevronLeft size={16} /> {t.petDetail.back}
@@ -73,7 +73,7 @@ export default async function PetLayout({
               {pet.sire && (
                 <span>
                   {t.petDetail.sire}:{" "}
-                  <Link href={`/pets/${pet.sire.id}`} className="font-medium text-brand-600 hover:underline">
+                  <Link href={`/app/pets/${pet.sire.id}`} className="font-medium text-brand-600 hover:underline">
                     {pet.sire.name}
                   </Link>
                 </span>
@@ -81,7 +81,7 @@ export default async function PetLayout({
               {pet.dam && (
                 <span>
                   {t.petDetail.dam}:{" "}
-                  <Link href={`/pets/${pet.dam.id}`} className="font-medium text-brand-600 hover:underline">
+                  <Link href={`/app/pets/${pet.dam.id}`} className="font-medium text-brand-600 hover:underline">
                     {pet.dam.name}
                   </Link>
                 </span>

@@ -266,6 +266,15 @@ export const en = {
     emailPlaceholder: "you@example.com",
     createPasswordPlaceholder: "Create a password (min 6 chars)",
     register: "Create account",
+    createShop: "Create shop account",
+    contactName: "Your name",
+    shopName: "Shop / cattery / shelter name",
+    shopNamePlaceholder: "e.g. Sunrise Cattery",
+    shopKind: "Business type",
+    kindBreeder: "Breeder (cattery / kennel)",
+    kindShop: "Pet shop",
+    kindShelter: "Shelter / rescue",
+    errOrgNameRequired: "Enter your shop, cattery or shelter name.",
     registering: "Creating…",
     registerTitle: "Create your account",
     registerSubtitle: "Register to keep your pets' lifelong health records.",
@@ -439,6 +448,126 @@ export const en = {
     cancelledDesc: "No charge was made. You can pick a plan whenever you're ready.",
     backToApp: "Back to app",
     backToBilling: "Back to billing",
+  },
+  landing: {
+    // Header / shared
+    nav: { pricing: "Pricing", signIn: "Sign in", getStarted: "Get started" },
+    // Hero (main page)
+    heroEyebrow: "Every pet comes with confidence",
+    heroTitle: "The lifelong health record that travels with the pet.",
+    heroSubtitle:
+      "PawSure helps breeders, shops and owners log a pet's health, ask an AI that knows its history, and pass a trusted health passport from one loving home to the next.",
+    heroPrimary: "Get started",
+    heroSecondary: "See how it works",
+    trust1: "Tamper-evident history",
+    trust2: "AI grounded in each pet's log",
+    trust3: "Handover in one tap",
+    // How it works
+    howEyebrow: "How it works",
+    howTitle: "One continuous story for every pet",
+    steps: [
+      {
+        title: "Log health, simply",
+        desc: "Jot a note, a weight, a vet visit. AI organises it into a clear, searchable timeline.",
+      },
+      {
+        title: "Ask the assistant",
+        desc: "Get answers grounded in that pet's own history — plus a triage report to share with the vet.",
+      },
+      {
+        title: "Hand over with trust",
+        desc: "When a pet finds a new home, issue a health passport. The new owner scans a QR code and continues the story.",
+      },
+    ],
+    // Features
+    featuresEyebrow: "Why PawSure",
+    featuresTitle: "Built for the people who care for pets",
+    features: [
+      { title: "A record that can't be faked", desc: "History is logged over time and frozen at handover — a cheap, honest signal of good care." },
+      { title: "Lineage & documents", desc: "Pedigree, vaccine certificates and lab results live with the pet, ready to share." },
+      { title: "Reminders that follow the pet", desc: "Vaccines, deworming and check-ups — never lost in a chat thread again." },
+      { title: "Works in English & 中文", desc: "The whole app and the AI assistant speak your language." },
+    ],
+    // Choose path
+    chooseEyebrow: "Choose your path",
+    chooseTitle: "How will you use PawSure?",
+    chooseSubtitle: "Pick the account that fits you. You can always explore both.",
+    ownerCardTitle: "I'm a pet owner",
+    ownerCardDesc: "Keep your pet's lifelong health in one place — free for up to 2 pets. Start fresh, or scan a passport from your breeder.",
+    ownerCardCta: "Continue as owner",
+    shopCardTitle: "I'm a breeder, shop or shelter",
+    shopCardDesc: "Manage many animals, track lineage and weights, and issue trusted health passports when pets go to their new homes.",
+    shopCardCta: "Continue as a shop",
+    // Closing CTA
+    ctaTitle: "Give every pet a story worth trusting.",
+    ctaDesc: "Start free in minutes — no card required.",
+    // Footer
+    footerTagline: "Every pet comes with confidence.",
+    footerRights: "PawSure 宠诺. A trustworthy home for pet health.",
+    // Owner landing
+    owner: {
+      eyebrow: "For pet owners",
+      title: "Your pet's whole health story, in one calm place.",
+      subtitle:
+        "Free for up to 2 pets. Log notes and weights, get reminders, and ask an AI that actually knows your pet's history.",
+      whatTitle: "What an Owner's Account gives you",
+      bullets: [
+        "Keep up to 2 pets' health records — free, forever.",
+        "An AI assistant grounded in your pet's own log.",
+        "Reminders for vaccines, medication and check-ups.",
+        "If you adopted from a PawSure breeder, inherit the full history.",
+      ],
+      startEyebrow: "Two ways to begin",
+      freshTitle: "Start a fresh account",
+      freshDesc: "New to PawSure? Create your account and add your pet in under a minute.",
+      freshCta: "Create owner account",
+      scanTitle: "Scan a health passport",
+      scanDesc: "Got a pet from a breeder or shop on PawSure? Scan the passport QR to inherit its full health history.",
+      scanCta: "Scan passport QR",
+      note: "Owner accounts are free and can't issue health passports — that's what shop accounts are for.",
+      loginTitle: "Owner sign in / create account",
+    },
+    // Owner QR scanner
+    scan: {
+      title: "Scan your pet's passport",
+      desc: "Point your camera at the QR code on the passport your breeder shared.",
+      start: "Start camera",
+      stop: "Stop camera",
+      starting: "Starting camera…",
+      cameraError: "Couldn't open the camera. Use the link option below instead.",
+      permissionHint: "Allow camera access when your browser asks.",
+      orDivider: "or paste the passport link",
+      pasteLabel: "Passport link or code",
+      pastePlaceholder: "https://…/passport/abc123  ·  or just abc123",
+      pasteCta: "Open passport",
+      invalid: "That doesn't look like a passport link or code.",
+      detected: "Passport found — opening…",
+    },
+    // Shop landing
+    shop: {
+      eyebrow: "For breeders, shops & shelters",
+      title: "Run a trusted operation buyers can believe in.",
+      subtitle:
+        "Manage every animal, prove good care over time, and hand over a health passport that turns each sale into a confident new owner.",
+      whatTitle: "What a Shop Account gives you",
+      bullets: [
+        "Manage many animals with weights, logs and lineage.",
+        "Issue tamper-evident health passports at handover.",
+        "Every passport becomes a new owner on PawSure.",
+        "AI triage reports to communicate clearly with vets.",
+      ],
+      differenceTitle: "Owner vs Shop — what's the difference?",
+      ownerCol: "Owner's Account",
+      shopCol: "Shop Account",
+      diffPets: { label: "Pets", owner: "Up to 2 (free)", shop: "Many — plan based" },
+      diffPassport: { label: "Issue passports", owner: "No", shop: "Yes" },
+      diffLineage: { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
+      diffPrice: { label: "Price", owner: "Free", shop: "From a monthly plan" },
+      seePricing: "See shop pricing",
+      loginTitle: "Shop sign in / create account",
+    },
+    backHome: "Back to home",
+    alreadyMember: "Already have an account?",
   },
 };
 

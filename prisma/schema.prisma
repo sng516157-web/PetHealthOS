@@ -23,6 +23,7 @@ model Organization {
   extraPetSlots Int    @default(0)
 
   pets          Pet[]
+  members       User[] @relation("OrgMembers")
   notifications Notification[]
 }
 
@@ -39,9 +40,16 @@ model User {
   plan          String @default("FREE") // FREE | PLUS
   extraPetSlots Int    @default(0)
 
+  // Unified auth: a user with an org is a "shop" account (breeder/shop/shelter
+  // workspace at /app). A user without an org is an "owner" account (/me).
+  orgId String?
+  org   Organization? @relation("OrgMembers", fields: [orgId], references: [id], onDelete: SetNull)
+
   pets          Pet[]          @relation("OwnerUser")
   claims        Transfer[]
   notifications Notification[]
+
+  @@index([orgId])
 }
 
 // Short-lived phone verification codes for SMS OTP sign-in / registration.

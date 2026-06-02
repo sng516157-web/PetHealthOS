@@ -52,7 +52,7 @@ export default async function PricingPage() {
                 key={p.key}
                 plan={p}
                 t={t}
-                cta={{ href: "/billing", label: p.priceRmb > 0 ? t.pricing.choose : t.pricing.getStarted }}
+                cta={{ href: "/app/billing", label: p.priceRmb > 0 ? t.pricing.choose : t.pricing.getStarted }}
                 highlight={p.key === "SHOP"}
               />
             ))}

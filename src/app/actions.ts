@@ -8,7 +8,7 @@ import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
-import { getActiveOrg, getPetForAI, getOrgUsage, getUserUsage } from "@/lib/data";
+import { requireActiveOrg, getPetForAI, getOrgUsage, getUserUsage } from "@/lib/data";
 import {
   structureLogEntry,
   generateTriage,
@@ -64,7 +64,7 @@ async function saveUpload(file: File): Promise<string> {
 }
 
 export async function addPet(formData: FormData) {
-  const org = await getActiveOrg();
+  const org = await requireActiveOrg();
   const name = String(formData.get("name") || "").trim();
   if (!name) return { error: "Name is required" };
 
@@ -99,8 +99,8 @@ export async function addPet(formData: FormData) {
       damId: String(formData.get("damId") || "") || null,
     },
   });
-  revalidatePath("/");
-  revalidatePath("/pets");
+  revalidatePath("/app");
+  revalidatePath("/app/pets");
   return { id: pet.id };
 }
 
@@ -149,7 +149,7 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
             aiProcessed: true,
           },
         });
-        revalidatePath(`/pets/${petId}`);
+        revalidatePath(`/app/pets/${petId}`);
         revalidatePath(`/me/pets/${petId}`);
       } catch (e) {
         console.error("background log structuring failed", e);
@@ -157,9 +157,9 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
     });
   }
 
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
-  revalidatePath("/");
+  revalidatePath("/app");
   return { ok: true, structured: initial };
 }
 
@@ -172,7 +172,7 @@ export async function deleteLogEntry(petId: string, id: string) {
     };
   }
   await prisma.logEntry.delete({ where: { id } });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
@@ -192,9 +192,9 @@ export async function addReminder(petId: string, formData: FormData) {
       notes: String(formData.get("notes") || "") || null,
     },
   });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
-  revalidatePath("/reminders");
+  revalidatePath("/app/reminders");
   return { ok: true };
 }
 
@@ -205,9 +205,9 @@ export async function toggleReminder(id: string) {
     where: { id },
     data: { completed: !r.completed },
   });
-  revalidatePath(`/pets/${r.petId}`);
+  revalidatePath(`/app/pets/${r.petId}`);
   revalidatePath(`/me/pets/${r.petId}`);
-  revalidatePath("/reminders");
+  revalidatePath("/app/reminders");
   return { ok: true };
 }
 
@@ -225,9 +225,9 @@ export async function generateTriageReport(petId: string) {
       content: JSON.stringify(result),
     },
   });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
-  revalidatePath(`/pets/${petId}/triage`);
+  revalidatePath(`/app/pets/${petId}/triage`);
   return { id: report.id };
 }
 
@@ -247,7 +247,7 @@ export async function addAttachment(petId: string, formData: FormData) {
       mimeType: file.type || null,
     },
   });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
@@ -259,16 +259,16 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
 
   const url = await saveUpload(file);
   await prisma.pet.update({ where: { id: petId }, data: { photoUrl: url } });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
-  revalidatePath("/pets");
-  revalidatePath("/");
+  revalidatePath("/app/pets");
+  revalidatePath("/app");
   return { ok: true, url };
 }
 
 export async function deleteAttachment(petId: string, id: string) {
   await prisma.attachment.delete({ where: { id } });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
@@ -335,9 +335,9 @@ export async function createTransfer(petId: string, formData: FormData) {
     where: { id: petId },
     data: { status: "TRANSFERRED" },
   });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
-  revalidatePath(`/pets/${petId}/transfer`);
+  revalidatePath(`/app/pets/${petId}/transfer`);
   return { token };
 }
 
@@ -413,12 +413,12 @@ export async function signIn(formData: FormData) {
     return { error: "Incorrect email or password" };
 
   await setSession(user.id);
-  return { ok: true };
+  return { ok: true, accountType: user.orgId ? ("shop" as const) : ("owner" as const) };
 }
 
 export async function signOut() {
   await clearSession();
-  redirect("/login");
+  redirect("/");
 }
 
 export async function markNotificationRead(id: string) {
@@ -426,26 +426,28 @@ export async function markNotificationRead(id: string) {
     where: { id },
     data: { readAt: new Date() },
   });
-  revalidatePath("/notifications");
+  revalidatePath("/app/notifications");
   revalidatePath("/me");
   return { ok: true };
 }
 
 export async function markAllNotificationsRead() {
   const user = await getCurrentUser();
-  if (user) {
+  if (!user) return { ok: true };
+  if (user.orgId) {
+    // Shop account — clear org-scoped notifications.
+    await prisma.notification.updateMany({
+      where: { orgId: user.orgId, readAt: null },
+      data: { readAt: new Date() },
+    });
+    revalidatePath("/app/notifications");
+  } else {
+    // Owner account — clear user-scoped notifications.
     await prisma.notification.updateMany({
       where: { userId: user.id, readAt: null },
       data: { readAt: new Date() },
     });
     revalidatePath("/me");
-  } else {
-    const org = await getActiveOrg();
-    await prisma.notification.updateMany({
-      where: { orgId: org.id, readAt: null },
-      data: { readAt: new Date() },
-    });
-    revalidatePath("/notifications");
   }
   return { ok: true };
 }
@@ -469,14 +471,14 @@ export async function addWeight(petId: string, formData: FormData) {
 
   // Keep the profile's headline weight in sync with the latest measurement.
   await prisma.pet.update({ where: { id: petId }, data: { weightKg } });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
 
 export async function deleteWeight(petId: string, id: string) {
   await prisma.weightEntry.delete({ where: { id } });
-  revalidatePath(`/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
@@ -484,7 +486,11 @@ export async function deleteWeight(petId: string, id: string) {
 // ---- Owner self-registration (no transfer required) ----
 
 export async function register(formData: FormData) {
-  const name = String(formData.get("name") || "").trim() || "Pet owner";
+  const accountType =
+    String(formData.get("accountType") || "owner") === "shop" ? "shop" : "owner";
+  const name =
+    String(formData.get("name") || "").trim() ||
+    (accountType === "shop" ? "Shop owner" : "Pet owner");
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
 
@@ -495,11 +501,29 @@ export async function register(formData: FormData) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return { error: "An account with this email already exists." };
 
+  // Shop account: also create the organization the user will manage at /app.
+  if (accountType === "shop") {
+    const orgName = String(formData.get("orgName") || "").trim();
+    if (!orgName) return { error: "ORG_NAME_REQUIRED" };
+    const orgKindRaw = String(formData.get("orgKind") || "BREEDER");
+    const orgKind = ["BREEDER", "SHOP", "SHELTER"].includes(orgKindRaw)
+      ? orgKindRaw
+      : "BREEDER";
+    const org = await prisma.organization.create({
+      data: { name: orgName, kind: orgKind },
+    });
+    const user = await prisma.user.create({
+      data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
+    });
+    await setSession(user.id);
+    return { ok: true, accountType: "shop" as const };
+  }
+
   const user = await prisma.user.create({
     data: { email, name, passwordHash: hashPassword(password) },
   });
   await setSession(user.id);
-  return { ok: true };
+  return { ok: true, accountType: "owner" as const };
 }
 
 export async function requestPhoneOtp(formData: FormData) {
@@ -516,16 +540,30 @@ export async function verifyPhoneOtp(formData: FormData) {
   const res = await verifyOtp(phone, code);
   if ("error" in res) return res;
 
+  const accountType =
+    String(formData.get("accountType") || "owner") === "shop" ? "shop" : "owner";
+
   let user = await prisma.user.findUnique({ where: { phone } });
   if (!user) {
-    user = await prisma.user.create({
-      data: { phone, name: name || "Pet owner" },
-    });
+    if (accountType === "shop") {
+      const orgName =
+        String(formData.get("orgName") || "").trim() || `${name || "My"} shop`;
+      const org = await prisma.organization.create({
+        data: { name: orgName, kind: "BREEDER" },
+      });
+      user = await prisma.user.create({
+        data: { phone, name: name || "Shop owner", orgId: org.id },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: { phone, name: name || "Pet owner" },
+      });
+    }
   } else if (name && user.name === "Pet owner") {
     user = await prisma.user.update({ where: { id: user.id }, data: { name } });
   }
   await setSession(user.id);
-  return { ok: true };
+  return { ok: true, accountType: user.orgId ? ("shop" as const) : ("owner" as const) };
 }
 
 export async function addOwnedPet(formData: FormData) {
@@ -585,7 +623,7 @@ export async function startPlanCheckout(formData: FormData) {
 
   let scope: CheckoutScope;
   if (scopeKind === "org") {
-    const org = await getActiveOrg();
+    const org = await requireActiveOrg();
     scope = { kind: "org", id: org.id };
   } else if (scopeKind === "user") {
     const user = await getCurrentUser();
@@ -602,7 +640,7 @@ export async function startPlanCheckout(formData: FormData) {
   if ("url" in result) return { url: result.url };
 
   // Activated immediately (free or demo mode).
-  revalidatePath("/billing");
+  revalidatePath("/app/billing");
   revalidatePath("/me/billing");
   revalidatePath("/pricing");
   return { ok: true, demo: result.demo ?? false };

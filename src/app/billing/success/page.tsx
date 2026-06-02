@@ -14,7 +14,7 @@ export default async function BillingSuccessPage({
   let backHref = "/";
   if (session_id) {
     const res = await finalizeStripeSession(session_id);
-    backHref = res.scopeKind === "user" ? "/me/billing" : "/billing";
+    backHref = res.scopeKind === "user" ? "/me/billing" : "/app/billing";
   }
 
   return (

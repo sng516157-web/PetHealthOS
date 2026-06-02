@@ -34,7 +34,7 @@ export default async function PetsPage() {
           <p className="mt-1 text-sm text-muted">{t.pets.inYourCare(pets.length)}</p>
         </div>
         <Link
-          href="/pets/new"
+          href="/app/pets/new"
           className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
         >
           <Plus size={16} /> {t.common.addPet}

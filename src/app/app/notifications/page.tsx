@@ -14,7 +14,7 @@ export default async function NotificationsPage() {
       <p className="mt-1 text-sm text-muted">{t.notifications.subtitle}</p>
 
       <div className="mt-6">
-        <NotificationList notifications={notifications} basePetHref="/pets" />
+        <NotificationList notifications={notifications} basePetHref="/app/pets" />
       </div>
     </div>
   );
