@@ -234,6 +234,7 @@ export const en = {
     qrHint: "Show this QR to the new owner at handover.",
     downloadQr: "Download QR",
     showQr: "Show QR code",
+    notAllowed: "Your account can't issue health passports. Owner's Accounts can keep and continue records, but not issue passports.",
   },
   claim: {
     keepForLife: (name: string) => `Keep ${name}'s record for life`,
@@ -387,7 +388,7 @@ export const en = {
   plans: {
     STARTER: "Starter",
     SHOP: "Shop",
-    FREE: "Free",
+    FREE: "Owner's Account",
     PLUS: "Owner Plus",
   },
   pricing: {
@@ -411,7 +412,7 @@ export const en = {
     mostPopular: "Most popular",
     starterTagline: "Try the full loop with a few animals.",
     shopTagline: "For working catteries, kennels & shops.",
-    freeTagline: "Keep your own pets' records for life.",
+    freeTagline: "For owners — created when you adopt a pet, or sign up yourself.",
     plusTagline: "For owners with a larger household.",
   },
   billing: {

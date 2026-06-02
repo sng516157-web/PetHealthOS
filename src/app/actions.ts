@@ -25,6 +25,7 @@ import {
   getCurrentUser,
 } from "@/lib/auth";
 import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
+import { getOrgPlan } from "@/lib/plans";
 import {
   startCheckout,
   type CheckoutScope,
@@ -273,6 +274,18 @@ export async function deleteAttachment(petId: string, id: string) {
 }
 
 export async function createTransfer(petId: string, formData: FormData) {
+  // Only organisations on a passport-capable plan can issue health passports.
+  // Owner's Accounts (owner-managed pets, no org) cannot — enforced here, not
+  // just hidden in the UI.
+  const subject = await prisma.pet.findUnique({
+    where: { id: petId },
+    include: { org: true },
+  });
+  if (!subject) return { error: "Pet not found" };
+  if (!subject.org || !getOrgPlan(subject.org.plan).canIssuePassport) {
+    return { error: "PASSPORT_NOT_ALLOWED" };
+  }
+
   const token = randomBytes(8).toString("hex");
   const newOwnerName = String(formData.get("newOwnerName") || "") || null;
   const visibility =

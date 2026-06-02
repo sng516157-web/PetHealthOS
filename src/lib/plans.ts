@@ -39,10 +39,13 @@ export const ORG_PLANS: Record<string, Plan> = {
 };
 
 export const USER_PLANS: Record<string, Plan> = {
+  // The "Owner's Account": the free account created when a pet is transferred
+  // to a new owner, or when an existing pet owner signs up directly. Free,
+  // capped at 2 pets, and cannot issue health passports.
   FREE: {
     key: "FREE",
     audience: "user",
-    includedPets: 3,
+    includedPets: 2,
     priceRmb: 0,
     extraPetPriceRmb: 0,
     canIssuePassport: false,

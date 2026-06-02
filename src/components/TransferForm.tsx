@@ -19,6 +19,7 @@ export function TransferForm({ petId }: { petId: string }) {
   const [token, setToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const link =
     token && typeof window !== "undefined"
@@ -35,11 +36,18 @@ export function TransferForm({ petId }: { petId: string }) {
   }, [link]);
 
   function submit(formData: FormData) {
+    setError(null);
     startTransition(async () => {
       const res = await createTransfer(petId, formData);
       if (res?.token) {
         setToken(res.token);
         router.refresh();
+      } else if (res?.error) {
+        setError(
+          res.error === "PASSPORT_NOT_ALLOWED"
+            ? t.transferForm.notAllowed
+            : res.error,
+        );
       }
     });
   }
@@ -144,6 +152,12 @@ export function TransferForm({ petId }: { petId: string }) {
             </span>
           </span>
         </label>
+
+        {error && (
+          <p className="rounded-xl bg-alert/10 px-3 py-2 text-sm text-[#b4503b]">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"

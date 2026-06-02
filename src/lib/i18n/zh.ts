@@ -233,6 +233,7 @@ export const zh: Dictionary = {
     qrHint: "交付时向新主人出示此二维码。",
     downloadQr: "下载二维码",
     showQr: "显示二维码",
+    notAllowed: "你的账户无法签发健康护照。主人账户可以保存并续写档案，但不能签发护照。",
   },
   claim: {
     keepForLife: (name: string) => `永久保留 ${name} 的档案`,
@@ -385,7 +386,7 @@ export const zh: Dictionary = {
   plans: {
     STARTER: "入门版",
     SHOP: "商家版",
-    FREE: "免费版",
+    FREE: "主人账户",
     PLUS: "主人 Plus",
   },
   pricing: {
@@ -409,7 +410,7 @@ export const zh: Dictionary = {
     mostPopular: "最受欢迎",
     starterTagline: "用几只动物体验完整流程。",
     shopTagline: "适合在营的猫舍、犬舍与商家。",
-    freeTagline: "终身保存你自己宠物的档案。",
+    freeTagline: "面向主人 —— 在领养宠物或自行注册时创建。",
     plusTagline: "适合养了较多宠物的主人。",
   },
   billing: {
