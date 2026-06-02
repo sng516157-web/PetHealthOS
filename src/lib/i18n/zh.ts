@@ -3,7 +3,7 @@ import type { Dictionary } from "./en";
 // 简体中文 dictionary. Must mirror en.ts exactly (enforced by the Dictionary type).
 export const zh: Dictionary = {
   common: {
-    appName: "宠物健康 OS",
+    appName: "宠诺",
     add: "添加",
     addPet: "添加宠物",
     cancel: "取消",
@@ -19,7 +19,7 @@ export const zh: Dictionary = {
     reminders: "提醒",
     notifications: "通知",
     billing: "套餐与账单",
-    tagline: "值得信赖的终身健康护照",
+    tagline: "让每一次托付，都更安心。",
     organization: "机构",
   },
   species: { DOG: "狗", CAT: "猫", dogs: "狗", cats: "猫", all: "全部" },
@@ -372,7 +372,7 @@ export const zh: Dictionary = {
     completeHistory: (n: number) => `完整健康历史（${n}）`,
     noEntries: "暂无记录。",
     logged: "记录于",
-    issuedBy: (org: string) => `由 ${org} 通过 宠物健康 OS 签发 · 历史已在交付时冻结`,
+    issuedBy: (org: string) => `由 ${org} 通过 宠诺 签发 · 历史已在交付时冻结`,
     months: (n: number) => `${n} 个月`,
     days: (n: number) => `${n} 天`,
     print: "打印 / 保存为 PDF",
@@ -430,7 +430,7 @@ export const zh: Dictionary = {
     quotaTitle: "已达套餐上限",
     quotaDesc: (limit: number) => `你当前的套餐允许 ${limit} 只宠物。升级以添加更多。`,
     successTitle: "升级成功！🎉",
-    successDesc: "你的新套餐已生效。感谢支持 宠物健康 OS。",
+    successDesc: "你的新套餐已生效。感谢支持 宠诺。",
     cancelledTitle: "已取消支付",
     cancelledDesc: "未产生任何扣费。你可以随时再选择套餐。",
     backToApp: "返回应用",

@@ -72,7 +72,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-surface shadow-sm shadow-slate-200/40",
+        "rounded-3xl border border-border bg-surface shadow-soft",
         className,
       )}
     >
@@ -115,8 +115,12 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface/60 px-6 py-12 text-center">
-      {icon && <div className="mb-3 text-slate-300">{icon}</div>}
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface/60 px-6 py-12 text-center">
+      {icon && (
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/12 text-brand-700">
+          {icon}
+        </div>
+      )}
       <p className="text-sm font-medium text-foreground">{title}</p>
       {description && (
         <p className="mt-1 max-w-sm text-sm text-muted">{description}</p>

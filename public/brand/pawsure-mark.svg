@@ -1,0 +1,10 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PawSure logo mark">
+  <rect width="256" height="256" rx="64" fill="#FFF8EF"/>
+  <ellipse cx="72" cy="84" rx="23" ry="30" fill="#6FAF98"/>
+  <ellipse cx="118" cy="58" rx="24" ry="32" fill="#6FAF98"/>
+  <ellipse cx="164" cy="58" rx="24" ry="32" fill="#6FAF98"/>
+  <ellipse cx="207" cy="84" rx="23" ry="30" fill="#6FAF98"/>
+  <path d="M60 161C60 116.8 94.8 95 137 95C179.2 95 214 116.8 214 161C214 202.5 181.8 225 137 225C92.2 225 60 202.5 60 161Z" fill="#6FAF98"/>
+  <path d="M94 155C94 145.6 101.6 138 111 138H164C173.4 138 181 145.6 181 155V172.3C181 193.8 166.6 212.7 145.9 218.4L137.5 220.7L129.1 218.4C108.4 212.7 94 193.8 94 172.3V155Z" fill="#FFF8EF"/>
+  <path d="M112 172.5L130.5 191L166 154" stroke="#24594C" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

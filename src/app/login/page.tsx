@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HeartPulse } from "lucide-react";
+import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { getCurrentUser } from "@/lib/auth";
 import { AuthCard } from "@/components/AuthCard";
 import { LocaleToggle } from "@/components/LocaleToggle";
@@ -16,11 +16,10 @@ export default async function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm">
-              <HeartPulse size={20} />
-            </div>
-            <span className="text-sm font-semibold text-foreground">
-              {t.common.appName}
+            <PawSureMarkTile className="h-9 w-9" />
+            <span className="flex items-baseline gap-1.5">
+              <span className="text-sm font-extrabold text-forest">PawSure</span>
+              <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
             </span>
           </Link>
           <LocaleToggle compact />

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { HeartPulse, Check, Star } from "lucide-react";
+import { Check, Star } from "lucide-react";
+import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { ORG_PLANS, USER_PLANS, type Plan } from "@/lib/plans";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
@@ -13,11 +14,10 @@ export default async function PricingPage() {
       <header className="border-b border-border bg-surface/95">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3 md:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white shadow-sm">
-              <HeartPulse size={17} />
-            </div>
-            <span className="text-sm font-semibold text-foreground">
-              {t.common.appName}
+            <PawSureMarkTile className="h-9 w-9" />
+            <span className="flex items-baseline gap-1.5">
+              <span className="text-sm font-extrabold text-forest">PawSure</span>
+              <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-2">

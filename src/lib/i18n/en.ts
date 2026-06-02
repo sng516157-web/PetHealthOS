@@ -3,7 +3,7 @@
 
 export const en = {
   common: {
-    appName: "Pet Health OS",
+    appName: "PawSure",
     add: "Add",
     addPet: "Add pet",
     cancel: "Cancel",
@@ -19,7 +19,7 @@ export const en = {
     reminders: "Reminders",
     notifications: "Notifications",
     billing: "Plan & billing",
-    tagline: "Trusted lifelong health passports",
+    tagline: "Every pet comes with confidence.",
     organization: "Organization",
   },
   species: { DOG: "Dog", CAT: "Cat", dogs: "Dogs", cats: "Cats", all: "All" },
@@ -374,7 +374,7 @@ export const en = {
     completeHistory: (n: number) => `Complete health history (${n})`,
     noEntries: "No entries recorded.",
     logged: "logged",
-    issuedBy: (org: string) => `Issued by ${org} via Pet Health OS · History frozen at handover`,
+    issuedBy: (org: string) => `Issued by ${org} via PawSure · History frozen at handover`,
     months: (n: number) => `${n} months`,
     days: (n: number) => `${n} day${n === 1 ? "" : "s"}`,
     print: "Print / Save as PDF",
@@ -433,7 +433,7 @@ export const en = {
     quotaDesc: (limit: number) =>
       `Your current plan allows ${limit} pets. Upgrade to add more.`,
     successTitle: "You're upgraded! 🎉",
-    successDesc: "Your new plan is active. Thanks for supporting Pet Health OS.",
+    successDesc: "Your new plan is active. Thanks for supporting PawSure.",
     cancelledTitle: "Checkout cancelled",
     cancelledDesc: "No charge was made. You can pick a plan whenever you're ready.",
     backToApp: "Back to app",

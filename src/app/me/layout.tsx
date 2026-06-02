@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HeartPulse, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
+import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { getCurrentUser } from "@/lib/auth";
 import { signOut } from "@/app/actions";
 import { LocaleToggle } from "@/components/LocaleToggle";
@@ -20,12 +21,11 @@ export default async function MeLayout({
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-5 py-3 md:px-8">
           <Link href="/me" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white shadow-sm">
-              <HeartPulse size={17} />
-            </div>
+            <PawSureMarkTile className="h-9 w-9" />
             <div className="leading-tight">
-              <div className="text-sm font-semibold text-foreground">
-                {t.common.appName}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm font-extrabold text-forest">PawSure</span>
+                <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
               </div>
               <div className="text-[11px] text-muted">{t.me.headerTagline}</div>
             </div>

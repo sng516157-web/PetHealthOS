@@ -1,24 +1,50 @@
 @import "tailwindcss";
 
+/* PawSure 宠诺 — warm, trustworthy pet-care brand system.
+   Semantic tokens (background/surface/foreground/muted/border) and the brand
+   scale are mapped to the PawSure palette so the whole app re-themes at once.
+   brand-600 = Sage Trust (actions), brand-900 = Forest Calm (deep accents). */
 @theme {
-  --color-background: #f7f8f9;
-  --color-surface: #ffffff;
-  --color-foreground: #0f172a;
-  --color-muted: #64748b;
-  --color-border: #e8eaee;
+  --color-background: #fff8ef; /* Soft Paper */
+  --color-surface: #fffdf8; /* warm white card surface */
+  --color-surface-strong: #ffffff;
+  --color-foreground: #26302d; /* Ink */
+  --color-muted: #6d7873;
+  --color-border: rgba(38, 48, 45, 0.12);
 
-  --color-brand-50: #eefcf6;
-  --color-brand-100: #d4f7e8;
-  --color-brand-200: #a9eed2;
-  --color-brand-300: #6fddb5;
-  --color-brand-400: #34c293;
-  --color-brand-500: #14a87a;
-  --color-brand-600: #0c8763;
-  --color-brand-700: #0c6b50;
-  --color-brand-800: #0d5541;
-  --color-brand-900: #0c4636;
+  /* Sage Trust → Forest Calm ramp */
+  --color-brand-50: #eef6f2;
+  --color-brand-100: #d9ece4;
+  --color-brand-200: #bbddd0;
+  --color-brand-300: #99cbb9;
+  --color-brand-400: #84bfab;
+  --color-brand-500: #6faf98; /* Sage Trust */
+  --color-brand-600: #5fa088;
+  --color-brand-700: #4f9079;
+  --color-brand-800: #356a59;
+  --color-brand-900: #24594c; /* Forest Calm */
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Named brand colors for direct use (bg-sage, text-forest, bg-gold, …) */
+  --color-sage: #6faf98;
+  --color-forest: #24594c;
+  --color-paper: #fff8ef;
+  --color-sand: #eedbc2;
+  --color-ink: #26302d;
+  --color-gold: #f4c96b;
+  --color-blue: #9cc8d1;
+  --color-alert: #e88975;
+
+  --shadow-soft: 0 10px 30px rgba(36, 89, 76, 0.1);
+  --shadow-ps-button: 0 8px 18px rgba(36, 89, 76, 0.18);
+
+  --radius-ps: 18px;
+  --radius-ps-lg: 24px;
+  --radius-ps-xl: 32px;
+
+  --font-sans: var(--font-nunito), "Nunito", "Manrope", "Inter", system-ui,
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-cn: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", var(--font-nunito),
+    system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -37,17 +63,23 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Chinese pages prefer CJK-optimised stack. */
+:lang(zh),
+.font-cn {
+  font-family: var(--font-cn);
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d6dae0;
+  background: #d8cab2;
   border-radius: 999px;
   border: 2px solid var(--color-background);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #c2c7cf;
+  background: #c9b89a;
 }
 
 @keyframes fade-in {
@@ -70,6 +102,14 @@ body {
 }
 .animate-pulse-dot {
   animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes sheet-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Print: produce a clean passport handout (browser "Save as PDF"). */

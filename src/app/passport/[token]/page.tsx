@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
-import { HeartPulse, ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
+import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { prisma } from "@/lib/prisma";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
 import {
@@ -91,9 +92,7 @@ export default async function PassportPage({
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-5 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white">
-            <HeartPulse size={18} />
-          </div>
+          <PawSureMarkTile className="h-9 w-9" />
           <span className="text-sm font-semibold text-foreground">{t.passport.title}</span>
           <div className="ml-auto flex items-center gap-2">
             <PrintButton />

@@ -8,11 +8,11 @@ import {
   BellRing,
   Bell,
   CreditCard,
-  HeartPulse,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/client";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { PawSureMarkTile } from "@/components/PawSureLogo";
 
 const NAV = [
   { href: "/", key: "dashboard" as const, icon: LayoutDashboard, exact: true },
@@ -28,12 +28,11 @@ export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: num
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface px-4 py-5 md:flex">
       <Link href="/" className="flex items-center gap-2.5 px-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm">
-          <HeartPulse size={20} />
-        </div>
+        <PawSureMarkTile className="h-9 w-9" />
         <div className="leading-tight">
-          <div className="text-sm font-semibold text-foreground">
-            {t.common.appName}
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-sm font-extrabold text-forest">PawSure</span>
+            <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
           </div>
           <div className="text-[11px] text-muted">{t.nav.tagline}</div>
         </div>
@@ -52,11 +51,11 @@ export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: num
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                 active
-                  ? "bg-brand-50 text-brand-700"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-foreground",
+                  ? "bg-brand-50 text-brand-800"
+                  : "text-muted hover:bg-brand-50/60 hover:text-forest",
               )}
             >
-              <Icon size={18} className={active ? "text-brand-600" : "text-slate-400"} />
+              <Icon size={18} className={active ? "text-brand-600" : "text-muted"} />
               {t.nav[item.key]}
               {item.key === "notifications" && unread > 0 && (
                 <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[11px] font-semibold text-white">
@@ -99,7 +98,7 @@ export function MobileNav({ unread = 0 }: { unread?: number }) {
             href={item.href}
             className={cn(
               "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium",
-              active ? "text-brand-600" : "text-slate-500",
+              active ? "text-brand-700" : "text-muted",
             )}
           >
             <Icon size={20} />
