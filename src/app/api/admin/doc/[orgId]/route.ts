@@ -27,13 +27,16 @@ export async function GET(
   const ref = org?.verificationDocUrl;
   if (!ref) return new Response("Not found", { status: 404 });
 
-  const [kind, pathname] = ref.split(":");
-  const ext = (pathname?.split(".").pop() || "").toLowerCase();
+  // Refs look like "<kind>:<rest>"; rest may itself contain ":" (URLs).
+  const idx = ref.indexOf(":");
+  const kind = idx === -1 ? "" : ref.slice(0, idx);
+  const rest = idx === -1 ? "" : ref.slice(idx + 1);
+  const ext = (rest.split("?")[0].split(".").pop() || "").toLowerCase();
   const contentType = MIME[ext] ?? "application/octet-stream";
 
   if (kind === "blob") {
     const { get } = await import("@vercel/blob");
-    const result = await get(pathname, { access: "private" });
+    const result = await get(rest, { access: "private" });
     if (!result || !result.stream) {
       return new Response("Not found", { status: 404 });
     }
@@ -42,9 +45,23 @@ export async function GET(
     });
   }
 
+  if (kind === "bloburl") {
+    // Public blob fallback — fetch server-side so the URL stays behind the
+    // admin gate and is never handed to the browser.
+    const upstream = await fetch(rest);
+    if (!upstream.ok || !upstream.body) {
+      return new Response("Not found", { status: 404 });
+    }
+    return new Response(upstream.body, {
+      headers: {
+        "Content-Type": upstream.headers.get("content-type") ?? contentType,
+      },
+    });
+  }
+
   if (kind === "local") {
     try {
-      const buf = await readFile(path.join(process.cwd(), ".uploads", pathname));
+      const buf = await readFile(path.join(process.cwd(), ".uploads", rest));
       return new Response(new Uint8Array(buf), {
         headers: { "Content-Type": contentType },
       });

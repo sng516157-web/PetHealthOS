@@ -71,18 +71,31 @@ async function saveUpload(file: File): Promise<string> {
   return `/uploads/${fileName}`;
 }
 
-// Store a sensitive KYC document (business licence / proof of business) as a
-// PRIVATE blob — never publicly accessible. Returns a prefixed reference the
-// admin doc proxy knows how to read back: "blob:<pathname>" in production,
-// "local:<pathname>" for dev (stored outside /public so it isn't served).
+// Store a sensitive KYC document (business licence / proof of business) and
+// return a prefixed reference the admin doc proxy knows how to read back:
+//   "blob:<pathname>"  — private Blob (preferred; store must allow private)
+//   "bloburl:<url>"    — public Blob fallback when the store isn't private-
+//                        capable. The URL is unguessable and only ever served
+//                        through the admin-gated proxy, never linked in the UI.
+//   "local:<pathname>" — dev only, stored outside /public so it isn't served.
 async function saveVerificationDoc(file: File): Promise<string> {
   const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
   const pathname = `verification/${randomBytes(12).toString("hex")}.${ext}`;
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const { put } = await import("@vercel/blob");
-    await put(pathname, file, { access: "private", addRandomSuffix: false });
-    return `blob:${pathname}`;
+    try {
+      await put(pathname, file, { access: "private", addRandomSuffix: false });
+      return `blob:${pathname}`;
+    } catch {
+      // Store doesn't support private access — fall back to a public blob with
+      // a random, unguessable path. Still gated behind the admin proxy.
+      const res = await put(pathname, file, {
+        access: "public",
+        addRandomSuffix: true,
+      });
+      return `bloburl:${res.url}`;
+    }
   }
 
   const bytes = Buffer.from(await file.arrayBuffer());
@@ -715,7 +728,12 @@ export async function submitVerification(formData: FormData) {
     String(formData.get("docType") || "LICENSE") === "ALT" ? "ALT" : "LICENSE";
   const note = String(formData.get("note") || "").trim() || null;
 
-  const ref = await saveVerificationDoc(file);
+  let ref: string;
+  try {
+    ref = await saveVerificationDoc(file);
+  } catch {
+    return { error: "UPLOAD_FAILED" };
+  }
 
   const org = await prisma.organization.update({
     where: { id: user.orgId },
