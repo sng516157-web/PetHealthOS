@@ -13,6 +13,9 @@ export type Plan = {
   priceRmb: number;
   // Per-extra-pet add-on price per month (RMB). 0 = no overage option.
   extraPetPriceRmb: number;
+  // Absolute ceiling on total pets (included + purchased), regardless of how
+  // many extra slots are bought. null = no hard cap.
+  petCap: number | null;
   canIssuePassport: boolean;
   multiSeat: boolean;
 };
@@ -24,6 +27,7 @@ export const ORG_PLANS: Record<string, Plan> = {
     includedPets: 5,
     priceRmb: 0,
     extraPetPriceRmb: 0,
+    petCap: null,
     canIssuePassport: true,
     multiSeat: false,
   },
@@ -33,30 +37,26 @@ export const ORG_PLANS: Record<string, Plan> = {
     includedPets: 50,
     priceRmb: 2000,
     extraPetPriceRmb: 30,
+    petCap: null,
     canIssuePassport: true,
     multiSeat: true,
   },
 };
 
+// Owners have a single tier — the "Owner's Account": free, created on
+// passport-claim or self-signup. 2 pets included; beyond that, ¥25/mo per
+// extra pet, hard-capped at 10 pets total. Cannot issue passports. (An owner
+// who needs more than 10 / wants passports should use a Shop account.)
+export const OWNER_EXTRA_PET_CAP = 10;
+
 export const USER_PLANS: Record<string, Plan> = {
-  // The "Owner's Account": the free account created when a pet is transferred
-  // to a new owner, or when an existing pet owner signs up directly. Free,
-  // capped at 2 pets, and cannot issue health passports.
   FREE: {
     key: "FREE",
     audience: "user",
     includedPets: 2,
     priceRmb: 0,
-    extraPetPriceRmb: 0,
-    canIssuePassport: false,
-    multiSeat: false,
-  },
-  PLUS: {
-    key: "PLUS",
-    audience: "user",
-    includedPets: 25,
-    priceRmb: 25,
-    extraPetPriceRmb: 0,
+    extraPetPriceRmb: 25,
+    petCap: OWNER_EXTRA_PET_CAP,
     canIssuePassport: false,
     multiSeat: false,
   },
@@ -70,9 +70,19 @@ export function getUserPlan(key: string | null | undefined): Plan {
   return USER_PLANS[key ?? "FREE"] ?? USER_PLANS.FREE;
 }
 
-// Effective pet limit = plan's included pets + purchased extra slots.
+// Effective pet limit = plan's included pets + purchased extra slots, clamped
+// to the plan's hard cap (if any).
 export function petLimit(plan: Plan, extraPetSlots: number): number {
-  return plan.includedPets + Math.max(0, extraPetSlots);
+  const raw = plan.includedPets + Math.max(0, extraPetSlots);
+  return plan.petCap != null ? Math.min(raw, plan.petCap) : raw;
+}
+
+// Max number of extra pet slots a plan allows buying (0 if no overage / capped
+// out at the included count). Used to gate "add a pet slot" purchases.
+export function maxExtraSlots(plan: Plan): number {
+  if (plan.extraPetPriceRmb <= 0) return 0;
+  if (plan.petCap == null) return Infinity;
+  return Math.max(0, plan.petCap - plan.includedPets);
 }
 
 export function canAddPet(

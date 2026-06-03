@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { getOrgPlan, getUserPlan, type Plan } from "./plans";
+import { getOrgPlan, getUserPlan, maxExtraSlots, type Plan } from "./plans";
 
 export type CheckoutScope =
   | { kind: "org"; id: string }
@@ -117,10 +117,71 @@ export async function startCheckout(opts: {
   return { error: "UNKNOWN_PROVIDER" };
 }
 
-// Confirm a returning Stripe Checkout session and apply the plan it paid for.
+// Buy one extra pet slot for an owner (¥25/mo). Demo-increments the slot count
+// when no provider is configured; otherwise routes through Stripe and the slot
+// is granted on return (see finalizeStripeSession). Hard-capped by the plan.
+export async function buyOwnerPetSlot(opts: {
+  userId: string;
+  baseUrl: string;
+  provider: Provider;
+}): Promise<CheckoutResult> {
+  const { userId, baseUrl, provider } = opts;
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "NO_USER" };
+  const plan = getUserPlan(user.plan);
+  if (plan.extraPetPriceRmb <= 0) return { error: "NO_OVERAGE" };
+  if (user.extraPetSlots >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
+
+  // No provider configured → demo mode: grant the slot immediately.
+  if (!anyProviderConfigured()) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { extraPetSlots: { increment: 1 } },
+    });
+    return { activated: true, demo: true };
+  }
+
+  if (provider === "stripe") {
+    if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
+    const { default: Stripe } = await import("stripe");
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "cny",
+            unit_amount: plan.extraPetPriceRmb * 100,
+            recurring: { interval: "month" },
+            product_data: { name: "PawSure — extra pet slot" },
+          },
+        },
+      ],
+      success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/billing/cancelled`,
+      metadata: { scopeKind: "user_slot", scopeId: userId },
+    });
+    if (!session.url) return { error: "STRIPE_NO_URL" };
+    return { url: session.url };
+  }
+
+  if (provider === "wechat" || provider === "alipay") {
+    if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
+    return { error: "PROVIDER_NOT_IMPLEMENTED" };
+  }
+  return { error: "UNKNOWN_PROVIDER" };
+}
+
+// Confirm a returning Stripe Checkout session and apply what it paid for —
+// either a plan upgrade or a single extra pet slot.
 export async function finalizeStripeSession(
   sessionId: string,
-): Promise<{ ok: boolean; planKey?: string; scopeKind?: "org" | "user" }> {
+): Promise<{
+  ok: boolean;
+  planKey?: string;
+  scopeKind?: "org" | "user" | "user_slot";
+}> {
   if (!stripeConfigured()) return { ok: false };
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -129,10 +190,17 @@ export async function finalizeStripeSession(
   const paid =
     session.payment_status === "paid" || session.status === "complete";
   const md = session.metadata;
-  if (!paid || !md?.scopeKind || !md?.scopeId || !md?.planKey) {
-    return { ok: false };
+  if (!paid || !md?.scopeKind || !md?.scopeId) return { ok: false };
+
+  if (md.scopeKind === "user_slot") {
+    await prisma.user.update({
+      where: { id: md.scopeId },
+      data: { extraPetSlots: { increment: 1 } },
+    });
+    return { ok: true, scopeKind: "user_slot" };
   }
 
+  if (!md.planKey) return { ok: false };
   const scopeKind = md.scopeKind as "org" | "user";
   await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey);
   return { ok: true, planKey: md.planKey, scopeKind };

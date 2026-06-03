@@ -8,7 +8,14 @@ import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
-import { requireActiveOrg, getPetForAI, getOrgUsage, getUserUsage } from "@/lib/data";
+import {
+  requireActiveOrg,
+  getPetForAI,
+  getOrgUsage,
+  getUserUsage,
+} from "@/lib/data";
+import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
+import { notifyAdmins } from "@/lib/email";
 import {
   structureLogEntry,
   generateTriage,
@@ -28,6 +35,7 @@ import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
 import { getOrgPlan } from "@/lib/plans";
 import {
   startCheckout,
+  buyOwnerPetSlot,
   type CheckoutScope,
   type Provider,
 } from "@/lib/billing";
@@ -61,6 +69,27 @@ async function saveUpload(file: File): Promise<string> {
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, fileName), bytes);
   return `/uploads/${fileName}`;
+}
+
+// Store a sensitive KYC document (business licence / proof of business) as a
+// PRIVATE blob — never publicly accessible. Returns a prefixed reference the
+// admin doc proxy knows how to read back: "blob:<pathname>" in production,
+// "local:<pathname>" for dev (stored outside /public so it isn't served).
+async function saveVerificationDoc(file: File): Promise<string> {
+  const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
+  const pathname = `verification/${randomBytes(12).toString("hex")}.${ext}`;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import("@vercel/blob");
+    await put(pathname, file, { access: "private", addRandomSuffix: false });
+    return `blob:${pathname}`;
+  }
+
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const dir = path.join(process.cwd(), ".uploads", "verification");
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(process.cwd(), ".uploads", pathname), bytes);
+  return `local:${pathname}`;
 }
 
 export async function addPet(formData: FormData) {
@@ -284,6 +313,10 @@ export async function createTransfer(petId: string, formData: FormData) {
   if (!subject) return { error: "Pet not found" };
   if (!subject.org || !getOrgPlan(subject.org.plan).canIssuePassport) {
     return { error: "PASSPORT_NOT_ALLOWED" };
+  }
+  // Trust gate: only shops the PawSure team has verified may issue passports.
+  if (subject.org.verificationStatus !== "APPROVED") {
+    return { error: "NOT_VERIFIED" };
   }
 
   const token = randomBytes(8).toString("hex");
@@ -644,4 +677,103 @@ export async function startPlanCheckout(formData: FormData) {
   revalidatePath("/me/billing");
   revalidatePath("/pricing");
   return { ok: true, demo: result.demo ?? false };
+}
+
+// Owner buys one extra pet slot (¥25/mo). Demo-grants when no provider is set.
+export async function addOwnerPetSlot(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in first" };
+  const provider = String(formData.get("provider") || "stripe") as Provider;
+  const baseUrl = await baseUrlFromHeaders();
+  const result = await buyOwnerPetSlot({ userId: user.id, baseUrl, provider });
+
+  if ("error" in result) return { error: result.error };
+  if ("url" in result) return { url: result.url };
+
+  revalidatePath("/me/billing");
+  revalidatePath("/me");
+  return { ok: true, demo: result.demo ?? false };
+}
+
+// ---- Shop verification (KYC) ----
+
+// A shop submits its business licence (营业执照) or alternative proof. Stored
+// privately; moves the org to PENDING for the PawSure team to review. Until
+// approved the shop can use the workspace but cannot issue passports.
+export async function submitVerification(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in first" };
+  if (!user.orgId) return { error: "NOT_SHOP" };
+
+  const file = formData.get("doc");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "NO_FILE" };
+  }
+  if (file.size > 10 * 1024 * 1024) return { error: "FILE_TOO_LARGE" };
+
+  const docType =
+    String(formData.get("docType") || "LICENSE") === "ALT" ? "ALT" : "LICENSE";
+  const note = String(formData.get("note") || "").trim() || null;
+
+  const ref = await saveVerificationDoc(file);
+
+  const org = await prisma.organization.update({
+    where: { id: user.orgId },
+    data: {
+      verificationDocUrl: ref,
+      verificationDocType: docType,
+      verificationNote: note,
+      verificationStatus: "PENDING",
+      verificationSubmittedAt: new Date(),
+      verificationReviewedAt: null,
+      reviewNote: null,
+    },
+  });
+
+  await notifyAdmins(
+    `New shop verification: ${org.name}`,
+    `${org.name} (${org.kind}) submitted ${docType === "LICENSE" ? "a business licence" : "alternative proof"} for review.\nReview at /admin.`,
+  );
+
+  revalidatePath("/verify");
+  revalidatePath("/app");
+  return { ok: true };
+}
+
+// ---- Admin review ----
+
+export async function adminLogin(formData: FormData) {
+  const password = String(formData.get("password") || "");
+  const ok = await adminSignIn(password);
+  if (!ok) return { error: "BAD_PASSWORD" };
+  redirect("/admin");
+}
+
+export async function adminLogout() {
+  await adminSignOut();
+  redirect("/admin");
+}
+
+export async function reviewOrg(formData: FormData) {
+  if (!(await isAdmin())) return { error: "FORBIDDEN" };
+  const orgId = String(formData.get("orgId") || "");
+  const decision = String(formData.get("decision") || "");
+  const note = String(formData.get("note") || "").trim() || null;
+  if (!orgId || (decision !== "APPROVED" && decision !== "REJECTED")) {
+    return { error: "BAD_REQUEST" };
+  }
+
+  await prisma.organization.update({
+    where: { id: orgId },
+    data: {
+      verificationStatus: decision,
+      verificationReviewedAt: new Date(),
+      reviewNote: note,
+    },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/verify");
+  revalidatePath("/app");
+  return { ok: true };
 }

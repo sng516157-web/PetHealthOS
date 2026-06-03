@@ -32,6 +32,8 @@ Treat documentation as part of "done" — a change isn't complete until `docs/CO
 
 - Stack: Next.js 16 (App Router) · React 19 · Tailwind v4 · Prisma 7 + Postgres (Neon) · Vercel Blob · Google Gemini via AI SDK.
 - Routes & accounts: `/` = public landing, `/owner` + `/shop` = per-type landing/auth. **Unified auth** — a `User` with `orgId` is a **shop** (workspace `/app/*`, gated by `requireActiveOrg()`), without `orgId` is an **owner** (`/me/*`). `/passport/[token]` is the public passport.
-- Deploy: Vercel project `pet-health-os` → https://pet-health-os.vercel.app. DB + compute both in `us-east-1`.
+- Plans: owner = 2 pets free, **¥25/mo per extra, hard cap 10**; shops = `STARTER`/`SHOP`. Only **verified** shops can issue passports.
+- Shop verification (KYC): new shops must upload proof at **`/verify`** (private Blob); team reviews at **`/admin`** (gated by `ADMIN_PASSWORD` and/or `ADMIN_EMAILS`). `createTransfer` requires `verificationStatus === "APPROVED"`. Existing orgs default to `UNVERIFIED` after the `shop_verification` migration — approve them via `/admin`.
+- Deploy: Vercel project `pet-health-os` → https://pet-health-os.vercel.app. DB + compute both in `us-east-1`. New env vars: `ADMIN_PASSWORD` (required for `/admin`), optional `ADMIN_EMAILS`, `RESEND_API_KEY`/`RESEND_FROM`.
 - Secrets are gitignored. A fresh clone needs `vercel link` then `vercel env pull` (see `.env.example` for the variable inventory).
 - Commands: `npm run dev` · `npx next build` · `npm run db:migrate` · `npm run db:studio`.

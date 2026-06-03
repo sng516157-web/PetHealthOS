@@ -63,22 +63,37 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
 
 Defined in `src/lib/plans.ts`. Quotas are **hard-enforced** on pet creation.
 
-**Organisations (breeders/shops)** — `ORG_PLANS`, **can issue passports**:
+**Organisations (breeders/shops)** — `ORG_PLANS`, **can issue passports** (once verified):
 - `STARTER` — free, 5 pets.
 - `SHOP` — ¥2000/mo, 50 pets (+¥30/mo per extra), multi-seat.
 
 **Owners (consumers)** — `USER_PLANS`, **cannot issue passports**:
-- `FREE` = the **"Owner's Account"** (zh: 主人账户) — free, **2 pets**. Created
-  when a pet is transferred to a new owner (claim) **or** when an existing owner
-  signs up directly. The everyday consumer account.
-- `PLUS` = "Owner Plus" — paid upgrade, 25 pets (future expansion path).
+- `FREE` = the **"Owner's Account"** (zh: 主人账户) — the only owner tier. Free,
+  **2 pets included**, then **¥25/mo per extra pet**, **hard-capped at 10 pets total**
+  (`petCap`). Created on passport-claim **or** owner self-signup. (There is no longer
+  a separate "Owner Plus" tier — it was collapsed into per-extra-pet overage.)
 
 Notes:
-- Passport issuance is enforced **server-side** in `createTransfer` (only org pets
-  on a passport-capable plan); owner-managed pets (no `orgId`) are blocked, not
-  just hidden in the UI.
+- Per-extra-pet overage uses `extraPetSlots` (same field shops use). `petLimit()`
+  clamps to `petCap`; `maxExtraSlots()` gates how many can be bought. Owner buys a
+  slot via `addOwnerPetSlot` → `buyOwnerPetSlot` (demo-grants when no provider).
+- Passport issuance is enforced **server-side** in `createTransfer`: requires an org
+  pet on a passport-capable plan **AND** `org.verificationStatus === "APPROVED"`.
+  Owner-managed pets (no `orgId`) are blocked.
 - Claiming a transferred pet is intentionally **not** quota-blocked (protects the
-  breeder→buyer handoff). The 2-pet cap applies to pets an owner adds themselves.
+  breeder→buyer handoff). The cap applies to pets an owner adds themselves.
+
+**Shop verification (KYC).** Shops must upload a business licence (营业执照) or
+alternative proof and be **approved by the PawSure team** before issuing passports.
+`Organization.verificationStatus`: `UNVERIFIED → PENDING → APPROVED | REJECTED`.
+- Gate: `/app` layout redirects `UNVERIFIED`/`REJECTED` shops to **`/verify`**; `PENDING`
+  shops are let in (with a banner) but passport issuance stays locked until `APPROVED`.
+- Proof is stored as a **private** Blob (`saveVerificationDoc`, `access:"private"`;
+  dev: `.uploads/`). Reviewers view it via the admin-only proxy `/api/admin/doc/[orgId]`.
+- Admin area **`/admin`** (`src/lib/admin.ts`): gated by `ADMIN_PASSWORD` (shared
+  password → signed `ph_admin` cookie) and/or `ADMIN_EMAILS` (logged-in user match).
+  Reviewers approve/reject (`reviewOrg`) with a reason. New submissions email the team
+  via `notifyAdmins` when `RESEND_API_KEY` + `ADMIN_EMAILS` are set.
 
 ---
 
@@ -93,8 +108,12 @@ Notes:
   or "scan a passport QR" (`PassportScanner`: camera via `html5-qrcode` + paste-link
   fallback) → `/passport/[token]` claim.
 - **Shop signup:** from `/` → `/shop` → `register` with `accountType=shop` creates an
-  `Organization`, links the `User` (`orgId`), and lands in `/app`. `getActiveOrg()`
-  resolves the logged-in user's org; `requireActiveOrg()` enforces it for `/app`.
+  `Organization`, links the `User` (`orgId`). New shops are `UNVERIFIED`, so the `/app`
+  layout sends them to **`/verify`** to upload proof (→ `PENDING`) before using the
+  workspace. `getActiveOrg()` resolves the logged-in user's org; `requireActiveOrg()`
+  enforces it for `/app`.
+- **Verification review:** `/verify` (`submitVerification`) → team approves at `/admin`
+  (`reviewOrg`) → `APPROVED` unlocks passport issuance.
 - **Billing:** provider-agnostic `startCheckout` — Stripe wired; WeChat Pay/Alipay
   stubbed; demo mode activates plans instantly when no provider is configured.
 
@@ -164,6 +183,31 @@ Notes:
 ## Decision log
 
 Newest first. One entry per decision/change: date — what — why.
+
+- **2026-06-03** — **Owner per-extra-pet pricing** + **shop verification (KYC)**.
+  Why (user request): a fairer owner model, and trust that every passport-issuing shop
+  is a real, vetted business.
+  - **Owner pricing:** dropped the "Owner Plus" tier. Owner's Account is now 2 pets free,
+    **¥25/mo per extra pet, hard cap 10** (`Plan.petCap`, `maxExtraSlots`, `petLimit`
+    clamp). New `addOwnerPetSlot`/`buyOwnerPetSlot` + `OwnerExtraSlots` on `/me/billing`
+    (demo-grants a slot when no provider; Stripe per-slot subscription otherwise,
+    finalised via `finalizeStripeSession` `user_slot`).
+  - **Shop verification:** added `Organization.verification*` fields (migration
+    `shop_verification`). New shops are routed to **`/verify`** to upload a 营业执照 or
+    alternative proof (private Blob). `/app` layout gates `UNVERIFIED`/`REJECTED` →
+    `/verify`; `PENDING` shows a banner. `createTransfer` now requires
+    `verificationStatus === "APPROVED"` (error `NOT_VERIFIED`, surfaced in `TransferForm`).
+    Admin review at **`/admin`** (`src/lib/admin.ts`: `ADMIN_PASSWORD` cookie +/or
+    `ADMIN_EMAILS`); private doc proxy `/api/admin/doc/[orgId]`; `reviewOrg` approve/reject
+    with reason; `notifyAdmins` emails the team on new submissions.
+  - **New env vars:** `ADMIN_PASSWORD` (required to open `/admin`), optional `ADMIN_EMAILS`,
+    optional `RESEND_API_KEY` + `RESEND_FROM` for team email pings.
+  - ⚠️ **Migration side-effect:** all existing orgs default to `UNVERIFIED`, so any
+    pre-existing shop is now blocked from `/app` until it verifies. For the demo, approve
+    them via `/admin` (or set their `verificationStatus` to `APPROVED` in the DB).
+  - Verified end-to-end locally (signup → `/verify` → pending banner → admin approve →
+    unlocked). File upload couldn't be browser-automated; the PENDING step was simulated
+    via DB and the rest exercised through the UI.
 
 - **2026-06-02** — Built **public landing pages** (`/`, `/owner`, `/shop`) and switched
   to **unified auth**. Why (user request): a real front door that explains the product

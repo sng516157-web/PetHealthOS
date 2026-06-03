@@ -22,6 +22,17 @@ model Organization {
   plan          String @default("STARTER") // STARTER | SHOP
   extraPetSlots Int    @default(0)
 
+  // Shop verification (KYC). A shop must upload a business licence (营业执照) or
+  // alternative proof and be approved by the PawSure team before it can issue
+  // health passports. Until then it can sign up and set up freely.
+  verificationStatus      String    @default("UNVERIFIED") // UNVERIFIED | PENDING | APPROVED | REJECTED
+  verificationDocUrl      String?   // private Blob URL / local path of the proof
+  verificationDocType     String?   // LICENSE | ALT
+  verificationNote        String?   // applicant's note (business name, context)
+  reviewNote              String?   // reviewer's reason (esp. on rejection)
+  verificationSubmittedAt DateTime?
+  verificationReviewedAt  DateTime?
+
   pets          Pet[]
   members       User[] @relation("OrgMembers")
   notifications Notification[]
@@ -37,7 +48,7 @@ model User {
   passwordHash String?
   createdAt    DateTime @default(now())
 
-  plan          String @default("FREE") // FREE | PLUS
+  plan          String @default("FREE") // FREE (Owner's Account)
   extraPetSlots Int    @default(0)
 
   // Unified auth: a user with an org is a "shop" account (breeder/shop/shelter

@@ -1,20 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserUsage } from "@/lib/data";
-import { USER_PLANS, type Plan } from "@/lib/plans";
-import { UpgradePanel, type PlanOption } from "@/components/UpgradePanel";
+import { OwnerExtraSlots } from "@/components/OwnerExtraSlots";
 import { getI18n } from "@/lib/i18n/server";
-
-function toOption(p: Plan): PlanOption {
-  return {
-    key: p.key,
-    priceRmb: p.priceRmb,
-    includedPets: p.includedPets,
-    extraPetPriceRmb: p.extraPetPriceRmb,
-    issuePassports: p.canIssuePassport,
-    multiSeat: p.multiSeat,
-  };
-}
 
 export default async function UserBillingPage() {
   const user = await getCurrentUser();
@@ -54,11 +42,14 @@ export default async function UserBillingPage() {
         )}
       </div>
 
-      <UpgradePanel
-        scope="user"
-        currentPlan={plan.key}
-        plans={Object.values(USER_PLANS).map(toOption)}
-      />
+      {plan.extraPetPriceRmb > 0 && plan.petCap != null && (
+        <OwnerExtraSlots
+          includedPets={plan.includedPets}
+          extraPetPriceRmb={plan.extraPetPriceRmb}
+          petCap={plan.petCap}
+          extraSlots={usage.user.extraPetSlots}
+        />
+      )}
     </div>
   );
 }

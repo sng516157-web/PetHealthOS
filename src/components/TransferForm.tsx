@@ -46,7 +46,9 @@ export function TransferForm({ petId }: { petId: string }) {
         setError(
           res.error === "PASSPORT_NOT_ALLOWED"
             ? t.transferForm.notAllowed
-            : res.error,
+            : res.error === "NOT_VERIFIED"
+              ? t.transferForm.notVerified
+              : res.error,
         );
       }
     });
