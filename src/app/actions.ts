@@ -365,6 +365,14 @@ export async function createTransfer(petId: string, formData: FormData) {
   if (subject.org.verificationStatus !== "APPROVED") {
     return { error: "NOT_VERIFIED" };
   }
+  // A pet's passport can only be claimed once. Once a new owner has registered an
+  // account through a passport for this pet, the shop can't issue another one —
+  // the record now lives with that owner.
+  const claimed = await prisma.transfer.findFirst({
+    where: { petId, claimedAt: { not: null } },
+    select: { id: true },
+  });
+  if (claimed) return { error: "ALREADY_CLAIMED" };
 
   const token = randomBytes(8).toString("hex");
   const newOwnerName = String(formData.get("newOwnerName") || "") || null;

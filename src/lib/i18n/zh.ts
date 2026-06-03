@@ -214,6 +214,9 @@ export const zh: Dictionary = {
     unnamed: "未命名接收人",
     claimed: "已认领",
     issuedBadge: "已签发",
+    alreadyClaimedTitle: "该宠物的护照已被认领",
+    alreadyClaimedDesc: (name: string, date: string) =>
+      `${name} 已于 ${date} 通过此护照注册了账户。护照只能转交一次，因此无法再为该宠物签发新的护照。`,
   },
   transferForm: {
     newOwnerName: "新主人姓名",
@@ -240,6 +243,7 @@ export const zh: Dictionary = {
     showQr: "显示二维码",
     notAllowed: "你的账户无法签发健康护照。主人账户可以保存并续写档案，但不能签发护照。",
     notVerified: "你的商家账户正在审核中。待我们的团队核实你的经营证明后即可签发护照。",
+    alreadyClaimed: "该宠物的护照已被新主人认领。护照只能转交一次。",
     guaranteeTitle: "健康保证",
     guaranteeDesc:
       "把你的保证写进护照。它会在签发时被冻结，成为你和买家都能信赖的凭证。",

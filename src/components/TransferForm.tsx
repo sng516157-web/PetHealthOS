@@ -51,7 +51,9 @@ export function TransferForm({ petId }: { petId: string }) {
             ? t.transferForm.notAllowed
             : res.error === "NOT_VERIFIED"
               ? t.transferForm.notVerified
-              : res.error,
+              : res.error === "ALREADY_CLAIMED"
+                ? t.transferForm.alreadyClaimed
+                : res.error,
         );
       }
     });

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Link2, ShieldCheck } from "lucide-react";
+import { Link2, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card, Badge } from "@/components/ui";
 import { TransferForm } from "@/components/TransferForm";
@@ -19,6 +19,10 @@ export default async function TransferPage({
   });
   if (!pet) notFound();
 
+  // A passport can only be claimed once. If a new owner has already registered an
+  // account through this pet's passport, the shop can't issue another one.
+  const claimedTransfer = pet.transfers.find((tr) => tr.claimedAt);
+
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
@@ -31,12 +35,29 @@ export default async function TransferPage({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 text-sm text-brand-900">
-        {t.transferPage.includes}
-        <strong> {t.transferPage.notInclude}</strong> {t.transferPage.includesEnd}
-      </div>
+      {claimedTransfer ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-emerald-600" />
+          <div>
+            <p className="font-semibold">{t.transferPage.alreadyClaimedTitle}</p>
+            <p className="mt-0.5 text-emerald-800">
+              {t.transferPage.alreadyClaimedDesc(
+                claimedTransfer.claimedByName || t.transferPage.unnamed,
+                formatDate(claimedTransfer.claimedAt as Date),
+              )}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 text-sm text-brand-900">
+            {t.transferPage.includes}
+            <strong> {t.transferPage.notInclude}</strong> {t.transferPage.includesEnd}
+          </div>
 
-      <TransferForm petId={pet.id} />
+          <TransferForm petId={pet.id} />
+        </>
+      )}
 
       {pet.transfers.length > 0 && (
         <div>

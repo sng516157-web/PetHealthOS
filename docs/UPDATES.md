@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-03 — Passports transfer only once.** Once a new owner registers an account
+  through a pet's passport, the shop can no longer issue another passport for that pet — the
+  record now lives with the owner. Enforced in `createTransfer` and surfaced in the shop's
+  Transfer tab.
 - **2026-06-03 — Admin updates log + docs viewer.** Added this changelog and a read-only
   `/docs` viewer inside `/admin`, so the team can review updates and all project docs
   (CONTEXT, PRD, IdeaPool, test accounts, etc.) without leaving the app.

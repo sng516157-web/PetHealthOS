@@ -200,6 +200,15 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **A passport can only be transferred (claimed) once**. Why (user request):
+  once a buyer registers an account through a pet's passport, the record belongs to that
+  owner; letting the shop mint a second passport for the same pet would undermine the
+  one-owner, single-source-of-truth model and the trust the passport represents. Gate is on a
+  *claimed* transfer (not merely issued), so an unclaimed/abandoned passport can still be
+  re-issued. **Code:** `createTransfer` returns `ALREADY_CLAIMED` if any `Transfer` for the
+  pet has `claimedAt != null`; the shop's Transfer tab
+  (`/app/pets/[id]/transfer`) hides the form and shows a "already claimed by <name> on
+  <date>" notice instead. i18n: `transferPage.alreadyClaimed*`, `transferForm.alreadyClaimed`.
 - **2026-06-03** — **Admin updates log + docs viewer**. Why (user request): give the team a
   single place to see what's shipped and read the project docs without leaving the app.
   - **Updates log:** new `docs/UPDATES.md` — a plain-English, newest-first changelog. Agents

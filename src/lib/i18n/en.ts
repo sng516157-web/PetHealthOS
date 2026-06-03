@@ -215,6 +215,9 @@ export const en = {
     unnamed: "Unnamed recipient",
     claimed: "Claimed",
     issuedBadge: "Issued",
+    alreadyClaimedTitle: "This pet's passport has already been claimed",
+    alreadyClaimedDesc: (name: string, date: string) =>
+      `${name} registered an account through this passport on ${date}. A passport can only be transferred once, so no new passport can be issued for this pet.`,
   },
   transferForm: {
     newOwnerName: "New owner name",
@@ -241,6 +244,7 @@ export const en = {
     showQr: "Show QR code",
     notAllowed: "Your account can't issue health passports. Owner's Accounts can keep and continue records, but not issue passports.",
     notVerified: "Your shop is still being verified. You'll be able to issue passports once our team approves your business proof.",
+    alreadyClaimed: "This pet's passport has already been claimed by a new owner. A passport can only be transferred once.",
     guaranteeTitle: "Health guarantee",
     guaranteeDesc:
       "Bake your warranty into the passport. It's frozen at issue, so it's a record both you and the buyer can trust.",
