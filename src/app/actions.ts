@@ -13,6 +13,7 @@ import {
   getPetForAI,
   getOrgUsage,
   getUserUsage,
+  canAccessPet,
 } from "@/lib/data";
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
 import { notifyAdmins } from "@/lib/email";
@@ -256,6 +257,7 @@ export async function toggleReminder(id: string) {
 }
 
 export async function generateTriageReport(petId: string) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
   const pet = await getPetForAI(petId);
   if (!pet) return { error: "Pet not found" };
 
@@ -272,6 +274,7 @@ export async function generateTriageReport(petId: string) {
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath(`/app/pets/${petId}/triage`);
+  revalidatePath(`/me/pets/${petId}/triage`);
   return { id: report.id };
 }
 

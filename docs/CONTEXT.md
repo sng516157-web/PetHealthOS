@@ -194,6 +194,20 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **AI assistant + triage for owners**. Why (user question "Do pet
+  owners not get to use AI?"): the conversational assistant and triage report were only
+  surfaced in the shop workspace (`/app/pets/[id]`), so owners couldn't use them — even
+  though AI log auto-structuring already runs for any pet. Owner pets were a single page;
+  converted `/me/pets/[id]` into a tabbed layout (`layout.tsx` holds the header + `PetTabs`)
+  with sub-routes `chat` and `triage`, mirroring the shop (no Transfer tab — owners can't
+  issue passports). `PetTabs` gained `base`/`includeTransfer` props; triage rendering was
+  extracted into a shared `TriageReport` component reused by both shop and owner pages.
+  - **Security:** the chat API (`/api/pets/[id]/chat`) previously had **no auth** — any
+    petId was chattable. Added `canAccessPet(petId)` (owner of the pet, or member of its
+    org) in `lib/data.ts`; the chat route returns 403 and `generateTriageReport` returns
+    `{ error: "Forbidden" }` otherwise. The chat system prompt now adapts its wording for
+    owners ("a regular pet parent") vs shops. No new env vars; owners are uncapped on AI
+    for now (free, pilot).
 - **2026-06-03** — **Fix pet-add crash on photo upload**. Why (bug report): adding a
   pet with a photo > ~1 MB crashed with "This page couldn't load". Root cause was
   **not** Blob — Next.js Server Actions default to a **1 MB** body limit, but photos

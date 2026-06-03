@@ -1,5 +1,6 @@
 import { streamText } from "ai";
-import { getPetForAI } from "@/lib/data";
+import { getPetForAI, canAccessPet } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { hasAI, getModel, buildPetContext, petSummaryLine, safeTags, languageInstruction } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -10,6 +11,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  // Only the pet's owner or a member of its org may chat about it.
+  if (!(await canAccessPet(id))) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
   const { messages } = (await req.json()) as { messages: ClientMessage[] };
   const locale = await getLocale();
 
@@ -18,8 +25,13 @@ export async function POST(
     return new Response("Pet not found", { status: 404 });
   }
 
+  const user = await getCurrentUser();
+  const isOwner = !user?.orgId;
+  const audience = isOwner
+    ? "You support this pet's owner — a regular pet parent, not a professional."
+    : "You support a breeder/cattery/kennel.";
   const context = buildPetContext(pet, pet.logs);
-  const system = `You are the AI health & breeding assistant for ${pet.name}. You support a breeder/cattery/kennel.
+  const system = `You are the AI health assistant for ${pet.name}. ${audience}
 
 Two kinds of knowledge, and the distinction is strict:
 1. PET-SPECIFIC data: you may use ONLY ${pet.name}'s health log below — never any other animal's records. If ${pet.name}'s log lacks the info, say so plainly rather than guessing.

@@ -104,6 +104,22 @@ export async function getOwnedPet(userId: string, id: string) {
   return pet;
 }
 
+// Can the logged-in user touch this pet? True for the owner of the pet, or for a
+// member of the shop/org the pet belongs to. Used to gate the AI chat and triage
+// (which key off a petId) so one account can't reach another's records.
+export async function canAccessPet(petId: string): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user) return false;
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { ownerUserId: true, orgId: true },
+  });
+  if (!pet) return false;
+  if (pet.ownerUserId && pet.ownerUserId === user.id) return true;
+  if (user.orgId && pet.orgId === user.orgId) return true;
+  return false;
+}
+
 // ---- Notifications ----
 
 export async function getOrgNotifications() {

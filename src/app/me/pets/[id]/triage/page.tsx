@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { Stethoscope } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { getOwnedPet } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 import { hasAI } from "@/lib/ai";
 import { EmptyState } from "@/components/ui";
@@ -8,20 +10,24 @@ import { TriageReport } from "@/components/TriageReport";
 import type { TriageResult } from "@/lib/ai";
 import { getI18n } from "@/lib/i18n/server";
 
-export default async function TriagePage({
+export default async function MePetTriagePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { t } = await getI18n();
-  const pet = await prisma.pet.findUnique({
-    where: { id },
-    include: { reports: { orderBy: { createdAt: "desc" }, take: 5 } },
-  });
+  const user = await getCurrentUser();
+  if (!user) notFound();
+  const pet = await getOwnedPet(user.id, id);
   if (!pet) notFound();
+  const { t } = await getI18n();
 
-  const latest = pet.reports[0];
+  const reports = await prisma.triageReport.findMany({
+    where: { petId: pet.id },
+    orderBy: { createdAt: "desc" },
+    take: 1,
+  });
+  const latest = reports[0];
   const report: TriageResult | null = latest ? JSON.parse(latest.content) : null;
 
   return (
@@ -29,9 +35,7 @@ export default async function TriagePage({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-lg">
           <h2 className="text-lg font-semibold text-foreground">{t.triage.title}</h2>
-          <p className="mt-1 text-sm text-muted">
-            {t.triage.subtitle(pet.name)}
-          </p>
+          <p className="mt-1 text-sm text-muted">{t.triage.subtitle(pet.name)}</p>
         </div>
         <GenerateTriageButton petId={pet.id} hasExisting={Boolean(latest)} />
       </div>

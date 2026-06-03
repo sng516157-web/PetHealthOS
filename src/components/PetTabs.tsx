@@ -5,15 +5,24 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/client";
 
-export function PetTabs({ petId }: { petId: string }) {
+export function PetTabs({
+  petId,
+  base = `/app/pets/${petId}`,
+  includeTransfer = true,
+}: {
+  petId: string;
+  base?: string;
+  includeTransfer?: boolean;
+}) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const base = `/app/pets/${petId}`;
   const tabs = [
     { href: base, label: t.tabs.healthLog, exact: true },
     { href: `${base}/chat`, label: t.tabs.aiAssistant },
     { href: `${base}/triage`, label: t.tabs.triage },
-    { href: `${base}/transfer`, label: t.tabs.transfer },
+    ...(includeTransfer
+      ? [{ href: `${base}/transfer`, label: t.tabs.transfer }]
+      : []),
   ];
   return (
     <div className="flex gap-1 overflow-x-auto border-b border-border">
