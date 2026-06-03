@@ -267,6 +267,7 @@ export const en = {
     tabSignIn: "Sign in",
     tabRegister: "Register",
     tabPhone: "Phone",
+    phoneSoon: "Soon",
     name: "Your name",
     namePlaceholder: "e.g. Jordan Lee",
     emailPlaceholder: "you@example.com",

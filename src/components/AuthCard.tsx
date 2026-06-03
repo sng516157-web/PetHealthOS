@@ -11,6 +11,11 @@ const inputCls =
   "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 const labelCls = "mb-1 block text-xs font-medium text-slate-600";
 
+// Phone / SMS-OTP sign-in is parked until we have an SMS provider (Twilio for
+// HK/intl, or Aliyun/Tencent for mainland — see docs/CONTEXT.md). Flip this to
+// `true` to re-enable the Phone tab once a provider is configured.
+const PHONE_AUTH_ENABLED: boolean = false;
+
 type Tab = "signin" | "register" | "phone";
 type AccountType = "owner" | "shop";
 
@@ -26,35 +31,59 @@ export function AuthCard({
   defaultTab?: Tab;
 }) {
   const { t } = useI18n();
-  const [tab, setTab] = useState<Tab>(defaultTab);
+  // Never land on the parked Phone tab while it's disabled.
+  const initialTab: Tab =
+    !PHONE_AUTH_ENABLED && defaultTab === "phone" ? "signin" : defaultTab;
+  const [tab, setTab] = useState<Tab>(initialTab);
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  const tabs: { id: Tab; label: string; icon: React.ReactNode; disabled?: boolean }[] = [
     { id: "signin", label: t.auth.tabSignIn, icon: <LogIn size={14} /> },
     { id: "register", label: t.auth.tabRegister, icon: <UserPlus size={14} /> },
-    { id: "phone", label: t.auth.tabPhone, icon: <Smartphone size={14} /> },
+    {
+      id: "phone",
+      label: t.auth.tabPhone,
+      icon: <Smartphone size={14} />,
+      disabled: !PHONE_AUTH_ENABLED,
+    },
   ];
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-soft">
       <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
-        {tabs.map((tb) => (
-          <button
-            key={tb.id}
-            onClick={() => setTab(tb.id)}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition ${
-              tab === tb.id
-                ? "bg-white text-brand-700 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            {tb.icon} {tb.label}
-          </button>
-        ))}
+        {tabs.map((tb) => {
+          if (tb.disabled) {
+            return (
+              <span
+                key={tb.id}
+                aria-disabled="true"
+                title={t.auth.phoneSoon}
+                className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-slate-300"
+              >
+                {tb.icon} {tb.label}
+              </span>
+            );
+          }
+          return (
+            <button
+              key={tb.id}
+              onClick={() => setTab(tb.id)}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition ${
+                tab === tb.id
+                  ? "bg-white text-brand-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {tb.icon} {tb.label}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "signin" && <SignInTab t={t} />}
       {tab === "register" && <RegisterTab t={t} accountType={accountType} />}
-      {tab === "phone" && <PhoneTab t={t} accountType={accountType} />}
+      {PHONE_AUTH_ENABLED && tab === "phone" && (
+        <PhoneTab t={t} accountType={accountType} />
+      )}
     </div>
   );
 }

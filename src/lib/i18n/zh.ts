@@ -266,6 +266,7 @@ export const zh: Dictionary = {
     tabSignIn: "登录",
     tabRegister: "注册",
     tabPhone: "手机号",
+    phoneSoon: "即将开放",
     name: "你的名字",
     namePlaceholder: "例如：李明",
     emailPlaceholder: "you@example.com",

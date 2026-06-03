@@ -200,6 +200,15 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **Grey out the Phone (SMS-OTP) auth tab**. Why (user request): phone
+  registration/login can't deliver codes in production until an SMS provider is wired, and
+  the founder is deferring the HK company, so the deliverable mainland path (Aliyun/Tencent,
+  needs entity) isn't available yet. Gated behind `PHONE_AUTH_ENABLED` (a single `boolean`
+  in `src/components/AuthCard.tsx`, currently `false`): the Phone tab renders greyed/
+  non-clickable, the OTP form isn't mounted, and a direct `defaultTab="phone"` falls back to
+  sign-in. The server actions (`requestPhoneOtp`/`verifyPhoneOtp`) and `lib/sms.ts` are
+  untouched — flip the flag to `true` to restore the whole flow once Twilio (HK/intl) or
+  Aliyun/Tencent (mainland) is configured. Email + QR-claim auth are unaffected.
 - **2026-06-03** — **Route Alipay + WeChat Pay through Stripe** + **China go-to-market /
   payments path**. Why (user is a HK resident and asked to be ready to charge Chinese
   users): a HK setup avoids mainland ICP/company requirements, and Stripe can process the
