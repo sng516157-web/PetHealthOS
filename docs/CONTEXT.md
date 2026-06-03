@@ -200,6 +200,43 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **Admin updates log + docs viewer**. Why (user request): give the team a
+  single place to see what's shipped and read the project docs without leaving the app.
+  - **Updates log:** new `docs/UPDATES.md` — a plain-English, newest-first changelog. Agents
+    must append a bullet here in the same commit as any user-facing change (see `AGENTS.md`).
+  - **Docs viewer:** `/admin` now renders the updates log + a read-only browser of every
+    `*.md` in `/docs`. `src/lib/docs.ts` reads the files at request time (admin-gated);
+    `AdminDocs.tsx` renders them with a richer markdown component. Because Vercel's runtime
+    filesystem only has traced files, `next.config.ts` sets
+    `outputFileTracingIncludes: { "/admin": ["./docs/**/*.md"] }` so the docs ship with the
+    admin function. Keep `/docs` free of secrets — it's viewable by any admin.
+- **2026-06-03** — **Health-guarantee passport (B1)**. Why (user: the passport is the
+  shop's killer feature and needs to be more than a profile): bake the breeder's warranty
+  into the passport so it becomes a tamper-evident contract that reduces post-sale disputes
+  and gives buyers a concrete reason to value it.
+  - **Schema:** `Transfer` gained `guaranteeType` (`NONE|D7|D30|CONGENITAL_1Y|CUSTOM`),
+    `guaranteeDays` (window length; drives active/expired status), `guaranteeTerms`,
+    `vetCheckedAt`, `vetCheckNote`. Presets live in `src/lib/constants.ts`
+    (`GUARANTEE_TYPES`, `GUARANTEE_PRESET_DAYS`). Migration `guarantee_and_log_media`.
+  - **Flow:** `TransferForm` adds a guarantee dropdown (default `D30`), a custom-days field,
+    a "what's covered" textarea, and an optional vet-check date + note. `createTransfer`
+    stores them frozen at issue (alongside the existing log-lock). The public
+    `/passport/[token]` page renders a guarantee credential block: type badge, live status
+    (`Active · N days remaining` / `Expired on <date>` computed from `createdAt + days`),
+    terms, and a "Vet-checked at handover" line. i18n keys under `transferForm.*`,
+    `guaranteeType.*`, and `passport.*` in both `en`/`zh`.
+- **2026-06-03** — **Photo / video logging + visual triage (A2)**. Why (user: AI is only
+  "nice to have"): let people log a photo (Gemini reads it) to cut typing friction — the #1
+  reason logs die — and add real "should I worry?" value.
+  - **Schema:** `LogEntry` gained `imageUrl` + `imageMime`. `addLogEntry` now takes a
+    `FormData` (was `(petId, rawText)`) with an optional `photo` file; text **or** a photo is
+    enough to log. Images ≤10 MB are stored via `saveUpload` (Blob/local) and analysed;
+    videos are stored & displayed (`<video>`) but **not** analysed yet (fast-follow).
+  - **AI:** `structureLogEntry` takes an optional `image` ({data, mediaType}); when present it
+    sends a multimodal `messages` payload so the model folds visible findings into
+    summary/tags/severity. Enrichment still runs in `after()` (the image bytes are captured in
+    the closure), keeping the instant-save UX. `QuickAddLog` has a photo/video picker +
+    preview; `LogTimeline` and the passport timeline render the media inline.
 - **2026-06-03** — **Grey out the Phone (SMS-OTP) auth tab**. Why (user request): phone
   registration/login can't deliver codes in production until an SMS provider is wired, and
   the founder is deferring the HK company, so the deliverable mainland path (Aliyun/Tencent,

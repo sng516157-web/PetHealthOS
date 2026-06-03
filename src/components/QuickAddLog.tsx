@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Send } from "lucide-react";
+import { Sparkles, Send, ImagePlus, X } from "lucide-react";
 import { addLogEntry } from "@/app/actions";
 import { Card, Badge, Tone } from "@/components/ui";
 import { LOG_TYPE_META, SEVERITY_META, LogType, Severity } from "@/lib/constants";
@@ -12,6 +12,9 @@ export function QuickAddLog({ petId }: { petId: string }) {
   const router = useRouter();
   const { t } = useI18n();
   const [text, setText] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [lastResult, setLastResult] = useState<{
     type: string;
@@ -20,11 +23,26 @@ export function QuickAddLog({ petId }: { petId: string }) {
     tags: string[];
   } | null>(null);
 
+  const isImage = file?.type.startsWith("image/") ?? false;
+
+  function pickFile(f: File | null) {
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(f);
+    setPreview(f ? URL.createObjectURL(f) : null);
+  }
+
+  function clearFile() {
+    pickFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   function submit() {
-    if (!text.trim()) return;
-    const entry = text;
+    if (!text.trim() && !file) return;
+    const fd = new FormData();
+    fd.set("rawText", text);
+    if (file) fd.set("photo", file);
     startTransition(async () => {
-      const res = await addLogEntry(petId, entry);
+      const res = await addLogEntry(petId, fd);
       if (res?.ok && res.structured) {
         setLastResult({
           type: res.structured.type,
@@ -33,6 +51,7 @@ export function QuickAddLog({ petId }: { petId: string }) {
           tags: res.structured.tags,
         });
         setText("");
+        clearFile();
         router.refresh();
       }
     });
@@ -59,6 +78,38 @@ export function QuickAddLog({ petId }: { petId: string }) {
         className="mt-3 w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
       />
 
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,video/*"
+        className="hidden"
+        onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+      />
+
+      {preview && (
+        <div className="mt-3 flex items-start gap-3 rounded-xl border border-brand-100 bg-brand-50/50 p-2.5">
+          {isImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="" className="h-16 w-16 rounded-lg object-cover" />
+          ) : (
+            <video src={preview} className="h-16 w-16 rounded-lg object-cover" muted />
+          )}
+          <div className="min-w-0 flex-1 text-xs text-brand-800">
+            <p className="truncate font-medium">{file?.name}</p>
+            <p className="mt-0.5 text-muted">
+              {isImage ? t.quickLog.photoWillAnalyze : t.quickLog.videoStored}
+            </p>
+          </div>
+          <button
+            onClick={clearFile}
+            className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-white hover:text-rose-500"
+            aria-label={t.quickLog.removeMedia}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
       <div className="mt-2 flex flex-wrap gap-1.5">
         {t.quickLog.suggestions.map((s) => (
           <button
@@ -72,15 +123,21 @@ export function QuickAddLog({ petId }: { petId: string }) {
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-[11px] text-slate-400">{t.quickLog.saveHint}</span>
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
+        >
+          <ImagePlus size={15} /> {t.quickLog.addMedia}
+        </button>
         <button
           onClick={submit}
-          disabled={pending || !text.trim()}
+          disabled={pending || (!text.trim() && !file)}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-50"
         >
           {pending ? (
             <>
-              <Sparkles size={15} className="animate-pulse-dot" /> {t.quickLog.structuring}
+              <Sparkles size={15} className="animate-pulse-dot" />{" "}
+              {file && isImage ? t.quickLog.analyzingPhoto : t.quickLog.structuring}
             </>
           ) : (
             <>

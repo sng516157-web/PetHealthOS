@@ -21,6 +21,7 @@ Be collaborative and consultative, not just an order-taker:
 **After every decision or code change, update the docs in the same turn:**
 
 - Append to the **Decision log** in `docs/CONTEXT.md` (date, what changed, and *why*).
+- Append a one-line, user-facing bullet to the **Updates log** in `docs/UPDATES.md` (newest first) for any shipped/user-visible change. This file is shown read-only in `/admin`, so keep it plain-English and free of secrets.
 - Update any affected section (architecture, account model, infra, gotchas, pending work).
 - If a change alters how agents should behave, update this `AGENTS.md` too.
 

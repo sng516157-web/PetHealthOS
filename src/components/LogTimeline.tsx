@@ -23,6 +23,8 @@ export type SerializedLog = {
   title: string | null;
   summary: string | null;
   tags: string[];
+  imageUrl?: string | null;
+  imageMime?: string | null;
 };
 
 export function LogTimeline({
@@ -95,6 +97,29 @@ export function LogTimeline({
                       )}
                     </div>
                     <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>
+                    {l.imageUrl && (
+                      <a
+                        href={l.imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 block w-fit overflow-hidden rounded-xl border border-border"
+                      >
+                        {l.imageMime?.startsWith("video/") ? (
+                          <video
+                            src={l.imageUrl}
+                            controls
+                            className="max-h-56 w-auto max-w-full"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={l.imageUrl}
+                            alt=""
+                            className="max-h-56 w-auto max-w-full object-cover"
+                          />
+                        )}
+                      </a>
+                    )}
                     {l.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {l.tags.map((t) => (

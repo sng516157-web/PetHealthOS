@@ -30,6 +30,8 @@ export default async function PetOverview({
     title: l.title,
     summary: l.summary,
     tags: safeTags(l.tags),
+    imageUrl: l.imageUrl,
+    imageMime: l.imageMime,
   }));
 
   const reminders = pet.reminders.map((r) => ({

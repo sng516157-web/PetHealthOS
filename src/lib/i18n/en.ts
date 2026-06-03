@@ -151,7 +151,12 @@ export const en = {
     saveHint: "⌘/Ctrl + Enter to save",
     save: "Save entry",
     structuring: "Structuring…",
+    analyzingPhoto: "Reading photo…",
     savedAs: "Saved & structured as:",
+    addMedia: "Add photo / video",
+    removeMedia: "Remove",
+    photoWillAnalyze: "AI will read this photo",
+    videoStored: "Video will be attached (not analysed yet)",
   },
   timeline: {
     noEntries: "No log entries yet",
@@ -236,6 +241,24 @@ export const en = {
     showQr: "Show QR code",
     notAllowed: "Your account can't issue health passports. Owner's Accounts can keep and continue records, but not issue passports.",
     notVerified: "Your shop is still being verified. You'll be able to issue passports once our team approves your business proof.",
+    guaranteeTitle: "Health guarantee",
+    guaranteeDesc:
+      "Bake your warranty into the passport. It's frozen at issue, so it's a record both you and the buyer can trust.",
+    guaranteeDaysLabel: "Guarantee length (days)",
+    guaranteeTermsLabel: "What's covered (optional)",
+    guaranteeTermsPlaceholder:
+      "e.g. Full refund or replacement for congenital defects diagnosed by a licensed vet within the window.",
+    vetCheckTitle: "Vet check at handover (optional)",
+    vetCheckDate: "Check date",
+    vetCheckNoteLabel: "Vet's note",
+    vetCheckNotePlaceholder: "e.g. Healthy, vaccines up to date, no abnormalities found.",
+  },
+  guaranteeType: {
+    NONE: "No guarantee",
+    D7: "7-day health guarantee",
+    D30: "30-day health guarantee",
+    CONGENITAL_1Y: "1-year congenital guarantee",
+    CUSTOM: "Custom guarantee",
   },
   claim: {
     keepForLife: (name: string) => `Keep ${name}'s record for life`,
@@ -396,6 +419,14 @@ export const en = {
     days: (n: number) => `${n} day${n === 1 ? "" : "s"}`,
     print: "Print / Save as PDF",
     scanToOpen: "Scan to open this passport",
+    guaranteeTitle: "Health guarantee",
+    guaranteeActive: (n: number) =>
+      `Active · ${n} day${n === 1 ? "" : "s"} remaining`,
+    guaranteeExpired: (date: string) => `Expired on ${date}`,
+    guaranteeUntil: (date: string) => `Covered until ${date}`,
+    guaranteeOngoing: "Provided by the issuing shop",
+    vetCheckedTitle: "Vet-checked at handover",
+    vetCheckedOn: (date: string) => `Examined ${date}`,
   },
   photo: {
     change: "Change photo",
@@ -647,6 +678,11 @@ export const en = {
     statusApproved: "Approved",
     statusRejected: "Rejected",
     reviewedAt: "Reviewed",
+    updatesTitle: "Updates log",
+    updatesDesc: "What's shipped recently, newest first.",
+    docsTitle: "Documentation",
+    docsDesc: "Read-only view of everything in the project /docs folder.",
+    docsEmpty: "No documents found.",
   },
 };
 

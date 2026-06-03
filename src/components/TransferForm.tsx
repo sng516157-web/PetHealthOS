@@ -6,6 +6,7 @@ import { Link2, Copy, Check, Send, Download } from "lucide-react";
 import QRCode from "qrcode";
 import { createTransfer } from "@/app/actions";
 import { Card } from "@/components/ui";
+import { GUARANTEE_TYPES, type GuaranteeType } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
 
 const inputCls =
@@ -20,6 +21,8 @@ export function TransferForm({ petId }: { petId: string }) {
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [guaranteeType, setGuaranteeType] = useState<GuaranteeType>("D30");
+  const [vetChecked, setVetChecked] = useState(false);
 
   const link =
     token && typeof window !== "undefined"
@@ -154,6 +157,68 @@ export function TransferForm({ petId }: { petId: string }) {
             </span>
           </span>
         </label>
+
+        <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
+          <label className={labelCls}>{t.transferForm.guaranteeTitle}</label>
+          <p className="-mt-1 mb-2 text-xs text-muted">{t.transferForm.guaranteeDesc}</p>
+          <select
+            name="guaranteeType"
+            value={guaranteeType}
+            onChange={(e) => setGuaranteeType(e.target.value as GuaranteeType)}
+            className={inputCls}
+          >
+            {GUARANTEE_TYPES.map((g) => (
+              <option key={g} value={g}>
+                {t.guaranteeType[g]}
+              </option>
+            ))}
+          </select>
+          {guaranteeType === "CUSTOM" && (
+            <input
+              name="guaranteeDays"
+              type="number"
+              min={1}
+              className={`${inputCls} mt-2`}
+              placeholder={t.transferForm.guaranteeDaysLabel}
+            />
+          )}
+          {guaranteeType !== "NONE" && (
+            <textarea
+              name="guaranteeTerms"
+              rows={2}
+              className={`${inputCls} mt-2`}
+              placeholder={t.transferForm.guaranteeTermsPlaceholder}
+            />
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border p-3">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground">
+            <input
+              type="checkbox"
+              checked={vetChecked}
+              onChange={(e) => setVetChecked(e.target.checked)}
+              className="accent-brand-600"
+            />
+            {t.transferForm.vetCheckTitle}
+          </label>
+          {vetChecked && (
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>{t.transferForm.vetCheckDate}</label>
+                <input name="vetCheckedAt" type="date" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>{t.transferForm.vetCheckNoteLabel}</label>
+                <input
+                  name="vetCheckNote"
+                  className={inputCls}
+                  placeholder={t.transferForm.vetCheckNotePlaceholder}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {error && (
           <p className="rounded-xl bg-alert/10 px-3 py-2 text-sm text-[#b4503b]">

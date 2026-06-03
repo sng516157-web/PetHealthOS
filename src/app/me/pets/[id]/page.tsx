@@ -27,6 +27,8 @@ export default async function MePetPage({
     title: l.title,
     summary: l.summary,
     tags: safeTags(l.tags),
+    imageUrl: l.imageUrl,
+    imageMime: l.imageMime,
   }));
 
   const reminders = pet.reminders.map((r) => ({

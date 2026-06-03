@@ -102,25 +102,51 @@ const StructuredLog = z.object({
 
 export type StructuredLogResult = z.infer<typeof StructuredLog>;
 
+// Optional photo for visual triage — raw bytes + media type (e.g. "image/jpeg").
+export type LogImage = { data: Uint8Array; mediaType: string };
+
 export async function structureLogEntry(
   rawText: string,
   pet: PetLike,
   locale: Locale = "en",
+  image?: LogImage,
 ): Promise<StructuredLogResult> {
-  if (!hasAI()) return heuristicStructure(rawText);
+  if (!hasAI()) return heuristicStructure(rawText || "Photo log");
   try {
-    const { object } = await generateObject({
-      model: getModel(),
-      schema: StructuredLog,
-      system:
-        "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing). " +
-        languageInstruction(locale),
-      prompt: `Pet: ${petSummaryLine(pet)}\n\nLog entry: "${rawText}"`,
-    });
+    const system =
+      "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing)." +
+      (image
+        ? " A photo of the pet is attached. Read it together with any note: describe the relevant visible findings (skin, coat, eyes, ears, gums, stool, wounds, swelling, posture, etc.) in the summary, fold visual keywords into tags, and let clearly worrying visuals raise the severity. Do not over-diagnose or invent details you cannot see."
+        : "") +
+      " " +
+      languageInstruction(locale);
+    const promptText = `Pet: ${petSummaryLine(pet)}\n\nLog entry: "${rawText || "(no text — see attached photo)"}"`;
+
+    const { object } = image
+      ? await generateObject({
+          model: getModel(),
+          schema: StructuredLog,
+          system,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: promptText },
+                { type: "image", image: image.data, mediaType: image.mediaType },
+              ],
+            },
+          ],
+        })
+      : await generateObject({
+          model: getModel(),
+          schema: StructuredLog,
+          system,
+          prompt: promptText,
+        });
     return object;
   } catch (e) {
     console.error("structureLogEntry failed, using heuristic", e);
-    return heuristicStructure(rawText);
+    return heuristicStructure(rawText || "Photo log");
   }
 }
 

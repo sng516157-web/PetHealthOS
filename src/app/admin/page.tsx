@@ -8,6 +8,8 @@ import { formatDate } from "@/lib/format";
 import { LandingHeader } from "@/components/LandingHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminReviewItem, type AdminOrg } from "@/components/AdminReviewItem";
+import { AdminDocs } from "@/components/AdminDocs";
+import { readAllDocs } from "@/lib/docs";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +67,8 @@ export default async function AdminPage() {
   const pending = orgs.filter((o) => o.verificationStatus === "PENDING");
   const reviewed = orgs.filter((o) => o.verificationStatus !== "PENDING");
 
+  const docs = await readAllDocs();
+
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       <LandingHeader t={t} />
@@ -111,6 +115,9 @@ export default async function AdminPage() {
             </div>
           </>
         )}
+
+        <hr className="my-10 border-border" />
+        <AdminDocs docs={docs} />
       </main>
     </div>
   );

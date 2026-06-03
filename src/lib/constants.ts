@@ -29,6 +29,25 @@ export type LogType = (typeof LOG_TYPES)[number];
 export const SEVERITY = ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type Severity = (typeof SEVERITY)[number];
 
+// Health-guarantee presets baked into a passport. CUSTOM lets the shop enter its
+// own window (days); NONE means no warranty. Days drive the active/expired status.
+export const GUARANTEE_TYPES = [
+  "NONE",
+  "D7",
+  "D30",
+  "CONGENITAL_1Y",
+  "CUSTOM",
+] as const;
+export type GuaranteeType = (typeof GUARANTEE_TYPES)[number];
+
+export const GUARANTEE_PRESET_DAYS: Record<GuaranteeType, number | null> = {
+  NONE: null,
+  D7: 7,
+  D30: 30,
+  CONGENITAL_1Y: 365,
+  CUSTOM: null,
+};
+
 export const REMINDER_CATEGORIES = [
   "VACCINE",
   "MEDICATION",

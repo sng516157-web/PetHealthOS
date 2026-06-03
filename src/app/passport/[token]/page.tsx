@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
-import { ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Lock, CheckCircle2, Stethoscope } from "lucide-react";
+import type { GuaranteeType } from "@/lib/constants";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { prisma } from "@/lib/prisma";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
@@ -81,6 +82,31 @@ export default async function PassportPage({
       ? t.passport.months(Math.round(spanDays / 30))
       : t.passport.days(spanDays);
 
+  // Health guarantee — the breeder's warranty, frozen at handover. Compute the
+  // live status (active / expired) from the window length.
+  const hasGuarantee = transfer.guaranteeType !== "NONE";
+  let guaranteeStatus = "";
+  let guaranteeOk = true;
+  if (hasGuarantee) {
+    if (transfer.guaranteeDays && transfer.guaranteeDays > 0) {
+      const expiry = new Date(
+        transfer.createdAt.getTime() + transfer.guaranteeDays * 86400000,
+      );
+      const remainingMs = expiry.getTime() - Date.now();
+      if (remainingMs > 0) {
+        guaranteeStatus = t.passport.guaranteeActive(
+          Math.ceil(remainingMs / 86400000),
+        );
+        guaranteeOk = true;
+      } else {
+        guaranteeStatus = t.passport.guaranteeExpired(formatDate(expiry));
+        guaranteeOk = false;
+      }
+    } else {
+      guaranteeStatus = t.passport.guaranteeOngoing;
+    }
+  }
+
   // Absolute passport URL → QR so a printed/handed-over passport is self-linking.
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
@@ -123,6 +149,60 @@ export default async function PassportPage({
             </span>
           )}
         </div>
+
+        {/* Health guarantee — the breeder's warranty, baked into the passport */}
+        {hasGuarantee && (
+          <div
+            className={`mb-6 overflow-hidden rounded-2xl border p-5 ${
+              guaranteeOk
+                ? "border-emerald-200 bg-emerald-50/70"
+                : "border-border bg-surface"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <ShieldCheck
+                size={22}
+                className={`mt-0.5 shrink-0 ${guaranteeOk ? "text-emerald-600" : "text-slate-400"}`}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    {t.passport.guaranteeTitle}
+                  </h2>
+                  <Badge tone={guaranteeOk ? "emerald" : "slate"}>
+                    {t.guaranteeType[transfer.guaranteeType as GuaranteeType]}
+                  </Badge>
+                </div>
+                <p
+                  className={`mt-1 text-sm font-medium ${guaranteeOk ? "text-emerald-800" : "text-muted"}`}
+                >
+                  {guaranteeStatus}
+                </p>
+                {transfer.guaranteeTerms && (
+                  <p className="mt-2 whitespace-pre-line text-sm text-slate-600">
+                    {transfer.guaranteeTerms}
+                  </p>
+                )}
+                {transfer.vetCheckedAt && (
+                  <div className="mt-3 flex items-start gap-2 rounded-xl border border-border bg-background p-2.5 text-sm">
+                    <Stethoscope size={16} className="mt-0.5 shrink-0 text-brand-500" />
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {t.passport.vetCheckedTitle} ·{" "}
+                        <span className="font-normal text-muted">
+                          {t.passport.vetCheckedOn(formatDate(transfer.vetCheckedAt))}
+                        </span>
+                      </p>
+                      {transfer.vetCheckNote && (
+                        <p className="mt-0.5 text-slate-600">{transfer.vetCheckNote}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Trust strip — why this record is believable */}
         {entryCount > 0 && (
@@ -278,6 +358,16 @@ export default async function PassportPage({
                         </span>
                       </div>
                       <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>
+                      {l.imageUrl && (
+                        <div className="mt-2 overflow-hidden rounded-xl border border-border">
+                          {l.imageMime?.startsWith("video/") ? (
+                            <video src={l.imageUrl} controls className="max-h-56 w-auto max-w-full" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={l.imageUrl} alt="" className="max-h-56 w-auto max-w-full object-cover" />
+                          )}
+                        </div>
+                      )}
                       {safeTags(l.tags).length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {safeTags(l.tags).map((tag) => (

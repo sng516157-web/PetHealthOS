@@ -37,6 +37,11 @@ import {
 import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
 import { getOrgPlan } from "@/lib/plans";
 import {
+  GUARANTEE_TYPES,
+  GUARANTEE_PRESET_DAYS,
+  type GuaranteeType,
+} from "@/lib/constants";
+import {
   startCheckout,
   buyOwnerPetSlot,
   type CheckoutScope,
@@ -149,9 +154,26 @@ export async function addPet(formData: FormData) {
   return { id: pet.id };
 }
 
-export async function addLogEntry(petId: string, rawText: string, occurredAt?: string) {
-  const text = rawText.trim();
-  if (!text) return { error: "Entry cannot be empty" };
+export async function addLogEntry(petId: string, formData: FormData) {
+  const text = String(formData.get("rawText") || "").trim();
+  const occurredAt = String(formData.get("occurredAt") || "") || undefined;
+
+  // Optional photo/video. Images get AI visual triage; videos are stored & shown
+  // but not analysed yet. Cap at 10 MB to stay under the Server Action body limit.
+  const media = formData.get("photo") as File | null;
+  let imageUrl: string | null = null;
+  let imageMime: string | null = null;
+  let imageBytes: Buffer | null = null;
+  if (media && media.size > 0 && media.size <= 10 * 1024 * 1024) {
+    imageUrl = await saveUpload(media);
+    imageMime = media.type || null;
+    if (media.type?.startsWith("image/")) {
+      imageBytes = Buffer.from(await media.arrayBuffer());
+    }
+  }
+
+  // Need either a note or a photo to log something.
+  if (!text && !imageUrl) return { error: "Entry cannot be empty" };
 
   const pet = await prisma.pet.findUnique({ where: { id: petId } });
   if (!pet) return { error: "Pet not found" };
@@ -161,13 +183,17 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
   // Save instantly with a fast local heuristic so the UI never waits on the
   // model. If an AI key is set, refine the structured fields in the background
   // (Vercel keeps the function warm via after()), so the entry is enriched a
-  // moment later without blocking the click.
-  const initial = heuristicStructure(text);
+  // moment later without blocking the click. For photo-only entries the
+  // heuristic has no text, so we seed a neutral placeholder until the AI reads
+  // the image.
+  const initial = heuristicStructure(text || "Photo log");
   const entry = await prisma.logEntry.create({
     data: {
       petId,
-      rawText: text,
+      rawText: text || (imageUrl ? "📷 Photo log" : ""),
       occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
+      imageUrl,
+      imageMime,
       type: initial.type,
       severity: initial.severity,
       title: initial.title,
@@ -180,9 +206,12 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
   await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
 
   if (hasAI()) {
+    const aiImage = imageBytes
+      ? { data: new Uint8Array(imageBytes), mediaType: imageMime ?? "image/jpeg" }
+      : undefined;
     after(async () => {
       try {
-        const structured = await structureLogEntry(text, pet, locale);
+        const structured = await structureLogEntry(text, pet, locale, aiImage);
         await prisma.logEntry.update({
           where: { id: entry.id },
           data: {
@@ -205,7 +234,7 @@ export async function addLogEntry(petId: string, rawText: string, occurredAt?: s
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/app");
-  return { ok: true, structured: initial };
+  return { ok: true, structured: initial, imageUrl };
 }
 
 export async function deleteLogEntry(petId: string, id: string) {
@@ -345,6 +374,26 @@ export async function createTransfer(petId: string, formData: FormData) {
       : "READONLY_COPY";
   const claimable = formData.get("claimable") === "on";
 
+  // Health guarantee — the breeder's warranty, frozen into the passport.
+  const rawType = String(formData.get("guaranteeType") || "NONE");
+  const guaranteeType = (GUARANTEE_TYPES as readonly string[]).includes(rawType)
+    ? (rawType as GuaranteeType)
+    : "NONE";
+  let guaranteeDays: number | null = GUARANTEE_PRESET_DAYS[guaranteeType];
+  if (guaranteeType === "CUSTOM") {
+    const d = Number(formData.get("guaranteeDays"));
+    guaranteeDays = Number.isFinite(d) && d > 0 ? Math.round(d) : null;
+  }
+  const guaranteeTerms =
+    guaranteeType === "NONE"
+      ? null
+      : String(formData.get("guaranteeTerms") || "") || null;
+  const vetCheckedRaw = String(formData.get("vetCheckedAt") || "");
+  const vetCheckedAt = vetCheckedRaw ? new Date(vetCheckedRaw) : null;
+  const vetCheckNote = vetCheckedAt
+    ? String(formData.get("vetCheckNote") || "") || null
+    : null;
+
   await prisma.transfer.create({
     data: {
       petId,
@@ -354,6 +403,11 @@ export async function createTransfer(petId: string, formData: FormData) {
       note: String(formData.get("note") || "") || null,
       visibility,
       claimable,
+      guaranteeType,
+      guaranteeDays,
+      guaranteeTerms,
+      vetCheckedAt,
+      vetCheckNote,
     },
   });
 

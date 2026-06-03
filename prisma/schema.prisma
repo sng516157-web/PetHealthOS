@@ -169,6 +169,11 @@ model LogEntry {
   occurredAt DateTime @default(now())
   rawText    String   // the user's freeform entry
 
+  // Optional photo/video attached to the entry. Images are analysed by the AI
+  // (visual triage); videos are stored & shown but not analysed yet.
+  imageUrl   String?
+  imageMime  String?
+
   // AI-structured fields (hybrid logging)
   type       String   @default("OBSERVATION") // ILLNESS | VET_VISIT | OBSERVATION | MEDICATION | DISCOMFORT | MILESTONE | FEEDING | OTHER
   severity   String   @default("NONE")        // NONE | LOW | MEDIUM | HIGH | CRITICAL
@@ -253,6 +258,14 @@ model Transfer {
   newOwnerEmail String?
   note          String?
   visibility    String    @default("READONLY_COPY") // READONLY_COPY | SHARED
+
+  // Health guarantee baked into the passport — the breeder's warranty, frozen at
+  // issue so it's a tamper-evident contract both sides can rely on.
+  guaranteeType  String    @default("NONE") // NONE | D7 | D30 | CONGENITAL_1Y | CUSTOM
+  guaranteeDays  Int?      // window length in days from handover; null = no expiry/none
+  guaranteeTerms String?   // what's covered / conditions
+  vetCheckedAt   DateTime? // date of the pre-handover vet health check
+  vetCheckNote   String?   // what the vet check found
 
   // Breeder controls whether the buyer may claim & continue the record. If
   // false, the passport stays view-only/locked.
