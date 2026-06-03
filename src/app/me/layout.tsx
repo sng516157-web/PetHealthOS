@@ -20,17 +20,19 @@ export default async function MeLayout({
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-5 py-3 md:px-8">
-          <Link href="/me" className="flex items-center gap-2.5">
-            <PawSureMarkTile className="h-9 w-9" />
-            <div className="leading-tight">
+          <Link href="/me" className="flex min-w-0 items-center gap-2.5">
+            <PawSureMarkTile className="h-9 w-9 shrink-0" />
+            <div className="min-w-0 leading-tight">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-sm font-extrabold text-forest">PawSure</span>
                 <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
               </div>
-              <div className="text-[11px] text-muted">{t.me.headerTagline}</div>
+              <div className="hidden truncate text-[11px] text-muted sm:block">
+                {t.me.headerTagline}
+              </div>
             </div>
           </Link>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <LocaleToggle compact />
             <form action={signOut}>
               <button

@@ -194,6 +194,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **Mobile sign-out fix**. Why (bug report): shop accounts had no
+  way to sign out on mobile — the `Sidebar` (which holds sign-out) is `hidden md:flex`
+  and `MobileNav` had none. Added a `md:hidden` top header to `/app/layout.tsx` (brand +
+  locale + sign-out). Also hardened the `/me` header so the sign-out button never clips
+  on narrow screens (`min-w-0`/`shrink-0`, tagline hidden < `sm`).
 - **2026-06-03** — **Single-device owners, multi-device shops**. Why (user request):
   make the account types more distinct and discourage shops from sharing a cheap owner
   account across a business — a shop genuinely needs many devices.

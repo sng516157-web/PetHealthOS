@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Clock } from "lucide-react";
+import { Clock, LogOut } from "lucide-react";
 import { Sidebar, MobileNav } from "@/components/Sidebar";
+import { PawSureMarkTile } from "@/components/PawSureLogo";
+import { LocaleToggle } from "@/components/LocaleToggle";
+import { signOut } from "@/app/actions";
 import { requireActiveOrg, getOrgUnreadCount } from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -31,6 +34,26 @@ export default async function AppLayout({
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} unread={unread} />
       <main className="flex-1 pb-20 md:pb-0">
+        {/* Mobile-only top bar: the sidebar (with sign-out) is hidden on mobile. */}
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-surface/95 px-5 py-3 backdrop-blur md:hidden">
+          <Link href="/app" className="flex min-w-0 items-center gap-2">
+            <PawSureMarkTile className="h-8 w-8 shrink-0" />
+            <span className="truncate text-sm font-extrabold text-forest">
+              {org.name}
+            </span>
+          </Link>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <LocaleToggle compact />
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-rose-300 hover:text-rose-600"
+              >
+                <LogOut size={13} /> {t.auth.signOut}
+              </button>
+            </form>
+          </div>
+        </header>
         {pendingReview && (
           <Link
             href="/verify"
