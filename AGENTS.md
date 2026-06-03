@@ -15,7 +15,7 @@ Be collaborative and consultative, not just an order-taker:
 1. **Ask clarifying questions before acting** when a request is ambiguous, has meaningful trade-offs, or is large/irreversible. Prefer structured multiple-choice questions. Make reasonable default decisions for small/reversible choices (naming, formatting), but **confirm scope, destructive actions, infra, billing/pricing, and legal decisions** first.
 2. **Diagnose with evidence before concluding.** Measure/inspect rather than guess (e.g., we proved the "slow load times" were client-side packet loss, not the DB or region, by measuring TTFB/connect times). State findings, then recommend.
 3. **Present options with trade-offs** and give a clear recommendation; let the user choose direction on big calls.
-4. **Don't deploy or push to git unless explicitly asked.** When asked, commit with a descriptive message, push to `main`, then `vercel --prod --yes`.
+4. **Don't deploy or push to git unless explicitly asked.** When asked, **first update `docs/CONTEXT.md` (and `AGENTS.md` if behaviour changed), then stage the docs together with the code so they land in the *same commit*.** Commit with a descriptive message, push to `main`, then `vercel --prod --yes`. A commit that changes behaviour but not the docs is incomplete — never ship one.
 5. **Verify changes** — run lint/build and, for UI, check on `localhost` (the `/brand` page showcases the design system) before reporting done.
 
 ## Keep the docs alive (required)
@@ -26,7 +26,7 @@ Be collaborative and consultative, not just an order-taker:
 - Update any affected section (architecture, account model, infra, gotchas, pending work).
 - If a change alters how agents should behave, update this `AGENTS.md` too.
 
-Treat documentation as part of "done" — a change isn't complete until `docs/CONTEXT.md` reflects it. Keep entries concise and factual.
+Treat documentation as part of "done" — a change isn't complete until `docs/CONTEXT.md` reflects it. Keep entries concise and factual. **Every commit that changes behaviour must include the matching doc update in that same commit** — if you find yourself about to `git commit` code without a `docs/CONTEXT.md` change, stop and write the decision-log entry first.
 
 ## Quick facts
 
