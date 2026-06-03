@@ -254,6 +254,11 @@ export const zh: Dictionary = {
     password: "密码",
     signIn: "登录",
     signingIn: "登录中…",
+    deviceConflictTitle: "该账号已在另一台设备登录",
+    deviceConflictDesc:
+      "宠物主人账号同一时间只能在一台设备上使用。可让另一台设备退出登录后在此继续，或取消。",
+    kickAndContinue: "让另一台设备退出并继续",
+    cancelLogin: "取消",
     signOut: "退出登录",
     signInTitle: "欢迎回来",
     signInSubtitle: "登录你的主人账号。",

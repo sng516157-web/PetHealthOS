@@ -104,6 +104,7 @@ export type OtpVerifyResult = { ok: true } | { error: string };
 export async function verifyOtp(
   phone: string,
   code: string,
+  opts?: { consume?: boolean },
 ): Promise<OtpVerifyResult> {
   const otp = await prisma.phoneOtp.findFirst({
     where: { phone, consumedAt: null, expiresAt: { gt: new Date() } },
@@ -123,9 +124,13 @@ export async function verifyOtp(
     expected.length === candidate.length && timingSafeEqual(expected, candidate);
   if (!match) return { error: "CODE_INVALID" };
 
-  await prisma.phoneOtp.update({
-    where: { id: otp.id },
-    data: { consumedAt: new Date() },
-  });
+  // Skip consuming when we only need to authenticate (e.g. a single-device
+  // conflict pre-check), so the same code still works on the forced retry.
+  if (opts?.consume !== false) {
+    await prisma.phoneOtp.update({
+      where: { id: otp.id },
+      data: { consumedAt: new Date() },
+    });
+  }
   return { ok: true };
 }

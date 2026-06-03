@@ -51,6 +51,13 @@ model User {
   plan          String @default("FREE") // FREE (Owner's Account)
   extraPetSlots Int    @default(0)
 
+  // Single-device enforcement for owner accounts: the active session id (also
+  // embedded in the signed cookie) + its expiry. When a newer login replaces
+  // it, older devices stop matching and are logged out. Shops are multi-device
+  // and leave these null.
+  sessionId        String?
+  sessionExpiresAt DateTime?
+
   // Unified auth: a user with an org is a "shop" account (breeder/shop/shelter
   // workspace at /app). A user without an org is an "owner" account (/me).
   orgId String?

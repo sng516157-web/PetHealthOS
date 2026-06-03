@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus, Smartphone, Store } from "lucide-react";
 import { signIn, register, requestPhoneOtp, verifyPhoneOtp } from "@/app/actions";
@@ -63,14 +63,34 @@ function SignInTab({ t }: { t: Dictionary }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState(false);
+  const lastData = useRef<FormData | null>(null);
 
-  function submit(formData: FormData) {
-    setError(null);
+  function run(formData: FormData) {
     start(async () => {
       const res = await signIn(formData);
+      if (res && "conflict" in res && res.conflict) {
+        lastData.current = formData;
+        setConflict(true);
+        return;
+      }
       if (res?.error) setError(res.error);
       else router.push(dest(res?.accountType));
     });
+  }
+
+  function submit(formData: FormData) {
+    setError(null);
+    setConflict(false);
+    run(formData);
+  }
+
+  function kickAndContinue() {
+    const fd = lastData.current;
+    if (!fd) return;
+    fd.set("force", "1");
+    setConflict(false);
+    run(fd);
   }
 
   return (
@@ -84,6 +104,14 @@ function SignInTab({ t }: { t: Dictionary }) {
         <input name="password" type="password" required autoComplete="current-password" className={inputCls} />
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
+      {conflict && (
+        <DeviceConflict
+          t={t}
+          pending={pending}
+          onKick={kickAndContinue}
+          onCancel={() => setConflict(false)}
+        />
+      )}
       <button type="submit" disabled={pending} className={primaryBtn}>
         <LogIn size={15} /> {pending ? t.auth.signingIn : t.auth.signIn}
       </button>
@@ -158,6 +186,8 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
+  const [conflict, setConflict] = useState(false);
+  const lastData = useRef<FormData | null>(null);
   const isShop = accountType === "shop";
 
   function smsError(code: string): string {
@@ -181,17 +211,35 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
     });
   }
 
+  function runVerify(formData: FormData) {
+    start(async () => {
+      const res = await verifyPhoneOtp(formData);
+      if ("conflict" in res && res.conflict) {
+        lastData.current = formData;
+        setConflict(true);
+        return;
+      }
+      if ("error" in res) setError(smsError(res.error));
+      else router.push(dest(res.accountType));
+    });
+  }
+
   function verify(formData: FormData) {
     setError(null);
+    setConflict(false);
     formData.set("phone", phone);
     formData.set("name", name);
     formData.set("accountType", accountType);
     if (orgName) formData.set("orgName", orgName);
-    start(async () => {
-      const res = await verifyPhoneOtp(formData);
-      if ("error" in res) setError(smsError(res.error));
-      else router.push(dest(res.accountType));
-    });
+    runVerify(formData);
+  }
+
+  function kickAndContinue() {
+    const fd = lastData.current;
+    if (!fd) return;
+    fd.set("force", "1");
+    setConflict(false);
+    runVerify(fd);
   }
 
   if (step === "enter") {
@@ -241,6 +289,14 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
         />
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
+      {conflict && (
+        <DeviceConflict
+          t={t}
+          pending={pending}
+          onKick={kickAndContinue}
+          onCancel={() => setConflict(false)}
+        />
+      )}
       <button type="submit" disabled={pending} className={primaryBtn}>
         {pending ? t.auth.verifying : t.auth.verify}
       </button>
@@ -249,12 +305,54 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
         onClick={() => {
           setStep("enter");
           setError(null);
+          setConflict(false);
         }}
         className="w-full text-center text-xs text-muted hover:text-slate-700"
       >
         {t.auth.changeNumber}
       </button>
     </form>
+  );
+}
+
+function DeviceConflict({
+  t,
+  pending,
+  onKick,
+  onCancel,
+}: {
+  t: Dictionary;
+  pending: boolean;
+  onKick: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+      <p className="text-sm font-semibold text-amber-900">
+        {t.auth.deviceConflictTitle}
+      </p>
+      <p className="text-xs leading-relaxed text-amber-800">
+        {t.auth.deviceConflictDesc}
+      </p>
+      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+        <button
+          type="button"
+          onClick={onKick}
+          disabled={pending}
+          className="inline-flex flex-1 items-center justify-center rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-700 disabled:opacity-60"
+        >
+          {pending ? t.auth.signingIn : t.auth.kickAndContinue}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={pending}
+          className="inline-flex flex-1 items-center justify-center rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 disabled:opacity-60"
+        >
+          {t.auth.cancelLogin}
+        </button>
+      </div>
+    </div>
   );
 }
 

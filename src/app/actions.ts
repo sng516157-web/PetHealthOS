@@ -29,6 +29,8 @@ import {
   verifyPassword,
   setSession,
   clearSession,
+  clearUserSession,
+  hasActiveSession,
   getCurrentUser,
 } from "@/lib/auth";
 import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
@@ -444,7 +446,9 @@ export async function claimPassport(token: string, formData: FormData) {
     },
   });
 
-  await setSession(user.id);
+  // Claiming is an explicit owner takeover — start a fresh single-device
+  // session (kicking any other device this owner had).
+  await setSession(user.id, { single: true });
   revalidatePath(`/passport/${token}`);
   return { ok: true, claimedByName: name };
 }
@@ -452,17 +456,26 @@ export async function claimPassport(token: string, formData: FormData) {
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
+  const force = String(formData.get("force") || "") === "1";
   if (!email || !password) return { error: "Email and password required" };
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash))
     return { error: "Incorrect email or password" };
 
-  await setSession(user.id);
-  return { ok: true, accountType: user.orgId ? ("shop" as const) : ("owner" as const) };
+  const isOwner = !user.orgId;
+  // Owner accounts are single-device: if signed in elsewhere, ask before kicking.
+  if (isOwner && !force && hasActiveSession(user)) {
+    return { conflict: true as const, accountType: "owner" as const };
+  }
+
+  await setSession(user.id, { single: isOwner });
+  return { ok: true, accountType: isOwner ? ("owner" as const) : ("shop" as const) };
 }
 
 export async function signOut() {
+  const user = await getCurrentUser();
+  if (user && !user.orgId) await clearUserSession(user.id);
   await clearSession();
   redirect("/");
 }
@@ -561,14 +574,14 @@ export async function register(formData: FormData) {
     const user = await prisma.user.create({
       data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
     });
-    await setSession(user.id);
+    await setSession(user.id, { single: false });
     return { ok: true, accountType: "shop" as const };
   }
 
   const user = await prisma.user.create({
     data: { email, name, passwordHash: hashPassword(password) },
   });
-  await setSession(user.id);
+  await setSession(user.id, { single: true });
   return { ok: true, accountType: "owner" as const };
 }
 
@@ -582,14 +595,24 @@ export async function verifyPhoneOtp(formData: FormData) {
   const phone = normalizePhone(String(formData.get("phone") || ""));
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
-
-  const res = await verifyOtp(phone, code);
-  if ("error" in res) return res;
+  const force = String(formData.get("force") || "") === "1";
 
   const accountType =
     String(formData.get("accountType") || "owner") === "shop" ? "shop" : "owner";
 
   let user = await prisma.user.findUnique({ where: { phone } });
+
+  // Existing owner already signed in elsewhere: authenticate the code without
+  // consuming it, then offer the kick/cancel choice (force retry reuses it).
+  if (user && !user.orgId && !force && hasActiveSession(user)) {
+    const check = await verifyOtp(phone, code, { consume: false });
+    if ("error" in check) return check;
+    return { conflict: true as const, accountType: "owner" as const };
+  }
+
+  const res = await verifyOtp(phone, code);
+  if ("error" in res) return res;
+
   if (!user) {
     if (accountType === "shop") {
       const orgName =
@@ -608,8 +631,9 @@ export async function verifyPhoneOtp(formData: FormData) {
   } else if (name && user.name === "Pet owner") {
     user = await prisma.user.update({ where: { id: user.id }, data: { name } });
   }
-  await setSession(user.id);
-  return { ok: true, accountType: user.orgId ? ("shop" as const) : ("owner" as const) };
+  const isOwner = !user.orgId;
+  await setSession(user.id, { single: isOwner });
+  return { ok: true, accountType: isOwner ? ("owner" as const) : ("shop" as const) };
 }
 
 export async function addOwnedPet(formData: FormData) {

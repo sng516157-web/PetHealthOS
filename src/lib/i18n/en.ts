@@ -256,6 +256,11 @@ export const en = {
     signIn: "Sign in",
     signingIn: "Signing in…",
     signOut: "Sign out",
+    deviceConflictTitle: "Already signed in on another device",
+    deviceConflictDesc:
+      "Owner accounts can only be used on one device at a time. Sign out the other device to continue here, or cancel.",
+    kickAndContinue: "Sign out other device & continue",
+    cancelLogin: "Cancel",
     signInTitle: "Welcome back",
     signInSubtitle: "Sign in to your owner account.",
     noAccountHint: "No account yet? You'll get one when you claim your pet's passport.",

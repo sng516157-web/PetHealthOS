@@ -46,6 +46,16 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
   phone OTP, signed cookies; `src/lib/auth.ts`). A `User` with `orgId` set is a
   **shop** account (manages an `Organization`); a `User` without `orgId` is an
   **owner** account. Sign-up picks the type (shop also creates the `Organization`).
+  - **Device limits:** **owners = single device**, **shops = multi-device (unlimited)**.
+    The signed cookie carries a session id (`sid`); for owners `setSession(id,{single:true})`
+    also stores `User.sessionId`/`sessionExpiresAt`. `getCurrentUser` returns `null`
+    (logs the device out on its next request) when an owner's cookie `sid` ≠ stored
+    `sessionId` — i.e. it was kicked by a newer login. Shops skip the check. Sign-out
+    clears the owner's stored session (`clearUserSession`). On login, all owner paths
+    (`signIn`, `verifyPhoneOtp`, `claimPassport`) call `hasActiveSession()`; if active and
+    not forced they return `{ conflict: true }`, and `AuthCard` shows a "sign out other
+    device / cancel" choice that resubmits with `force=1`. Phone OTP pre-checks with
+    `verifyOtp(..., { consume:false })` so the code survives the forced retry.
 - **Routes:**
   - `/` = **public landing** (marketing + choose owner/shop + log in). `/owner`,
     `/shop` = per-type landing pages (explain + login/create). Logged-in users are
@@ -184,6 +194,18 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **Single-device owners, multi-device shops**. Why (user request):
+  make the account types more distinct and discourage shops from sharing a cheap owner
+  account across a business — a shop genuinely needs many devices.
+  - Added `User.sessionId` + `sessionExpiresAt` (migration `single_device_session`).
+    Cookie token now encodes `userId.sid.exp` (legacy `userId.exp` still parses → forces a
+    re-login). `setSession(id,{single})` records the sid for owners only; shops leave it
+    null and stay multi-device. `getCurrentUser` logs out an owner device whose `sid` ≠
+    stored `sessionId`. New helpers `hasActiveSession`, `clearUserSession` (sign-out).
+  - All owner sign-ins return `{ conflict: true }` when already active; `AuthCard` shows a
+    kick/cancel prompt that resubmits with `force=1`. `verifyOtp` gained `{ consume:false }`
+    so the phone code survives the conflict pre-check + forced retry. No live push — the
+    other device is logged out on its next request.
 - **2026-06-03** — **Owner per-extra-pet pricing** + **shop verification (KYC)**.
   Why (user request): a fairer owner model, and trust that every passport-issuing shop
   is a real, vetted business.
