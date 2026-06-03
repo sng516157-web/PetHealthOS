@@ -194,6 +194,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **Fix pet-add crash on photo upload**. Why (bug report): adding a
+  pet with a photo > ~1 MB crashed with "This page couldn't load". Root cause was
+  **not** Blob — Next.js Server Actions default to a **1 MB** body limit, but photos
+  (and verification docs) are submitted in the action body and `saveUpload` allows up
+  to 8 MB. Set `experimental.serverActions.bodySizeLimit: "12mb"` in `next.config.ts`.
 - **2026-06-03** — **Mobile sign-out fix**. Why (bug report): shop accounts had no
   way to sign out on mobile — the `Sidebar` (which holds sign-out) is `hidden md:flex`
   and `MobileNav` had none. Added a `md:hidden` top header to `/app/layout.tsx` (brand +
