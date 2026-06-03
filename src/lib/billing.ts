@@ -53,6 +53,57 @@ export async function activatePlan(
   }
 }
 
+type StripeMethod = "card" | "wechat_pay" | "alipay";
+
+function stripeMethodFor(provider: Provider): StripeMethod {
+  if (provider === "wechat") return "wechat_pay";
+  if (provider === "alipay") return "alipay";
+  return "card";
+}
+
+// Build a Stripe Checkout session for any supported provider. Stripe is our
+// cross-border processor: a Hong Kong Stripe account can charge mainland users
+// via Alipay / WeChat Pay with no native merchant account. Cards bill as a real
+// monthly *subscription*; Alipay & WeChat Pay are one-time methods in Stripe
+// (no recurring support), so they're charged one month at a time and the
+// customer re-pays each period rather than auto-renewing.
+async function createStripeCheckout(opts: {
+  provider: Provider;
+  amountRmb: number;
+  productName: string;
+  metadata: Record<string, string>;
+  baseUrl: string;
+}): Promise<CheckoutResult> {
+  const { provider, amountRmb, productName, metadata, baseUrl } = opts;
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  const method = stripeMethodFor(provider);
+  const recurring = method === "card";
+  const session = await stripe.checkout.sessions.create({
+    mode: recurring ? "subscription" : "payment",
+    payment_method_types: [method],
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "cny",
+          unit_amount: amountRmb * 100,
+          ...(recurring ? { recurring: { interval: "month" as const } } : {}),
+          product_data: { name: productName },
+        },
+      },
+    ],
+    ...(method === "wechat_pay"
+      ? { payment_method_options: { wechat_pay: { client: "web" as const } } }
+      : {}),
+    success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${baseUrl}/billing/cancelled`,
+    metadata,
+  });
+  if (!session.url) return { error: "STRIPE_NO_URL" };
+  return { url: session.url };
+}
+
 export async function startCheckout(opts: {
   scope: CheckoutScope;
   planKey: string;
@@ -76,41 +127,20 @@ export async function startCheckout(opts: {
     return { activated: true, demo: true };
   }
 
-  if (provider === "stripe") {
-    if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
-    const { default: Stripe } = await import("stripe");
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "cny",
-            unit_amount: plan.priceRmb * 100,
-            recurring: { interval: "month" },
-            product_data: { name: `Pet Health OS — ${plan.key}` },
-          },
-        },
-      ],
-      success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/billing/cancelled`,
-      metadata: {
-        scopeKind: scope.kind,
-        scopeId: scope.id,
-        planKey,
-      },
-    });
-    if (!session.url) return { error: "STRIPE_NO_URL" };
-    return { url: session.url };
-  }
-
-  // WeChat Pay / Alipay — wired as stubs. When you add merchant credentials,
-  // implement the order-creation call here and return its pay URL / QR.
-  if (provider === "wechat" || provider === "alipay") {
-    if (!chinaPayConfigured(provider)) {
-      return { error: "PROVIDER_NOT_CONFIGURED" };
+  if (provider === "stripe" || provider === "wechat" || provider === "alipay") {
+    if (stripeConfigured()) {
+      return createStripeCheckout({
+        provider,
+        amountRmb: plan.priceRmb,
+        productName: `Pet Health OS — ${plan.key}`,
+        metadata: { scopeKind: scope.kind, scopeId: scope.id, planKey },
+        baseUrl,
+      });
     }
+    if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
+    // Stripe is the intended route for the Chinese wallets too; a native
+    // WeChat/Alipay merchant integration isn't implemented.
+    if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
     return { error: "PROVIDER_NOT_IMPLEMENTED" };
   }
 
@@ -141,32 +171,17 @@ export async function buyOwnerPetSlot(opts: {
     return { activated: true, demo: true };
   }
 
-  if (provider === "stripe") {
-    if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
-    const { default: Stripe } = await import("stripe");
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "cny",
-            unit_amount: plan.extraPetPriceRmb * 100,
-            recurring: { interval: "month" },
-            product_data: { name: "PawSure — extra pet slot" },
-          },
-        },
-      ],
-      success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/billing/cancelled`,
-      metadata: { scopeKind: "user_slot", scopeId: userId },
-    });
-    if (!session.url) return { error: "STRIPE_NO_URL" };
-    return { url: session.url };
-  }
-
-  if (provider === "wechat" || provider === "alipay") {
+  if (provider === "stripe" || provider === "wechat" || provider === "alipay") {
+    if (stripeConfigured()) {
+      return createStripeCheckout({
+        provider,
+        amountRmb: plan.extraPetPriceRmb,
+        productName: "PawSure — extra pet slot",
+        metadata: { scopeKind: "user_slot", scopeId: userId },
+        baseUrl,
+      });
+    }
+    if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
     if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
     return { error: "PROVIDER_NOT_IMPLEMENTED" };
   }

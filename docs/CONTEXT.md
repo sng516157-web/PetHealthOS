@@ -124,8 +124,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   enforces it for `/app`.
 - **Verification review:** `/verify` (`submitVerification`) → team approves at `/admin`
   (`reviewOrg`) → `APPROVED` unlocks passport issuance.
-- **Billing:** provider-agnostic `startCheckout` — Stripe wired; WeChat Pay/Alipay
-  stubbed; demo mode activates plans instantly when no provider is configured.
+- **Billing:** provider-agnostic `startCheckout` / `buyOwnerPetSlot`. **Stripe is the
+  cross-border processor for all three buttons** — card, **Alipay**, and **WeChat Pay** —
+  via `createStripeCheckout` (`lib/billing.ts`): a Hong Kong Stripe account can charge
+  mainland users in the Chinese wallets with no native merchant account. Cards bill as a
+  real monthly *subscription*; Alipay/WeChat Pay are one-time Stripe methods (no recurring
+  support) charged one month at a time (`mode: "payment"`, no auto-renew). Demo mode still
+  activates plans instantly when no provider is configured. Enabling it for real needs only
+  `STRIPE_SECRET_KEY` **plus** turning on Alipay + WeChat Pay in the Stripe Dashboard.
 
 ---
 
@@ -194,6 +200,26 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-03** — **Route Alipay + WeChat Pay through Stripe** + **China go-to-market /
+  payments path**. Why (user is a HK resident and asked to be ready to charge Chinese
+  users): a HK setup avoids mainland ICP/company requirements, and Stripe can process the
+  Chinese wallets cross-border.
+  - **GTM/compliance findings (on record):** HK hosting needs **no company and no ICP** —
+    rent a HK server as an individual; it's reachable from the mainland without a VPN.
+    Mainland hosting needs an **ICP filing**, and a *commercial* app needs a **mainland
+    company + commercial ICP licence**. To take money you do **not** need an incorporated
+    company: in a Stripe-supported country an **individual / sole proprietor** can onboard.
+    Our founder is a **HK resident**, so the lightweight legal path is **sole proprietor +
+    a HK Business Registration (BR) certificate + Stripe HK** (no Companies Registry
+    incorporation, no audit). Incorporate a HK Ltd later for liability/investment/native
+    WeChat-Alipay merchant or app-store accounts. Native Alipay/WeChat *merchant* accounts
+    are the only path that strictly requires a business licence — Stripe sidesteps it.
+  - **Code:** `createStripeCheckout` in `lib/billing.ts` now backs all three pay buttons.
+    `provider` maps to a Stripe `payment_method_types` value (`card`/`alipay`/`wechat_pay`);
+    cards stay `mode:"subscription"`, the wallets use `mode:"payment"` (one-time, since
+    Stripe has no recurring support for them) with `wechat_pay.client:"web"`. The native
+    `WECHAT_PAY_*`/`ALIPAY_*` stub path only runs if Stripe is *not* configured. No new env
+    vars — needs `STRIPE_SECRET_KEY` + Alipay/WeChat enabled in the Stripe Dashboard.
 - **2026-06-03** — **AI assistant + triage for owners**. Why (user question "Do pet
   owners not get to use AI?"): the conversational assistant and triage report were only
   surfaced in the shop workspace (`/app/pets/[id]`), so owners couldn't use them — even
