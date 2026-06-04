@@ -6,21 +6,41 @@ import Link from "next/link";
 import { addOwnedPet } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/client";
+import { FieldError } from "@/components/FieldError";
+import {
+  validateRequiredName,
+  validateWeightKg,
+  validatePastOrToday,
+  validationMessage,
+} from "@/lib/validation";
 
 const inputCls =
   "w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 const labelCls = "block text-xs font-medium text-muted mb-1.5";
+const TODAY = new Date().toISOString().slice(0, 10);
 
 export function OwnedPetForm() {
   const router = useRouter();
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<{
+    name?: string | null;
+    weightKg?: string | null;
+    birthDate?: string | null;
+  }>({});
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null);
 
   function onSubmit(formData: FormData) {
     setError(null);
     setQuotaLimit(null);
+    const fe = {
+      name: validateRequiredName(String(formData.get("name") || "")),
+      weightKg: validateWeightKg(String(formData.get("weightKg") || ""), false),
+      birthDate: validatePastOrToday(String(formData.get("birthDate") || ""), false),
+    };
+    setFieldErr(fe);
+    if (fe.name || fe.weightKg || fe.birthDate) return;
     startTransition(async () => {
       const res = await addOwnedPet(formData);
       if (res && "quota" in res && res.quota) {
@@ -28,7 +48,13 @@ export function OwnedPetForm() {
         return;
       }
       if (res?.error) {
-        setError(res.error);
+        setError(
+          validationMessage(
+            t.validation as unknown as Record<string, string>,
+            res.error,
+            res.error,
+          ),
+        );
         return;
       }
       if ("id" in res && res.id) router.push(`/me/pets/${res.id}`);
@@ -37,11 +63,12 @@ export function OwnedPetForm() {
 
   return (
     <Card className="p-6">
-      <form action={onSubmit} className="space-y-5">
+      <form action={onSubmit} noValidate className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={labelCls}>{t.newPet.name} *</label>
-            <input name="name" required className={inputCls} placeholder={t.newPet.namePlaceholder} />
+            <input name="name" className={inputCls} placeholder={t.newPet.namePlaceholder} />
+            <FieldError code={fieldErr.name} />
           </div>
           <div>
             <label className={labelCls}>{t.newPet.species}</label>
@@ -68,11 +95,13 @@ export function OwnedPetForm() {
           </div>
           <div>
             <label className={labelCls}>{t.newPet.birthDate}</label>
-            <input name="birthDate" type="date" className={inputCls} />
+            <input name="birthDate" type="date" max={TODAY} className={inputCls} />
+            <FieldError code={fieldErr.birthDate} />
           </div>
           <div>
             <label className={labelCls}>{t.newPet.weight}</label>
-            <input name="weightKg" type="number" step="0.1" className={inputCls} placeholder={t.newPet.weightPlaceholder} />
+            <input name="weightKg" type="number" step="0.1" min="0" max="200" className={inputCls} placeholder={t.newPet.weightPlaceholder} />
+            <FieldError code={fieldErr.weightKg} />
           </div>
           <div className="sm:col-span-2">
             <label className={labelCls}>

@@ -8,6 +8,17 @@ import { createTransfer } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { GUARANTEE_TYPES, type GuaranteeType } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
+import { FieldError } from "@/components/FieldError";
+import {
+  isValidEmail,
+  validatePositiveInt,
+  validatePastOrToday,
+  validationMessage,
+  VErr,
+  GUARANTEE_DAYS_MAX,
+} from "@/lib/validation";
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const inputCls =
   "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
@@ -23,6 +34,11 @@ export function TransferForm({ petId }: { petId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [guaranteeType, setGuaranteeType] = useState<GuaranteeType>("D30");
   const [vetChecked, setVetChecked] = useState(false);
+  const [fieldErr, setFieldErr] = useState<{
+    newOwnerEmail?: string | null;
+    guaranteeDays?: string | null;
+    vetCheckedAt?: string | null;
+  }>({});
 
   const link =
     token && typeof window !== "undefined"
@@ -40,6 +56,23 @@ export function TransferForm({ petId }: { petId: string }) {
 
   function submit(formData: FormData) {
     setError(null);
+    const email = String(formData.get("newOwnerEmail") || "").trim();
+    const fe = {
+      newOwnerEmail: email && !isValidEmail(email) ? VErr.EMAIL_INVALID : null,
+      guaranteeDays:
+        guaranteeType === "CUSTOM"
+          ? validatePositiveInt(
+              String(formData.get("guaranteeDays") || ""),
+              GUARANTEE_DAYS_MAX,
+              true,
+            )
+          : null,
+      vetCheckedAt: vetChecked
+        ? validatePastOrToday(String(formData.get("vetCheckedAt") || ""), false)
+        : null,
+    };
+    setFieldErr(fe);
+    if (fe.newOwnerEmail || fe.guaranteeDays || fe.vetCheckedAt) return;
     startTransition(async () => {
       const res = await createTransfer(petId, formData);
       if (res?.token) {
@@ -53,7 +86,11 @@ export function TransferForm({ petId }: { petId: string }) {
               ? t.transferForm.notVerified
               : res.error === "ALREADY_CLAIMED"
                 ? t.transferForm.alreadyClaimed
-                : res.error,
+                : validationMessage(
+                    t.validation as unknown as Record<string, string>,
+                    res.error,
+                    res.error,
+                  ),
         );
       }
     });
@@ -114,7 +151,7 @@ export function TransferForm({ petId }: { petId: string }) {
 
   return (
     <Card className="p-5">
-      <form action={submit} className="space-y-4">
+      <form action={submit} noValidate className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={labelCls}>{t.transferForm.newOwnerName}</label>
@@ -123,6 +160,7 @@ export function TransferForm({ petId }: { petId: string }) {
           <div>
             <label className={labelCls}>{t.transferForm.newOwnerEmail}</label>
             <input name="newOwnerEmail" type="email" className={inputCls} placeholder="owner@email.com" />
+            <FieldError code={fieldErr.newOwnerEmail} />
           </div>
         </div>
         <div>
@@ -176,13 +214,17 @@ export function TransferForm({ petId }: { petId: string }) {
             ))}
           </select>
           {guaranteeType === "CUSTOM" && (
-            <input
-              name="guaranteeDays"
-              type="number"
-              min={1}
-              className={`${inputCls} mt-2`}
-              placeholder={t.transferForm.guaranteeDaysLabel}
-            />
+            <>
+              <input
+                name="guaranteeDays"
+                type="number"
+                min={1}
+                max={GUARANTEE_DAYS_MAX}
+                className={`${inputCls} mt-2`}
+                placeholder={t.transferForm.guaranteeDaysLabel}
+              />
+              <FieldError code={fieldErr.guaranteeDays} />
+            </>
           )}
           {guaranteeType !== "NONE" && (
             <textarea
@@ -208,7 +250,8 @@ export function TransferForm({ petId }: { petId: string }) {
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               <div>
                 <label className={labelCls}>{t.transferForm.vetCheckDate}</label>
-                <input name="vetCheckedAt" type="date" className={inputCls} />
+                <input name="vetCheckedAt" type="date" max={TODAY} className={inputCls} />
+                <FieldError code={fieldErr.vetCheckedAt} />
               </div>
               <div>
                 <label className={labelCls}>{t.transferForm.vetCheckNoteLabel}</label>

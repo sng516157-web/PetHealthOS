@@ -200,6 +200,31 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-04** — **Comprehensive field validation (client + server)**. Why (user request):
+  every field should be validated — emails well-formed, phone numbers auto-formatted to
+  regional standards, etc. **Architecture:**
+  - **One isomorphic module** `src/lib/validation.ts` holds all rules (email, password,
+    name/length, phone, OTP, weight, dates, positive ints) and returns stable `VErr` CODES.
+    Used by BOTH client components (instant inline UX) and server actions (the security
+    source of truth) — so the two can never drift.
+  - **Phone:** added `libphonenumber-js`. `formatPhoneAsYouType` formats as the user types
+    (default region **CN**; a leading `+` switches to international), `toE164` canonicalizes,
+    `isValidPhone` validates. `src/lib/sms.ts` `normalizePhone`/`isValidPhone` now delegate
+    here (region-aware) instead of a raw 6–15 digit check.
+  - **Components:** `PhoneInput` (controlled, auto-formatting) and `FieldError` (maps a code
+    to a localized message via `t.validation`, falling back to any raw string). Forms set
+    `noValidate` and run client checks before the server call; server still re-validates.
+  - **i18n:** new `validation` namespace in `en.ts`/`zh.ts` keyed by `VErr` code.
+  - **Server actions hardened:** `register`, `signIn`, `claimPassport`, `addPet`,
+    `addOwnedPet` (shared `readPetFields`), `addWeight`, `addReminder`, `createTransfer`
+    (email/days/terms/vet-date), `addLogEntry` (date + length) now return codes; loose
+    `/.+@.+\..+/` email and ad-hoc weight checks removed. Pet `species`/`sex` whitelisted.
+  - **Constraints:** weight 0–200 kg, dates not in the future where applicable (also `max`
+    on `<input type=date>`), names/titles ≤ 80/120, free-text ≤ 2000, custom guarantee days
+    a positive int ≤ 3650.
+  - Verified in the Next runtime (`/api/vtest`, since removed): CN `13800138000` →
+    `138 0013 8000` / `+8613800138000`; intl `+14155552671` → `+1 415 555 2671`; bad email →
+    `EMAIL_INVALID`; 300 kg → `WEIGHT_INVALID`; future date → `DATE_FUTURE`.
 - **2026-06-04** — **Health watch analyses only when needed** (cost control for A1). Why
   (user request): the daily guardian shouldn't burn AI re-checking pets that haven't changed
   or re-describing a situation the caretaker was already told about. **Two gates, no schema

@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { Heart, Check } from "lucide-react";
 import { claimPassport } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
+import { FieldError } from "@/components/FieldError";
+import {
+  validateEmail,
+  validatePassword,
+  validateRequiredName,
+  validationMessage,
+  VErr,
+} from "@/lib/validation";
 
 export function ClaimPassport({
   token,
@@ -20,13 +28,38 @@ export function ClaimPassport({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<{
+    name?: string | null;
+    email?: string | null;
+    password?: string | null;
+  }>({});
 
   function submit(formData: FormData) {
     setError(null);
+    const fe = {
+      name: validateRequiredName(String(formData.get("claimedByName") || "")),
+      email: validateEmail(String(formData.get("email") || "")),
+      password: validatePassword(String(formData.get("password") || "")),
+    };
+    setFieldErr(fe);
+    if (fe.name || fe.email || fe.password) return;
     startTransition(async () => {
       const res = await claimPassport(token, formData);
-      if (res?.error) setError(res.error);
-      else router.push("/me");
+      if (res?.error) {
+        if (res.error === VErr.EMAIL_INVALID) {
+          setFieldErr((p) => ({ ...p, email: res.error }));
+        } else {
+          setError(
+            validationMessage(
+              t.validation as unknown as Record<string, string>,
+              res.error,
+              res.error,
+            ),
+          );
+        }
+      } else {
+        router.push("/me");
+      }
     });
   }
 
@@ -51,7 +84,7 @@ export function ClaimPassport({
 
   return (
     <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-5">
-      <form action={submit} className="mx-auto max-w-sm space-y-3">
+      <form action={submit} noValidate className="mx-auto max-w-sm space-y-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-brand-800">
             {t.claim.yourName}
@@ -59,10 +92,10 @@ export function ClaimPassport({
           <input
             name="claimedByName"
             defaultValue={defaultName ?? ""}
-            required
             placeholder={t.claim.yourNamePlaceholder}
             className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
+          <FieldError code={fieldErr.name} />
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-brand-800">
@@ -71,11 +104,11 @@ export function ClaimPassport({
           <input
             name="email"
             type="email"
-            required
             autoComplete="email"
             placeholder={t.claim.emailPlaceholder}
             className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
+          <FieldError code={fieldErr.email} />
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-brand-800">
@@ -84,12 +117,11 @@ export function ClaimPassport({
           <input
             name="password"
             type="password"
-            required
-            minLength={6}
             autoComplete="new-password"
             placeholder={t.claim.passwordPlaceholder}
             className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
+          <FieldError code={fieldErr.password} />
         </div>
         <p className="text-[11px] text-brand-700">
           {t.claim.accountNote}

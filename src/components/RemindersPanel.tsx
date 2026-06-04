@@ -12,6 +12,13 @@ import {
 } from "@/lib/constants";
 import { formatDate, relativeTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
+import { FieldError } from "@/components/FieldError";
+import {
+  validateRequiredName,
+  validateDate,
+  validationMessage,
+  VErr,
+} from "@/lib/validation";
 
 export type SerializedReminder = {
   id: string;
@@ -36,6 +43,11 @@ export function RemindersPanel({
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<{
+    title?: string | null;
+    dueAt?: string | null;
+  }>({});
 
   const pendingItems = reminders.filter((r) => !r.completed);
   const done = reminders.filter((r) => r.completed);
@@ -48,11 +60,31 @@ export function RemindersPanel({
   }
 
   function add(formData: FormData) {
+    setError(null);
+    const fe = {
+      title: validateRequiredName(
+        String(formData.get("title") || ""),
+        VErr.TITLE_REQUIRED,
+        120,
+        VErr.TITLE_TOO_LONG,
+      ),
+      dueAt: validateDate(String(formData.get("dueAt") || ""), true),
+    };
+    setFieldErr(fe);
+    if (fe.title || fe.dueAt) return;
     startTransition(async () => {
       const res = await addReminder(petId, formData);
       if (res?.ok) {
         setOpen(false);
         router.refresh();
+      } else if (res?.error) {
+        setError(
+          validationMessage(
+            t.validation as unknown as Record<string, string>,
+            res.error,
+            res.error,
+          ),
+        );
       }
     });
   }
@@ -70,8 +102,11 @@ export function RemindersPanel({
       </div>
 
       {open && (
-        <form action={add} className="mt-3 space-y-2 rounded-xl border border-border bg-background p-3">
-          <input name="title" required placeholder={t.remindersPanel.titlePlaceholder} className={inputCls} />
+        <form action={add} noValidate className="mt-3 space-y-2 rounded-xl border border-border bg-background p-3">
+          <div>
+            <input name="title" placeholder={t.remindersPanel.titlePlaceholder} className={inputCls} />
+            <FieldError code={fieldErr.title} />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <select name="category" className={inputCls} defaultValue="VACCINE">
               {REMINDER_CATEGORIES.map((c) => (
@@ -80,13 +115,17 @@ export function RemindersPanel({
                 </option>
               ))}
             </select>
-            <input name="dueAt" type="date" required className={inputCls} />
+            <div>
+              <input name="dueAt" type="date" className={inputCls} />
+              <FieldError code={fieldErr.dueAt} />
+            </div>
           </div>
           <select name="recurrence" className={inputCls} defaultValue="">
             <option value="">{t.remindersPanel.oneTime}</option>
             <option value="MONTHLY">{t.remindersPanel.monthly}</option>
             <option value="YEARLY">{t.remindersPanel.yearly}</option>
           </select>
+          {error && <p className="text-xs text-rose-600">{error}</p>}
           <button
             type="submit"
             disabled={pending}

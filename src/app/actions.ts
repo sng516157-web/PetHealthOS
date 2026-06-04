@@ -47,6 +47,77 @@ import {
   type CheckoutScope,
   type Provider,
 } from "@/lib/billing";
+import {
+  normalizeEmail,
+  validateEmail,
+  validatePassword,
+  validateRequiredName,
+  validateWeightKg,
+  parseWeightKg,
+  validatePastOrToday,
+  validateDate,
+  validatePositiveInt,
+  isValidEmail,
+  VErr,
+  NAME_MAX,
+  ORG_NAME_MAX,
+  NOTE_MAX,
+  TITLE_MAX,
+  GUARANTEE_DAYS_MAX,
+} from "@/lib/validation";
+
+const SPECIES = ["DOG", "CAT"];
+const SEXES = ["MALE", "FEMALE", "UNKNOWN"];
+
+type PetFields = {
+  name: string;
+  species: string;
+  sex: string;
+  breed: string | null;
+  color: string | null;
+  birthDate: Date | null;
+  weightKg: number | null;
+  notes: string | null;
+};
+
+// Shared validation for the pet create forms (breeder + owner). Returns a
+// `{ error: CODE }` the client maps to a localized message, or the clean values.
+function readPetFields(formData: FormData): { error: string } | { data: PetFields } {
+  const name = String(formData.get("name") || "").trim();
+  const nameErr = validateRequiredName(name);
+  if (nameErr) return { error: nameErr };
+
+  const breed = String(formData.get("breed") || "").trim();
+  if (breed.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
+  const color = String(formData.get("color") || "").trim();
+  if (color.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
+  const notes = String(formData.get("notes") || "").trim();
+  if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const birthDateRaw = String(formData.get("birthDate") || "");
+  const birthErr = validatePastOrToday(birthDateRaw, false);
+  if (birthErr) return { error: birthErr };
+
+  const weightRaw = String(formData.get("weightKg") || "");
+  const weightErr = validateWeightKg(weightRaw, false);
+  if (weightErr) return { error: weightErr };
+
+  const speciesRaw = String(formData.get("species") || "DOG");
+  const sexRaw = String(formData.get("sex") || "UNKNOWN");
+
+  return {
+    data: {
+      name,
+      species: SPECIES.includes(speciesRaw) ? speciesRaw : "DOG",
+      sex: SEXES.includes(sexRaw) ? sexRaw : "UNKNOWN",
+      breed: breed || null,
+      color: color || null,
+      birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
+      weightKg: weightRaw ? parseWeightKg(weightRaw) : null,
+      notes: notes || null,
+    },
+  };
+}
 
 export async function setLocale(locale: string) {
   if (!isLocale(locale)) return { error: "Unsupported locale" };
@@ -115,17 +186,14 @@ async function saveVerificationDoc(file: File): Promise<string> {
 
 export async function addPet(formData: FormData) {
   const org = await requireActiveOrg();
-  const name = String(formData.get("name") || "").trim();
-  if (!name) return { error: "Name is required" };
+  const fields = readPetFields(formData);
+  if ("error" in fields) return { error: fields.error };
 
   // Hard quota: cannot exceed the plan's effective pet limit.
   const usage = await getOrgUsage();
   if (usage.count >= usage.limit) {
     return { error: "QUOTA_REACHED", quota: true, limit: usage.limit };
   }
-
-  const birthDateRaw = String(formData.get("birthDate") || "");
-  const weightRaw = String(formData.get("weightKg") || "");
 
   const photo = formData.get("photo") as File | null;
   let photoUrl: string | null = null;
@@ -136,15 +204,8 @@ export async function addPet(formData: FormData) {
   const pet = await prisma.pet.create({
     data: {
       orgId: org.id,
-      name,
-      species: String(formData.get("species") || "DOG"),
-      breed: String(formData.get("breed") || "") || null,
-      sex: String(formData.get("sex") || "UNKNOWN"),
-      color: String(formData.get("color") || "") || null,
-      birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
-      weightKg: weightRaw ? Number(weightRaw) : null,
+      ...fields.data,
       photoUrl,
-      notes: String(formData.get("notes") || "") || null,
       sireId: String(formData.get("sireId") || "") || null,
       damId: String(formData.get("damId") || "") || null,
     },
@@ -156,7 +217,12 @@ export async function addPet(formData: FormData) {
 
 export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
+  if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
   const occurredAt = String(formData.get("occurredAt") || "") || undefined;
+  if (occurredAt) {
+    const dErr = validateDate(occurredAt, false);
+    if (dErr) return { error: dErr };
+  }
   const hasText = Boolean(text);
 
   // Optional photo/video. Images inform the AI only when there's a written note
@@ -284,8 +350,13 @@ export async function deleteLogEntry(petId: string, id: string) {
 
 export async function addReminder(petId: string, formData: FormData) {
   const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: VErr.TITLE_REQUIRED };
+  if (title.length > TITLE_MAX) return { error: VErr.TITLE_TOO_LONG };
   const dueAt = String(formData.get("dueAt") || "");
-  if (!title || !dueAt) return { error: "Title and date required" };
+  const dueErr = validateDate(dueAt, true);
+  if (dueErr) return { error: dueErr };
+  const notes = String(formData.get("notes") || "").trim();
+  if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
 
   await prisma.reminder.create({
     data: {
@@ -294,7 +365,7 @@ export async function addReminder(petId: string, formData: FormData) {
       category: String(formData.get("category") || "OTHER"),
       dueAt: new Date(dueAt),
       recurrence: String(formData.get("recurrence") || "") || null,
-      notes: String(formData.get("notes") || "") || null,
+      notes: notes || null,
     },
   });
   revalidatePath(`/app/pets/${petId}`);
@@ -406,7 +477,17 @@ export async function createTransfer(petId: string, formData: FormData) {
   if (claimed) return { error: "ALREADY_CLAIMED" };
 
   const token = randomBytes(8).toString("hex");
-  const newOwnerName = String(formData.get("newOwnerName") || "") || null;
+  const newOwnerNameRaw = String(formData.get("newOwnerName") || "").trim();
+  if (newOwnerNameRaw.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
+  const newOwnerName = newOwnerNameRaw || null;
+
+  const newOwnerEmailRaw = String(formData.get("newOwnerEmail") || "").trim();
+  if (newOwnerEmailRaw && !isValidEmail(newOwnerEmailRaw)) {
+    return { error: VErr.EMAIL_INVALID };
+  }
+  const note = String(formData.get("note") || "").trim();
+  if (note.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
   const visibility =
     String(formData.get("visibility") || "READONLY_COPY") === "SHARED"
       ? "SHARED"
@@ -420,17 +501,22 @@ export async function createTransfer(petId: string, formData: FormData) {
     : "NONE";
   let guaranteeDays: number | null = GUARANTEE_PRESET_DAYS[guaranteeType];
   if (guaranteeType === "CUSTOM") {
-    const d = Number(formData.get("guaranteeDays"));
-    guaranteeDays = Number.isFinite(d) && d > 0 ? Math.round(d) : null;
+    const daysRaw = String(formData.get("guaranteeDays") || "");
+    const daysErr = validatePositiveInt(daysRaw, GUARANTEE_DAYS_MAX, true);
+    if (daysErr) return { error: daysErr };
+    guaranteeDays = Math.round(Number(daysRaw));
   }
+  const guaranteeTermsRaw = String(formData.get("guaranteeTerms") || "").trim();
+  if (guaranteeTermsRaw.length > NOTE_MAX) return { error: VErr.TERMS_TOO_LONG };
   const guaranteeTerms =
-    guaranteeType === "NONE"
-      ? null
-      : String(formData.get("guaranteeTerms") || "") || null;
+    guaranteeType === "NONE" ? null : guaranteeTermsRaw || null;
+
   const vetCheckedRaw = String(formData.get("vetCheckedAt") || "");
+  const vetErr = validatePastOrToday(vetCheckedRaw, false);
+  if (vetErr) return { error: vetErr };
   const vetCheckedAt = vetCheckedRaw ? new Date(vetCheckedRaw) : null;
   const vetCheckNote = vetCheckedAt
-    ? String(formData.get("vetCheckNote") || "") || null
+    ? String(formData.get("vetCheckNote") || "").trim() || null
     : null;
 
   await prisma.transfer.create({
@@ -438,8 +524,8 @@ export async function createTransfer(petId: string, formData: FormData) {
       petId,
       token,
       newOwnerName,
-      newOwnerEmail: String(formData.get("newOwnerEmail") || "") || null,
-      note: String(formData.get("note") || "") || null,
+      newOwnerEmail: newOwnerEmailRaw || null,
+      note: note || null,
       visibility,
       claimable,
       guaranteeType,
@@ -499,13 +585,13 @@ export async function claimPassport(token: string, formData: FormData) {
     String(formData.get("claimedByName") || "").trim() ||
     transfer.newOwnerName ||
     "New owner";
-  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const email = normalizeEmail(String(formData.get("email") || ""));
   const password = String(formData.get("password") || "");
 
-  if (!email || !/.+@.+\..+/.test(email))
-    return { error: "Enter a valid email" };
-  if (password.length < 6)
-    return { error: "Password must be at least 6 characters" };
+  const emailErr = validateEmail(email);
+  if (emailErr) return { error: emailErr };
+  const pwErr = validatePassword(password);
+  if (pwErr) return { error: pwErr };
 
   // Reuse an existing account (verify password) or create a new one.
   let user = await prisma.user.findUnique({ where: { email } });
@@ -550,10 +636,11 @@ export async function claimPassport(token: string, formData: FormData) {
 }
 
 export async function signIn(formData: FormData) {
-  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const email = normalizeEmail(String(formData.get("email") || ""));
   const password = String(formData.get("password") || "");
   const force = String(formData.get("force") || "") === "1";
-  if (!email || !password) return { error: "Email and password required" };
+  if (!email) return { error: VErr.EMAIL_REQUIRED };
+  if (!password) return { error: VErr.PASSWORD_REQUIRED };
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash))
@@ -609,18 +696,22 @@ export async function markAllNotificationsRead() {
 
 export async function addWeight(petId: string, formData: FormData) {
   const weightRaw = String(formData.get("weightKg") || "").trim();
-  const weightKg = Number(weightRaw);
-  if (!weightRaw || Number.isNaN(weightKg) || weightKg <= 0) {
-    return { error: "Enter a valid weight" };
-  }
+  const weightErr = validateWeightKg(weightRaw, true);
+  if (weightErr) return { error: weightErr };
+  const weightKg = parseWeightKg(weightRaw) as number;
+
   const measuredRaw = String(formData.get("measuredAt") || "");
+  const measuredErr = validatePastOrToday(measuredRaw, false);
+  if (measuredErr) return { error: measuredErr };
+  const note = String(formData.get("note") || "").trim();
+  if (note.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
 
   await prisma.weightEntry.create({
     data: {
       petId,
       weightKg,
       measuredAt: measuredRaw ? new Date(measuredRaw) : new Date(),
-      note: String(formData.get("note") || "") || null,
+      note: note || null,
     },
   });
 
@@ -643,23 +734,26 @@ export async function deleteWeight(petId: string, id: string) {
 export async function register(formData: FormData) {
   const accountType =
     String(formData.get("accountType") || "owner") === "shop" ? "shop" : "owner";
+  const nameRaw = String(formData.get("name") || "").trim();
+  if (nameRaw.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
   const name =
-    String(formData.get("name") || "").trim() ||
-    (accountType === "shop" ? "Shop owner" : "Pet owner");
-  const email = String(formData.get("email") || "").trim().toLowerCase();
+    nameRaw || (accountType === "shop" ? "Shop owner" : "Pet owner");
+  const email = normalizeEmail(String(formData.get("email") || ""));
   const password = String(formData.get("password") || "");
 
-  if (!email || !/.+@.+\..+/.test(email)) return { error: "Enter a valid email" };
-  if (password.length < 6)
-    return { error: "Password must be at least 6 characters" };
+  const emailErr = validateEmail(email);
+  if (emailErr) return { error: emailErr };
+  const pwErr = validatePassword(password);
+  if (pwErr) return { error: pwErr };
 
   const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return { error: "An account with this email already exists." };
+  if (existing) return { error: VErr.EMAIL_TAKEN };
 
   // Shop account: also create the organization the user will manage at /app.
   if (accountType === "shop") {
     const orgName = String(formData.get("orgName") || "").trim();
-    if (!orgName) return { error: "ORG_NAME_REQUIRED" };
+    if (!orgName) return { error: VErr.ORG_NAME_REQUIRED };
+    if (orgName.length > ORG_NAME_MAX) return { error: VErr.ORG_NAME_TOO_LONG };
     const orgKindRaw = String(formData.get("orgKind") || "BREEDER");
     const orgKind = ["BREEDER", "SHOP", "SHELTER"].includes(orgKindRaw)
       ? orgKindRaw
@@ -736,16 +830,13 @@ export async function addOwnedPet(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) return { error: "Please sign in first" };
 
-  const name = String(formData.get("name") || "").trim();
-  if (!name) return { error: "Name is required" };
+  const fields = readPetFields(formData);
+  if ("error" in fields) return { error: fields.error };
 
   const usage = await getUserUsage(user.id);
   if (usage && usage.count >= usage.limit) {
     return { error: "QUOTA_REACHED", quota: true, limit: usage.limit };
   }
-
-  const birthDateRaw = String(formData.get("birthDate") || "");
-  const weightRaw = String(formData.get("weightKg") || "");
 
   const photo = formData.get("photo") as File | null;
   let photoUrl: string | null = null;
@@ -756,15 +847,8 @@ export async function addOwnedPet(formData: FormData) {
   const pet = await prisma.pet.create({
     data: {
       ownerUserId: user.id,
-      name,
-      species: String(formData.get("species") || "DOG"),
-      breed: String(formData.get("breed") || "") || null,
-      sex: String(formData.get("sex") || "UNKNOWN"),
-      color: String(formData.get("color") || "") || null,
-      birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
-      weightKg: weightRaw ? Number(weightRaw) : null,
+      ...fields.data,
       photoUrl,
-      notes: String(formData.get("notes") || "") || null,
     },
   });
   revalidatePath("/me");

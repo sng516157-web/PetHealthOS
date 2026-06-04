@@ -6,6 +6,25 @@ import { LogIn, UserPlus, Smartphone, Store } from "lucide-react";
 import { signIn, register, requestPhoneOtp, verifyPhoneOtp } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/en";
+import { FieldError } from "@/components/FieldError";
+import { PhoneInput } from "@/components/PhoneInput";
+import {
+  validateEmail,
+  validatePassword,
+  validateRequiredName,
+  validatePhone,
+  validateOtpCode,
+  validationMessage,
+  VErr,
+} from "@/lib/validation";
+
+function vmsg(t: Dictionary, code: string | null | undefined): string {
+  return validationMessage(
+    t.validation as unknown as Record<string, string>,
+    code,
+    code ?? undefined,
+  );
+}
 
 const inputCls =
   "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
@@ -92,6 +111,7 @@ function SignInTab({ t }: { t: Dictionary }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<{ email?: string | null; password?: string | null }>({});
   const [conflict, setConflict] = useState(false);
   const lastData = useRef<FormData | null>(null);
 
@@ -103,7 +123,7 @@ function SignInTab({ t }: { t: Dictionary }) {
         setConflict(true);
         return;
       }
-      if (res?.error) setError(res.error);
+      if (res?.error) setError(vmsg(t, res.error));
       else router.push(dest(res?.accountType));
     });
   }
@@ -111,6 +131,14 @@ function SignInTab({ t }: { t: Dictionary }) {
   function submit(formData: FormData) {
     setError(null);
     setConflict(false);
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
+    const fe = {
+      email: validateEmail(email),
+      password: password ? null : VErr.PASSWORD_REQUIRED,
+    };
+    setFieldErr(fe);
+    if (fe.email || fe.password) return;
     run(formData);
   }
 
@@ -123,14 +151,16 @@ function SignInTab({ t }: { t: Dictionary }) {
   }
 
   return (
-    <form action={submit} className="space-y-3">
+    <form action={submit} noValidate className="space-y-3">
       <div>
         <label className={labelCls}>{t.auth.email}</label>
-        <input name="email" type="email" required autoComplete="email" className={inputCls} placeholder={t.auth.emailPlaceholder} />
+        <input name="email" type="email" autoComplete="email" className={inputCls} placeholder={t.auth.emailPlaceholder} />
+        <FieldError code={fieldErr.email} />
       </div>
       <div>
         <label className={labelCls}>{t.auth.password}</label>
-        <input name="password" type="password" required autoComplete="current-password" className={inputCls} />
+        <input name="password" type="password" autoComplete="current-password" className={inputCls} />
+        <FieldError code={fieldErr.password} />
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       {conflict && (
@@ -152,14 +182,39 @@ function RegisterTab({ t, accountType }: { t: Dictionary; accountType: AccountTy
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<{
+    orgName?: string | null;
+    name?: string | null;
+    email?: string | null;
+    password?: string | null;
+  }>({});
   const isShop = accountType === "shop";
 
   function submit(formData: FormData) {
     setError(null);
+    const orgName = String(formData.get("orgName") || "");
+    const name = String(formData.get("name") || "");
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
+    const fe = {
+      orgName: isShop
+        ? validateRequiredName(orgName, VErr.ORG_NAME_REQUIRED, 120, VErr.ORG_NAME_TOO_LONG)
+        : null,
+      name: validateRequiredName(name),
+      email: validateEmail(email),
+      password: validatePassword(password),
+    };
+    setFieldErr(fe);
+    if (fe.orgName || fe.name || fe.email || fe.password) return;
     start(async () => {
       const res = await register(formData);
       if (res?.error) {
-        setError(res.error === "ORG_NAME_REQUIRED" ? t.auth.errOrgNameRequired : res.error);
+        // Surface duplicate-email under the email field; others as a banner.
+        if (res.error === VErr.EMAIL_TAKEN || res.error === VErr.EMAIL_INVALID) {
+          setFieldErr((p) => ({ ...p, email: res.error }));
+        } else {
+          setError(vmsg(t, res.error));
+        }
       } else {
         router.push(dest(res?.accountType));
       }
@@ -167,13 +222,14 @@ function RegisterTab({ t, accountType }: { t: Dictionary; accountType: AccountTy
   }
 
   return (
-    <form action={submit} className="space-y-3">
+    <form action={submit} noValidate className="space-y-3">
       <input type="hidden" name="accountType" value={accountType} />
       {isShop && (
         <>
           <div>
             <label className={labelCls}>{t.auth.shopName}</label>
-            <input name="orgName" required className={inputCls} placeholder={t.auth.shopNamePlaceholder} />
+            <input name="orgName" className={inputCls} placeholder={t.auth.shopNamePlaceholder} />
+            <FieldError code={fieldErr.orgName} />
           </div>
           <div>
             <label className={labelCls}>{t.auth.shopKind}</label>
@@ -187,15 +243,18 @@ function RegisterTab({ t, accountType }: { t: Dictionary; accountType: AccountTy
       )}
       <div>
         <label className={labelCls}>{isShop ? t.auth.contactName : t.auth.name}</label>
-        <input name="name" required className={inputCls} placeholder={t.auth.namePlaceholder} />
+        <input name="name" className={inputCls} placeholder={t.auth.namePlaceholder} />
+        <FieldError code={fieldErr.name} />
       </div>
       <div>
         <label className={labelCls}>{t.auth.email}</label>
-        <input name="email" type="email" required autoComplete="email" className={inputCls} placeholder={t.auth.emailPlaceholder} />
+        <input name="email" type="email" autoComplete="email" className={inputCls} placeholder={t.auth.emailPlaceholder} />
+        <FieldError code={fieldErr.email} />
       </div>
       <div>
         <label className={labelCls}>{t.auth.password}</label>
-        <input name="password" type="password" required autoComplete="new-password" className={inputCls} placeholder={t.auth.createPasswordPlaceholder} />
+        <input name="password" type="password" autoComplete="new-password" className={inputCls} placeholder={t.auth.createPasswordPlaceholder} />
+        <FieldError code={fieldErr.password} />
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       <button type="submit" disabled={pending} className={primaryBtn}>
@@ -212,6 +271,9 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"enter" | "code">("enter");
   const [phone, setPhone] = useState("");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneErr, setPhoneErr] = useState<string | null>(null);
+  const [codeErr, setCodeErr] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -226,6 +288,9 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
   function sendCode(formData: FormData) {
     setError(null);
     setDevCode(null);
+    const pe = validatePhone(phoneInput);
+    setPhoneErr(pe);
+    if (pe) return;
     start(async () => {
       const res = await requestPhoneOtp(formData);
       if ("error" in res) {
@@ -256,6 +321,9 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
   function verify(formData: FormData) {
     setError(null);
     setConflict(false);
+    const ce = validateOtpCode(String(formData.get("code") || ""));
+    setCodeErr(ce);
+    if (ce) return;
     formData.set("phone", phone);
     formData.set("name", name);
     formData.set("accountType", accountType);
@@ -288,7 +356,14 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
         </div>
         <div>
           <label className={labelCls}>{t.auth.phone}</label>
-          <input name="phone" type="tel" required autoComplete="tel" className={inputCls} placeholder={t.auth.phonePlaceholder} />
+          <PhoneInput
+            name="phone"
+            value={phoneInput}
+            onChange={setPhoneInput}
+            className={inputCls}
+            placeholder={t.auth.phonePlaceholder}
+          />
+          <FieldError code={phoneErr} />
         </div>
         {error && <p className="text-xs text-rose-600">{error}</p>}
         <button type="submit" disabled={pending} className={primaryBtn}>
@@ -312,10 +387,10 @@ function PhoneTab({ t, accountType }: { t: Dictionary; accountType: AccountType 
           name="code"
           inputMode="numeric"
           autoComplete="one-time-code"
-          required
           className={`${inputCls} tracking-[0.4em]`}
           placeholder={t.auth.codePlaceholder}
         />
+        <FieldError code={codeErr} />
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       {conflict && (

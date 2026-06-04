@@ -7,6 +7,14 @@ import { addWeight, deleteWeight } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
+import { FieldError } from "@/components/FieldError";
+import {
+  validateWeightKg,
+  validatePastOrToday,
+  validationMessage,
+} from "@/lib/validation";
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 export type SerializedWeight = {
   id: string;
@@ -30,6 +38,10 @@ export function WeightPanel({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<{
+    weightKg?: string | null;
+    measuredAt?: string | null;
+  }>({});
 
   // weights arrive oldest→newest; show newest first in the list.
   const chrono = weights;
@@ -40,10 +52,23 @@ export function WeightPanel({
 
   function submit(formData: FormData) {
     setError(null);
+    const fe = {
+      weightKg: validateWeightKg(String(formData.get("weightKg") || ""), true),
+      measuredAt: validatePastOrToday(String(formData.get("measuredAt") || ""), false),
+    };
+    setFieldErr(fe);
+    if (fe.weightKg || fe.measuredAt) return;
     startTransition(async () => {
       const res = await addWeight(petId, formData);
-      if (res?.error) setError(res.error);
-      else {
+      if (res?.error) {
+        setError(
+          validationMessage(
+            t.validation as unknown as Record<string, string>,
+            res.error,
+            res.error,
+          ),
+        );
+      } else {
         setOpen(false);
         router.refresh();
       }
@@ -101,7 +126,7 @@ export function WeightPanel({
       </div>
 
       {open && (
-        <form action={submit} className="mt-3 space-y-2 rounded-xl bg-background p-3">
+        <form action={submit} noValidate className="mt-3 space-y-2 rounded-xl bg-background p-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="mb-1 block text-[11px] font-medium text-muted">
@@ -112,16 +137,18 @@ export function WeightPanel({
                 type="number"
                 step="0.01"
                 min="0"
-                required
+                max="200"
                 className={inputCls}
                 placeholder="7.2"
               />
+              <FieldError code={fieldErr.weightKg} />
             </div>
             <div>
               <label className="mb-1 block text-[11px] font-medium text-muted">
                 {t.weight.date}
               </label>
-              <input name="measuredAt" type="date" className={inputCls} />
+              <input name="measuredAt" type="date" max={TODAY} className={inputCls} />
+              <FieldError code={fieldErr.measuredAt} />
             </div>
           </div>
           {error && <p className="text-xs text-rose-600">{error}</p>}

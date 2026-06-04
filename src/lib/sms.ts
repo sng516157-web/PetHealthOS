@@ -1,5 +1,10 @@
 import { createHmac, randomInt, timingSafeEqual } from "crypto";
 import { prisma } from "./prisma";
+import {
+  toE164,
+  isValidPhone as isValidPhoneNumber,
+  DEFAULT_PHONE_REGION,
+} from "./validation";
 
 const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_VERIFY_ATTEMPTS = 5;
@@ -13,16 +18,19 @@ function hashCode(phone: string, code: string): string {
   return createHmac("sha256", secret()).update(`${phone}.${code}`).digest("hex");
 }
 
-// Keep a leading + and digits only; collapse spaces/dashes/parens.
+// Canonicalize to E.164 (region-aware: unprefixed numbers are parsed as the
+// default region, China). Falls back to a +digits form if the number can't be
+// parsed, so the OTP key stays stable even for unusual input.
 export function normalizePhone(input: string): string {
+  const e164 = toE164(input, DEFAULT_PHONE_REGION);
+  if (e164) return e164;
   const trimmed = input.trim();
   const plus = trimmed.startsWith("+") ? "+" : "";
   return plus + trimmed.replace(/[^\d]/g, "");
 }
 
 export function isValidPhone(phone: string): boolean {
-  const digits = phone.replace(/[^\d]/g, "");
-  return digits.length >= 6 && digits.length <= 15;
+  return isValidPhoneNumber(phone, DEFAULT_PHONE_REGION);
 }
 
 // Pluggable SMS delivery. Twilio works with just credentials; China providers

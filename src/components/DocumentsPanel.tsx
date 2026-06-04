@@ -39,6 +39,15 @@ export function DocumentsPanel({
 
   function upload(formData: FormData) {
     setError(null);
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      setError(t.documents.chooseFile);
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError(t.documents.tooBig);
+      return;
+    }
     startTransition(async () => {
       const res = await addAttachment(petId, formData);
       if (res?.error) {
