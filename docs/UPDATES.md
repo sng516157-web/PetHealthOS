@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-04 — Health watch only analyses when needed (AI cost cut).** The guardian now
+  (1) skips any pet with no new log/weight in the last couple of days, and (2) only fires a
+  signal when it's backed by data created *after* the last alert — so the same situation is
+  never re-analysed and the AI runs only on genuinely new concerns. Verified: a repeat scan
+  did 0 analyses and 0 AI calls.
 - **2026-06-04 — Proactive health watch ("the guardian").** A daily scan now reads each
   pet's recent log, weight trend and severity signals and *pushes* an in-app alert when
   something is worth a look (serious recent entry, weight down ~10%+, or a cluster of

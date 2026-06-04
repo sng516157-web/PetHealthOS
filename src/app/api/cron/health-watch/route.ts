@@ -5,16 +5,25 @@ import { summarizeHealthWatch } from "@/lib/ai";
 export const dynamic = "force-dynamic";
 
 const DAY = 24 * 60 * 60 * 1000;
-// Don't re-nudge about the same pet more often than this.
-const DEDUPE_DAYS = 3;
-// Bound AI cost per run — only the first N flagged pets get an AI-written note;
-// the rest fall back to the deterministic template.
+// Only pets touched within this window are even scanned. It's slightly wider
+// than the daily cron interval so we never miss a day's activity, but it means
+// dormant pets (the vast majority on any given day) are skipped entirely — no
+// query work and, crucially, no AI.
+const ACTIVITY_WINDOW_DAYS = 2;
+// Hard ceiling on AI calls per run as a cost backstop. In practice far fewer
+// run because of the activity + new-evidence gates below.
 const MAX_AI = 25;
 
 // The guardian: a daily scan that turns anomaly signals (serious recent entry,
 // weight drop, a cluster of concerns) into a proactive "worth a look" in-app
 // notification for the pet's caretaker (owner if claimed, else the shop). The AI
 // only phrases what the rules already detected — it never invents findings.
+//
+// Cost control — analysis runs ONLY when needed:
+//   1. Activity gate: skip pets with no new log/weight in the last few days.
+//   2. New-evidence gate: a signal only counts if it's backed by data created
+//      AFTER the last watch alert, so we never re-analyse (or re-notify) the
+//      same situation. AI is therefore invoked only on genuinely new concerns.
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -26,9 +35,19 @@ export async function GET(req: Request) {
 
   const now = Date.now();
   const rank = (s: string) => SEVERITY_META[s as Severity]?.rank ?? 0;
+  const activitySince = new Date(now - ACTIVITY_WINDOW_DAYS * DAY);
 
+  // Activity gate: only pull pets that actually logged something or recorded a
+  // weight recently. Everything else can't have a *new* signal, so there's
+  // nothing to analyse.
   const pets = await prisma.pet.findMany({
-    where: { status: { in: ["ACTIVE", "UNDER_OBSERVATION"] } },
+    where: {
+      status: { in: ["ACTIVE", "UNDER_OBSERVATION"] },
+      OR: [
+        { logs: { some: { createdAt: { gte: activitySince } } } },
+        { weights: { some: { createdAt: { gte: activitySince } } } },
+      ],
+    },
     select: {
       id: true,
       name: true,
@@ -53,6 +72,7 @@ export async function GET(req: Request) {
 
   let created = 0;
   let aiUsed = 0;
+  let analysed = 0;
 
   for (const pet of pets) {
     // One caretaker per pet: the owner once claimed, otherwise the shop.
@@ -64,25 +84,31 @@ export async function GET(req: Request) {
           : null;
     if (!recipient) continue;
 
-    // Dedupe: skip if we already nudged this pet+caretaker recently.
-    const recent = await prisma.notification.findFirst({
+    // New-evidence baseline: only evidence created after our last alert counts.
+    // This replaces a fixed timer — the same concern is never re-analysed, but a
+    // genuinely new/worse sign gets through immediately.
+    const lastWatch = await prisma.notification.findFirst({
       where: {
         petId: pet.id,
         kind: "WATCH",
         orgId: recipient.orgId ?? null,
         userId: recipient.userId ?? null,
-        createdAt: { gte: new Date(now - DEDUPE_DAYS * DAY) },
       },
-      select: { id: true },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
     });
-    if (recent) continue;
+    const since = lastWatch?.createdAt.getTime() ?? 0;
+    const isNew = (d: Date) => d.getTime() > since;
 
-    // ---- Rule-based anomaly detection ----
+    // ---- Rule-based anomaly detection (each signal requires NEW evidence) ----
     const signals: string[] = [];
     let title: string | null = null;
 
     const serious = pet.logs.filter(
-      (l) => l.occurredAt.getTime() > now - 7 * DAY && rank(l.severity) >= 3,
+      (l) =>
+        l.occurredAt.getTime() > now - 7 * DAY &&
+        rank(l.severity) >= 3 &&
+        isNew(l.createdAt),
     );
     if (serious.length > 0) {
       signals.push(
@@ -98,7 +124,8 @@ export async function GET(req: Request) {
       const first = pet.weights[0];
       const last = pet.weights[pet.weights.length - 1];
       const spanDays = (last.measuredAt.getTime() - first.measuredAt.getTime()) / DAY;
-      if (spanDays >= 5 && last.weightKg < first.weightKg) {
+      // Only re-evaluate the trend when a *new* weight reading has arrived.
+      if (isNew(last.createdAt) && spanDays >= 5 && last.weightKg < first.weightKg) {
         const dropPct = Math.round(
           ((first.weightKg - last.weightKg) / first.weightKg) * 100,
         );
@@ -114,12 +141,14 @@ export async function GET(req: Request) {
     const mediumPlus = pet.logs.filter(
       (l) => l.occurredAt.getTime() > now - 14 * DAY && rank(l.severity) >= 2,
     );
-    if (!title && mediumPlus.length >= 2) {
+    // Need the cluster AND at least one fresh entry since the last alert.
+    if (!title && mediumPlus.length >= 2 && mediumPlus.some((l) => isNew(l.createdAt))) {
       signals.push(`${mediumPlus.length} notable entries in the last two weeks`);
       title = `${pet.name}: a few things worth watching`;
     }
 
     if (!title || signals.length === 0) continue;
+    analysed++;
 
     // ---- Message body: AI-phrased (capped) with a template fallback ----
     let body = `${signals.join(". ")}. Keep an eye on it and check with a vet if it persists or worsens.`;
@@ -148,5 +177,11 @@ export async function GET(req: Request) {
     created++;
   }
 
-  return Response.json({ ok: true, scanned: pets.length, created, aiUsed });
+  return Response.json({
+    ok: true,
+    scanned: pets.length,
+    analysed,
+    created,
+    aiUsed,
+  });
 }

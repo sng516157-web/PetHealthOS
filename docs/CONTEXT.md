@@ -200,6 +200,22 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-04** — **Health watch analyses only when needed** (cost control for A1). Why
+  (user request): the daily guardian shouldn't burn AI re-checking pets that haven't changed
+  or re-describing a situation the caretaker was already told about. **Two gates, no schema
+  change:**
+  1. **Activity gate (query-level):** `pet.findMany` now requires a `logs` or `weights`
+     record `createdAt >= now - ACTIVITY_WINDOW_DAYS` (2 days, slightly wider than the daily
+     cron). Dormant pets are never fetched, so they cost nothing — no detection, no AI.
+  2. **New-evidence gate (per pet):** the most recent `WATCH` notification's `createdAt`
+     becomes the baseline `since`; a signal only counts if its evidence was created after
+     `since` (serious log `createdAt > since`; weight drop only when the latest reading is
+     new; cluster needs ≥1 fresh entry). This replaced the old fixed 3-day timer — the same
+     concern is never re-analysed (so AI is never re-invoked for it), while a genuinely new
+     or worsening sign still gets through immediately.
+  `MAX_AI` (25/run) stays as a backstop. The route now also returns `analysed` alongside
+  `scanned`/`created`/`aiUsed`. Verified: after an alert fires (analysed:1, aiUsed:1), an
+  immediate re-run with no new data yields analysed:0, created:0, aiUsed:0.
 - **2026-06-04** — **Proactive health watch / "the guardian" (A1)**. Why (user request; and
   A1 was the highest-leverage parked idea): flip AI from a tool you open into something that
   watches the pet and comes to you, the biggest retention + emotional hook. **Design:**
