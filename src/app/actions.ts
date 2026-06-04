@@ -157,9 +157,11 @@ export async function addPet(formData: FormData) {
 export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
   const occurredAt = String(formData.get("occurredAt") || "") || undefined;
+  const hasText = Boolean(text);
 
-  // Optional photo/video. Images get AI visual triage; videos are stored & shown
-  // but not analysed yet. Cap at 10 MB to stay under the Server Action body limit.
+  // Optional photo/video. Images inform the AI only when there's a written note
+  // to anchor them; videos are stored & shown but not analysed. Cap at 10 MB to
+  // stay under the Server Action body limit.
   const media = formData.get("photo") as File | null;
   let imageUrl: string | null = null;
   let imageMime: string | null = null;
@@ -167,30 +169,59 @@ export async function addLogEntry(petId: string, formData: FormData) {
   if (media && media.size > 0 && media.size <= 10 * 1024 * 1024) {
     imageUrl = await saveUpload(media);
     imageMime = media.type || null;
-    if (media.type?.startsWith("image/")) {
+    // Only read the bytes for AI when there's text to ground the image.
+    if (hasText && media.type?.startsWith("image/")) {
       imageBytes = Buffer.from(await media.arrayBuffer());
     }
   }
 
   // Need either a note or a photo to log something.
-  if (!text && !imageUrl) return { error: "Entry cannot be empty" };
+  if (!hasText && !imageUrl) return { error: "Entry cannot be empty" };
 
   const pet = await prisma.pet.findUnique({ where: { id: petId } });
   if (!pet) return { error: "Pet not found" };
 
   const locale = await getLocale();
 
+  // Photo-only entry: log it as-is with NO AI. Vision without a written note can
+  // hallucinate misleading tags/observations, so we just record "Photo log".
+  if (!hasText) {
+    const photoTitle = locale === "zh" ? "照片记录" : "Photo log";
+    await prisma.logEntry.create({
+      data: {
+        petId,
+        rawText: locale === "zh" ? "📷 照片记录" : "📷 Photo log",
+        occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
+        imageUrl,
+        imageMime,
+        type: "OBSERVATION",
+        severity: "NONE",
+        title: photoTitle,
+        summary: null,
+        tags: "[]",
+        aiProcessed: true,
+      },
+    });
+    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+    revalidatePath(`/app/pets/${petId}`);
+    revalidatePath(`/me/pets/${petId}`);
+    revalidatePath("/app");
+    return {
+      ok: true,
+      structured: { type: "OBSERVATION", severity: "NONE", title: photoTitle, tags: [] },
+      imageUrl,
+    };
+  }
+
   // Save instantly with a fast local heuristic so the UI never waits on the
   // model. If an AI key is set, refine the structured fields in the background
   // (Vercel keeps the function warm via after()), so the entry is enriched a
-  // moment later without blocking the click. For photo-only entries the
-  // heuristic has no text, so we seed a neutral placeholder until the AI reads
-  // the image.
-  const initial = heuristicStructure(text || "Photo log");
+  // moment later without blocking the click.
+  const initial = heuristicStructure(text);
   const entry = await prisma.logEntry.create({
     data: {
       petId,
-      rawText: text || (imageUrl ? "📷 Photo log" : ""),
+      rawText: text,
       occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
       imageUrl,
       imageMime,

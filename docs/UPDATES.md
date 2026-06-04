@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-04 — Photo logs only use AI when there's a note.** A photo on its own is now
+  saved as a plain "Photo log" with no AI tags/observations (vision without context can
+  mislead). When a note accompanies the photo, the note is treated as ground truth and the
+  photo is used only as supporting context.
 - **2026-06-03 — Passports transfer only once.** Once a new owner registers an account
   through a pet's passport, the shop can no longer issue another passport for that pet — the
   record now lives with the owner. Enforced in `createTransfer` and surfaced in the shop's

@@ -97,7 +97,11 @@ export function QuickAddLog({ petId }: { petId: string }) {
           <div className="min-w-0 flex-1 text-xs text-brand-800">
             <p className="truncate font-medium">{file?.name}</p>
             <p className="mt-0.5 text-muted">
-              {isImage ? t.quickLog.photoWillAnalyze : t.quickLog.videoStored}
+              {!isImage
+                ? t.quickLog.videoStored
+                : text.trim()
+                  ? t.quickLog.photoWithNote
+                  : t.quickLog.photoNoNote}
             </p>
           </div>
           <button
@@ -137,7 +141,9 @@ export function QuickAddLog({ petId }: { petId: string }) {
           {pending ? (
             <>
               <Sparkles size={15} className="animate-pulse-dot" />{" "}
-              {file && isImage ? t.quickLog.analyzingPhoto : t.quickLog.structuring}
+              {file && isImage && text.trim()
+                ? t.quickLog.analyzingPhoto
+                : t.quickLog.structuring}
             </>
           ) : (
             <>

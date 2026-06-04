@@ -116,11 +116,11 @@ export async function structureLogEntry(
     const system =
       "You are a veterinary intake assistant for a pet breeder/cattery/kennel. Classify a freeform pet health log entry into structured fields. Be conservative about severity. Only mark HIGH or CRITICAL for clearly serious signs (e.g. collapse, seizures, repeated vomiting, blood, difficulty breathing)." +
       (image
-        ? " A photo of the pet is attached. Read it together with any note: describe the relevant visible findings (skin, coat, eyes, ears, gums, stool, wounds, swelling, posture, etc.) in the summary, fold visual keywords into tags, and let clearly worrying visuals raise the severity. Do not over-diagnose or invent details you cannot see."
+        ? " A photo is attached as SUPPORTING context only. The written note is the ground truth: base the classification, summary, tags, and severity on the note. Use the photo only to add corroborating visual detail that is consistent with the note. Do NOT contradict or override the note based on the photo, do NOT infer conditions the note doesn't mention, and if the photo is unclear or off-topic, ignore it. Never invent findings."
         : "") +
       " " +
       languageInstruction(locale);
-    const promptText = `Pet: ${petSummaryLine(pet)}\n\nLog entry: "${rawText || "(no text — see attached photo)"}"`;
+    const promptText = `Pet: ${petSummaryLine(pet)}\n\nLog entry: "${rawText}"`;
 
     const { object } = image
       ? await generateObject({

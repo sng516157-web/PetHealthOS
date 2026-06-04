@@ -156,6 +156,8 @@ export const en = {
     addMedia: "Add photo / video",
     removeMedia: "Remove",
     photoWillAnalyze: "AI will read this photo",
+    photoWithNote: "AI will read this photo alongside your note",
+    photoNoNote: "Logged as a photo. Add a note for the AI to use it.",
     videoStored: "Video will be attached (not analysed yet)",
   },
   timeline: {

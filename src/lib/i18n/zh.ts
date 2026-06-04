@@ -155,6 +155,8 @@ export const zh: Dictionary = {
     addMedia: "添加照片 / 视频",
     removeMedia: "移除",
     photoWillAnalyze: "AI 将识别这张照片",
+    photoWithNote: "AI 会结合你的文字一起识别这张照片",
+    photoNoNote: "将作为照片记录。添加文字后 AI 才会参考它。",
     videoStored: "视频将作为附件保存（暂不分析）",
   },
   timeline: {

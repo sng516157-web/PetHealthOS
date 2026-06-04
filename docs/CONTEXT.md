@@ -200,6 +200,16 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-04** — **Photo logs are AI-analysed only with an accompanying note** (refines the
+  A2 photo-logging behaviour). Why (user request): an AI reading a photo with no written
+  context can hallucinate misleading/incorrect tags and observations. **Behaviour now:**
+  *Photo only* → saved as a plain "Photo log" (`OBSERVATION`, `NONE`, no tags, `aiProcessed:
+  true`); the AI is never called. *Photo + note* → the note is the ground truth; the photo is
+  passed to the model only as supporting context with an explicit instruction not to
+  contradict the note, infer unmentioned conditions, or invent findings. **Code:**
+  `addLogEntry` branches on `hasText`; image bytes are read only when there's text;
+  `structureLogEntry`'s image system prompt rewritten. `QuickAddLog` hint is now dynamic
+  (`photoWithNote` / `photoNoNote`).
 - **2026-06-03** — **A passport can only be transferred (claimed) once**. Why (user request):
   once a buyer registers an account through a pet's passport, the record belongs to that
   owner; letting the shop mint a second passport for the same pet would undermine the
