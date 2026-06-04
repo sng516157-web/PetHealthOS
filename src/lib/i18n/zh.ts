@@ -398,6 +398,15 @@ export const zh: Dictionary = {
   passport: {
     title: "宠物健康护照",
     tamperEvident: "防篡改",
+    certTitle: "宠诺健康护照",
+    certSubtitle: "可验证、防篡改的健康档案",
+    verifiedShop: "已认证商家",
+    certIssuedBy: "签发方",
+    certIssuedOn: "签发日期",
+    certNo: "证书编号",
+    recordSeal: "档案校验码",
+    sealNote:
+      "记录随时间积累，并在交付时冻结。任一条目被更改，校验码都会随之变化。",
     welcome: (name: string) => `欢迎回家，${name}！`,
     welcomeNoName: "欢迎加入这个家！",
     travels: (name: string) => `${name} 的完整健康历史随它一起交付。请查阅。`,

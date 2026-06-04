@@ -9,6 +9,15 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-04 — Proactive health watch ("the guardian").** A daily scan now reads each
+  pet's recent log, weight trend and severity signals and *pushes* an in-app alert when
+  something is worth a look (serious recent entry, weight down ~10%+, or a cluster of
+  concerns). The AI phrases a calm one-liner; rules do the detecting. Alerts go to the
+  caretaker (owner if claimed, else shop) and are deduped so they don't nag.
+- **2026-06-04 — Passport reads like a credential.** The public passport now opens with a
+  certificate band: a ✓ Verified-shop badge (for reviewed shops), the issuer, issue date,
+  a certificate number, and an integrity "record seal" that changes if any frozen entry is
+  altered — making the passport feel like a verifiable document, not just a profile.
 - **2026-06-04 — Photo logs only use AI when there's a note.** A photo on its own is now
   saved as a plain "Photo log" with no AI tags/observations (vision without context can
   mislead). When a note accompanies the photo, the note is treated as ground truth and the

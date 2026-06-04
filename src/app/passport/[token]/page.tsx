@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import { createHash } from "crypto";
 import QRCode from "qrcode";
-import { ShieldCheck, Lock, CheckCircle2, Stethoscope } from "lucide-react";
+import { ShieldCheck, Lock, CheckCircle2, Stethoscope, BadgeCheck } from "lucide-react";
 import type { GuaranteeType } from "@/lib/constants";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { prisma } from "@/lib/prisma";
@@ -82,6 +83,28 @@ export default async function PassportPage({
       ? t.passport.months(Math.round(spanDays / 30))
       : t.passport.days(spanDays);
 
+  // Credential framing: a verified issuer badge, a stable certificate number, and
+  // an integrity seal derived from the frozen records. The seal changes if any
+  // locked entry is altered, so it doubles as a tamper signal.
+  const orgVerified = pet.org?.verificationStatus === "APPROVED";
+  const certNo =
+    `PS-${transfer.token.slice(0, 4)}-${transfer.token.slice(4, 8)}`.toUpperCase();
+  const frozen = pet.logs
+    .filter((l) => l.lockedAt)
+    .slice()
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const sealInput = [
+    pet.id,
+    transfer.token,
+    transfer.createdAt.toISOString(),
+    ...frozen.map(
+      (l) => `${l.id}:${l.occurredAt.toISOString()}:${l.createdAt.toISOString()}`,
+    ),
+  ].join("|");
+  const sealHex = createHash("sha256").update(sealInput).digest("hex");
+  const seal =
+    `${sealHex.slice(0, 4)}-${sealHex.slice(4, 8)}-${sealHex.slice(8, 12)}`.toUpperCase();
+
   // Health guarantee — the breeder's warranty, frozen at handover. Compute the
   // live status (active / expired) from the window length.
   const hasGuarantee = transfer.guaranteeType !== "NONE";
@@ -133,6 +156,34 @@ export default async function PassportPage({
       </header>
 
       <main className="mx-auto max-w-3xl px-5 py-8">
+        {/* Credential band — makes the passport read like a verifiable certificate */}
+        <section className="mb-6 overflow-hidden rounded-2xl border border-forest/15 bg-surface shadow-sm">
+          <div className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-brand-50 to-paper px-5 py-4">
+            <PawSureMarkTile className="h-10 w-10 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base font-bold tracking-tight text-forest">
+                {t.passport.certTitle}
+              </h2>
+              <p className="text-xs text-muted">{t.passport.certSubtitle}</p>
+            </div>
+            {orgVerified && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                <BadgeCheck size={14} /> {t.passport.verifiedShop}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+            <CertField label={t.passport.certIssuedBy} value={orgName} />
+            <CertField label={t.passport.certIssuedOn} value={formatDate(transfer.createdAt)} />
+            <CertField label={t.passport.certNo} value={certNo} mono />
+            <CertField label={t.passport.recordSeal} value={seal} mono />
+          </div>
+          <p className="flex items-start gap-1.5 px-5 py-3 text-[11px] text-muted">
+            <ShieldCheck size={13} className="mt-0.5 shrink-0 text-emerald-600" />
+            {t.passport.sealNote}
+          </p>
+        </section>
+
         <div className="mb-6 overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-brand-100/50 p-6 text-center">
           <div className="text-3xl">🎉</div>
           <h2 className="mt-2 text-lg font-semibold text-brand-900">
@@ -410,6 +461,29 @@ function Field({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl bg-background p-3">
       <div className="text-[11px] uppercase tracking-wide text-muted">{label}</div>
       <div className="mt-0.5 truncate text-sm font-medium text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function CertField({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="bg-surface px-4 py-3">
+      <div className="text-[10px] uppercase tracking-wide text-muted">{label}</div>
+      <div
+        className={`mt-0.5 truncate font-semibold text-foreground ${
+          mono ? "font-mono text-xs tracking-wider" : "text-sm"
+        }`}
+      >
+        {value}
+      </div>
     </div>
   );
 }

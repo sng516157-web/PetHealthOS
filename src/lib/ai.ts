@@ -1,4 +1,4 @@
-import { generateObject, type LanguageModel } from "ai";
+import { generateObject, generateText, type LanguageModel } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import { LOG_TYPES, SEVERITY, URGENCY } from "./constants";
@@ -186,6 +186,34 @@ export function heuristicStructure(raw: string): StructuredLogResult {
     summary: raw.length > 140 ? raw.slice(0, 137) + "…" : raw,
     tags,
   };
+}
+
+// ---------- Proactive health watch (the guardian) ----------
+
+// Given anomaly signals already detected by rules, write ONE short, calm watch
+// note for the caretaker. Returns null when AI is unavailable or fails (the
+// caller falls back to a deterministic template). Never diagnoses.
+export async function summarizeHealthWatch(opts: {
+  pet: PetLike;
+  signals: string[];
+  recentLogs: LogLike[];
+  locale?: Locale;
+}): Promise<string | null> {
+  const { pet, signals, recentLogs, locale = "en" } = opts;
+  if (!hasAI() || signals.length === 0) return null;
+  try {
+    const { text } = await generateText({
+      model: getModel(),
+      system:
+        "You are a calm, supportive pet-health guardian. Based ONLY on the provided signals and recent log, write ONE short sentence (max 30 words) telling the caretaker what to keep an eye on and to consider a vet if it persists or worsens. Do not diagnose, do not invent data, no preamble or greeting. " +
+        languageInstruction(locale),
+      prompt: `${buildPetContext(pet, recentLogs)}\n\nDetected signals: ${signals.join("; ")}\n\nWrite the one-sentence watch note.`,
+    });
+    return text.trim() || null;
+  } catch (e) {
+    console.error("summarizeHealthWatch failed", e);
+    return null;
+  }
 }
 
 // ---------- Triage ----------

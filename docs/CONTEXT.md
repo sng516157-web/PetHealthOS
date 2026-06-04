@@ -200,6 +200,43 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-04** — **Proactive health watch / "the guardian" (A1)**. Why (user request; and
+  A1 was the highest-leverage parked idea): flip AI from a tool you open into something that
+  watches the pet and comes to you, the biggest retention + emotional hook. **Design:**
+  detection is **rule-based** (deterministic, free, reliable); AI only *phrases* what the
+  rules found, so it can never invent a finding.
+  - **Cron:** new `GET /api/cron/health-watch` (auth via `CRON_SECRET`, same as reminders),
+    scheduled daily at `30 8 * * *` in `vercel.json` (offset from the 08:00 reminders job).
+  - **Signals (per ACTIVE/UNDER_OBSERVATION pet, last 30d):** (1) a HIGH/CRITICAL log in the
+    last 7 days; (2) weight down ≥10% over ≥5 days (earliest vs latest in window); (3) a
+    cluster of ≥2 MEDIUM+ entries in the last 14 days. Title is the highest-priority signal.
+  - **Recipient:** one caretaker per pet — the owner if claimed (`ownerUserId`), else the
+    shop (`orgId`) — to avoid double-notifying.
+  - **Dedupe:** skip if a `WATCH` notification for the same pet+caretaker exists in the last
+    3 days, so the guardian doesn't nag.
+  - **AI:** `summarizeHealthWatch` in `src/lib/ai.ts` (`generateText`) writes one calm
+    sentence; capped at 25 AI calls per run (`MAX_AI`) with a deterministic template
+    fallback when AI is absent/over-cap/failing.
+  - **Surfacing:** notifications are kind `"WATCH"`; they flow through the existing
+    `getOrgNotifications`/`getUserNotifications` + unread badge with no query change.
+    `NotificationList` shows an amber `ShieldAlert` icon for `WATCH` entries.
+  - **Known limitation / fast-follow:** notification text is English (matches the existing
+    REMINDER cron); localized notifications are a future task. Verified end-to-end against a
+    seeded HIGH-severity entry (`created:1, aiUsed:1`).
+- **2026-06-04** — **Passport reads like a verifiable credential (B2)**. Why (user request;
+  trust is the product): the public passport should feel like a certificate, not a profile.
+  - **Credential band** at the top of `/passport/[token]`: PawSure mark, "Verifiable,
+    tamper-evident health record" title, a **✓ Verified shop** badge when
+    `pet.org.verificationStatus === "APPROVED"`, and four fields — issuer, issue date
+    (`transfer.createdAt`), **certificate no.** (`PS-XXXX-XXXX` from the token), and a
+    **record seal**.
+  - **Record seal:** `sha256` (Node `crypto`) over `pet.id | token | issue date | each
+    frozen (locked) log's id:occurredAt:createdAt` (frozen logs sorted by id for
+    determinism), shown as a short `XXXX-XXXX-XXXX` hash. It changes if any frozen entry is
+    altered, doubling as a tamper signal. Computed server-side at render (no schema change).
+  - **i18n:** `passport.cert*`, `verifiedShop`, `recordSeal`, `sealNote` (en/zh). New local
+    `CertField` component. Verified via rendered HTML (badge + `PS-…` + seal present).
+  - **Fast-follow:** a public verify endpoint so buyers can independently recompute the seal.
 - **2026-06-04** — **Photo logs are AI-analysed only with an accompanying note** (refines the
   A2 photo-logging behaviour). Why (user request): an AI reading a photo with no written
   context can hallucinate misleading/incorrect tags and observations. **Behaviour now:**

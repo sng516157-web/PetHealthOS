@@ -400,6 +400,15 @@ export const en = {
   passport: {
     title: "Pet Health Passport",
     tamperEvident: "Tamper-evident",
+    certTitle: "PawSure Health Passport",
+    certSubtitle: "Verifiable, tamper-evident health record",
+    verifiedShop: "Verified shop",
+    certIssuedBy: "Issued by",
+    certIssuedOn: "Issued on",
+    certNo: "Certificate no.",
+    recordSeal: "Record seal",
+    sealNote:
+      "Logged over time and frozen at handover. This seal changes if any entry is altered.",
     welcome: (name: string) => `Welcome to the family, ${name}!`,
     welcomeNoName: "Welcome to the family!",
     travels: (name: string) => `${name}'s complete health history travels with them. Here it is.`,

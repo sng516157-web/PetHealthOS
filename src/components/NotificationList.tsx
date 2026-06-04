@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCheck, Clock } from "lucide-react";
+import { Bell, CheckCheck, Clock, ShieldAlert } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { formatDate } from "@/lib/format";
 import { EmptyState } from "@/components/ui";
@@ -95,10 +95,13 @@ export function NotificationList({
                 />
                 <span className="min-w-0 flex-1">
                   <span
-                    className={`block text-sm ${
+                    className={`flex items-center gap-1.5 text-sm ${
                       unread ? "font-semibold text-foreground" : "text-slate-700"
                     }`}
                   >
+                    {n.kind === "WATCH" && (
+                      <ShieldAlert size={14} className="shrink-0 text-amber-500" />
+                    )}
                     {n.title}
                   </span>
                   {n.body && (
