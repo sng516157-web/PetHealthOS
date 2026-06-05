@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+// The app is reachable from mainland China through a Hong Kong reverse proxy
+// (Caddy) that forwards to Vercel. The browser's Origin is then the proxy
+// domain (e.g. https://pethealthos.online) while Vercel sees its own host, so
+// Server Actions would be rejected as cross-origin. Whitelist the proxy
+// domain(s) here. Extra hosts can be added via PROXY_ALLOWED_ORIGINS
+// (comma-separated, host only) without a code change — handy if the brand /
+// domain changes. List host names WITHOUT the scheme.
+const allowedOrigins = [
+  "pethealthos.online",
+  "www.pethealthos.online",
+  ...(process.env.PROXY_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((h) => h.trim())
+    .filter(Boolean),
+];
+
 const nextConfig: NextConfig = {
   // The /admin page reads the repo's /docs markdown at request time. Bundle those
   // files into the admin function so they exist on Vercel (the filesystem there
@@ -14,6 +30,7 @@ const nextConfig: NextConfig = {
     // images up to 8 MB, so allow comfortably above that.
     serverActions: {
       bodySizeLimit: "12mb",
+      allowedOrigins,
     },
   },
 };

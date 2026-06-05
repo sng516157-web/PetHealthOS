@@ -175,23 +175,31 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   the Vercel region or DB will **not** fix reachability.
 - **Hydration warning in the in-IDE browser** is a false positive — the Cursor
   browser injects `data-cursor-ref` attributes. Not a real bug; ignore.
-- **Vercel Blob URLs** (`*.blob.vercel-storage.com`) are also GFW-blocked → pet
-  photos break in mainland China without a proxy/CDN.
+- **Vercel Blob URLs** (`*.blob.vercel-storage.com`) are also GFW-blocked. Pet
+  photos / log media / attachments are now served through a same-origin proxy
+  `/api/img?u=<blob url>` (`src/lib/img.ts` `proxyImageSrc` + `src/app/api/img/route.ts`),
+  so they load through the reachable proxy domain. Disable with
+  `NEXT_PUBLIC_IMG_PROXY=0` if a CDN later fronts the blob store.
 - `zh.ts` must mirror `en.ts` exactly (type-enforced). Update both together.
 
 ---
 
 ## 8. Pending / next steps
 
-- **China-accessible hosting (not started).** Chosen plan: a **Hong Kong reverse
-  proxy** (Caddy) in front of the existing Vercel app + a custom domain — reachable
-  from China without a VPN, no ICP needed (user has only a personal Chinese ID, so
-  mainland ICP/commercial hosting is out for now). Required code changes when it
-  proceeds: (1) add `experimental.serverActions.allowedOrigins` in `next.config`
-  so POST/actions work behind the proxy domain; (2) proxy Vercel Blob image URLs
-  through the domain; (3) commit a `deploy/Caddyfile`. User must provision the
-  domain + HK server (Alibaba Cloud HK recommended). Latency optimisation (move
-  compute+DB to Singapore) is a later step, only after validation.
+- **China-accessible hosting (app side done; awaiting domain HTTPS).** Plan: a
+  **Hong Kong reverse proxy** (Caddy) in front of the existing Vercel app + a
+  custom domain — reachable from China without a VPN, no ICP needed (user has
+  only a personal Chinese ID). App-side code changes are **done**: (1)
+  `serverActions.allowedOrigins` in `next.config.ts` (defaults
+  `pethealthos.online` + `www`, extendable via `PROXY_ALLOWED_ORIGINS`); (2)
+  blob images proxied same-origin via `/api/img` (`src/lib/img.ts`); (3)
+  `deploy/Caddyfile` committed. **Current setup:** HK VPS (Alibaba Cloud Simple
+  Application Server) IP `47.239.178.233`, domain `pethealthos.online` (temp —
+  brand may change). Remaining manual step (user): point DNS A records at the
+  IP (Cloudflare "DNS only" / grey cloud) and reload Caddy with the domain so
+  auto-HTTPS turns on; then logins/forms work (secure cookies need HTTPS).
+  Latency optimisation (move compute+DB to Singapore) is a later step, after
+  validation.
 - Real payment provider keys (Stripe / WeChat Pay / Alipay) when ready.
 
 ---
@@ -199,6 +207,25 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 ## Decision log
 
 Newest first. One entry per decision/change: date — what — why.
+
+- **2026-06-05** — **China access via HK reverse proxy (app-side wiring).** Why
+  (user request): be reachable from mainland China without a VPN. The GFW
+  interferes with `*.vercel.app` and `*.blob.vercel-storage.com`, so a Hong Kong
+  VPS (`47.239.178.233`) running Caddy fronts the Vercel app on a custom domain
+  (`pethealthos.online`, temp). **App changes:** (1)
+  `next.config.ts` → `serverActions.allowedOrigins` so Server Actions aren't
+  rejected as cross-origin behind the proxy (env `PROXY_ALLOWED_ORIGINS` adds
+  more hosts without a code edit — important since the brand/domain may change);
+  (2) `src/lib/img.ts` `proxyImageSrc` rewrites blob public URLs to a same-origin
+  `/api/img?u=…` route (`src/app/api/img/route.ts`, SSRF-guarded to
+  `*.blob.vercel-storage.com`, immutable cache) so images flow through the
+  reachable domain — the blocked blob host is only fetched server-side. Applied
+  in `PetAvatar`, `LogTimeline`, `DocumentsPanel`, and the public passport page.
+  (3) `deploy/Caddyfile` committed: forwards to `pet-health-os.vercel.app` with
+  `Host` = the vercel host (so Vercel routes) + `X-Forwarded-Host` = the real
+  domain (so Next validates origins); Caddy auto-HTTPS satisfies the secure
+  session cookie requirement. **Still on Vercel** — this is a proxy, not a
+  migration. Escape hatch: `NEXT_PUBLIC_IMG_PROXY=0` disables image proxying.
 
 - **2026-06-04** — **Comprehensive field validation (client + server)**. Why (user request):
   every field should be validated — emails well-formed, phone numbers auto-formatted to

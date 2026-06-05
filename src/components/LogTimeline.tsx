@@ -4,6 +4,7 @@ import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Badge, EmptyState, Tone } from "@/components/ui";
+import { proxyImageSrc } from "@/lib/img";
 import { deleteLogEntry } from "@/app/actions";
 import {
   LOG_TYPE_META,
@@ -99,21 +100,21 @@ export function LogTimeline({
                     <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>
                     {l.imageUrl && (
                       <a
-                        href={l.imageUrl}
+                        href={proxyImageSrc(l.imageUrl)}
                         target="_blank"
                         rel="noreferrer"
                         className="mt-2 block w-fit overflow-hidden rounded-xl border border-border"
                       >
                         {l.imageMime?.startsWith("video/") ? (
                           <video
-                            src={l.imageUrl}
+                            src={proxyImageSrc(l.imageUrl)}
                             controls
                             className="max-h-56 w-auto max-w-full"
                           />
                         ) : (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={l.imageUrl}
+                            src={proxyImageSrc(l.imageUrl)}
                             alt=""
                             className="max-h-56 w-auto max-w-full object-cover"
                           />

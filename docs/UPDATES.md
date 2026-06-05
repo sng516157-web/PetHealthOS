@@ -9,6 +9,13 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-05 — China access: proxy domain support.** The app can now run behind a Hong
+  Kong reverse proxy on a custom domain so it's reachable from mainland China without a VPN.
+  Server Actions accept the proxy domain (`serverActions.allowedOrigins` in `next.config.ts`,
+  default `pethealthos.online`, extendable via `PROXY_ALLOWED_ORIGINS`), and Vercel Blob images
+  (pet photos, log media, attachments) are served through a same-origin proxy `/api/img` so they
+  load through the reachable domain instead of the GFW-blocked blob host. Added `deploy/Caddyfile`.
+
 - **2026-06-04 — Chinese product doc for early testers.** Added `docs/ProductDoc.md` (产品文档)
   — a non-sensitive Chinese pitch (problem, users, passport, features, model, high-level tech
   overview, roadmap, feedback asks) for sharing with technically-oriented early testers.

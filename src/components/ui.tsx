@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { proxyImageSrc } from "@/lib/img";
 
 export type Tone =
   | "slate"
@@ -151,7 +152,7 @@ export function PetAvatar({
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={photoUrl}
+        src={proxyImageSrc(photoUrl)}
         alt={name}
         className={cn("rounded-2xl object-cover", sizes[size])}
       />

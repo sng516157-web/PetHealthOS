@@ -62,4 +62,3 @@ better records → more credible passports → more shop value.
 - China-market reminders: WeChat login + Aliyun/Tencent SMS + native WeChat/Alipay
 merchant are all gated on a mainland entity (see CONTEXT). Don't design parked ideas to
 depend on those until the entity exists.
-

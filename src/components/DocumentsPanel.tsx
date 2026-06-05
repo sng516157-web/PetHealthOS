@@ -4,6 +4,7 @@ import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, FileText, Trash2, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui";
+import { proxyImageSrc } from "@/lib/img";
 import { addAttachment, deleteAttachment } from "@/app/actions";
 import { ATTACHMENT_KINDS, ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
@@ -120,7 +121,7 @@ export function DocumentsPanel({
             <div key={a.id} className="group flex items-center gap-3 rounded-lg border border-border p-2">
               {isImage(a) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={a.url} alt={a.label} className="h-10 w-10 rounded-md object-cover ring-1 ring-border" />
+                <img src={proxyImageSrc(a.url)} alt={a.label} className="h-10 w-10 rounded-md object-cover ring-1 ring-border" />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-400">
                   <FileText size={18} />
@@ -131,7 +132,7 @@ export function DocumentsPanel({
                 <div className="text-xs text-muted">{t.attachmentKind[a.kind as AttachmentKind] ?? meta?.label}</div>
               </div>
               <a
-                href={a.url}
+                href={proxyImageSrc(a.url)}
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-lg p-1.5 text-slate-300 hover:bg-slate-50 hover:text-brand-600"

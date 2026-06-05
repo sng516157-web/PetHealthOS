@@ -1,0 +1,35 @@
+# PawSure / PetHealthOS — Hong Kong reverse proxy
+# ------------------------------------------------
+# Purpose: make the Vercel-hosted app reachable from mainland China without a
+# VPN. The GFW interferes with *.vercel.app and *.blob.vercel-storage.com, but a
+# Hong Kong VPS sits outside the GFW and can reach Vercel cleanly. The browser
+# only ever talks to this proxy on a custom domain (pethealthos.online), which is
+# reachable from the mainland.
+#
+# Caddy gets automatic HTTPS (Let's Encrypt) for the domain — required for the
+# app's secure session cookies to be set.
+#
+# DNS: point an A record `pethealthos.online` (and `www`) at this server's IP
+#      (47.239.178.233). On Cloudflare keep it "DNS only" (grey cloud).
+#
+# Deploy on the HK VPS:
+#   sudo apt update && sudo apt install -y caddy   # if not installed
+#   sudo nano /etc/caddy/Caddyfile                 # paste this file
+#   sudo systemctl reload caddy
+#
+# The app side (allowedOrigins + /api/img blob proxy) is already handled in the
+# Next.js app, so no body-rewriting is needed here.
+
+pethealthos.online, www.pethealthos.online {
+	encode zstd gzip
+
+	# Forward everything to the Vercel production deployment. We must send the
+	# Vercel hostname as the Host header so Vercel routes to the right project;
+	# the browser's real host is preserved in X-Forwarded-Host so Next.js can
+	# validate Server Action origins (whitelisted via allowedOrigins).
+	reverse_proxy https://pet-health-os.vercel.app {
+		header_up Host pet-health-os.vercel.app
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}

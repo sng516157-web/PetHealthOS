@@ -6,6 +6,7 @@ import { ShieldCheck, Lock, CheckCircle2, Stethoscope, BadgeCheck } from "lucide
 import type { GuaranteeType } from "@/lib/constants";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { prisma } from "@/lib/prisma";
+import { proxyImageSrc } from "@/lib/img";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
 import {
   LOG_TYPE_META,
@@ -333,14 +334,14 @@ export default async function PassportPage({
                 return (
                   <a
                     key={a.id}
-                    href={a.url}
+                    href={proxyImageSrc(a.url)}
                     target="_blank"
                     rel="noreferrer"
                     className="overflow-hidden rounded-xl border border-border bg-surface transition hover:shadow-md"
                   >
                     {img ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a.url} alt={a.label} className="h-28 w-full object-cover" />
+                      <img src={proxyImageSrc(a.url)} alt={a.label} className="h-28 w-full object-cover" />
                     ) : (
                       <div className="flex h-28 w-full items-center justify-center bg-slate-50 text-3xl">
                         📄
@@ -412,10 +413,10 @@ export default async function PassportPage({
                       {l.imageUrl && (
                         <div className="mt-2 overflow-hidden rounded-xl border border-border">
                           {l.imageMime?.startsWith("video/") ? (
-                            <video src={l.imageUrl} controls className="max-h-56 w-auto max-w-full" />
+                            <video src={proxyImageSrc(l.imageUrl)} controls className="max-h-56 w-auto max-w-full" />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={l.imageUrl} alt="" className="max-h-56 w-auto max-w-full object-cover" />
+                            <img src={proxyImageSrc(l.imageUrl)} alt="" className="max-h-56 w-auto max-w-full object-cover" />
                           )}
                         </div>
                       )}
