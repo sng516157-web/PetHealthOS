@@ -531,12 +531,12 @@ export const en = {
     heroEyebrow: "Every pet comes with confidence",
     heroTitle: "The lifelong health record that travels with the pet.",
     heroSubtitle:
-      "PawSure helps breeders, shops and owners log a pet's health, ask an AI that knows its history, and pass a trusted health passport from one loving home to the next.",
+      "PawSure keeps a pet's whole health story in one place — log it in plain language, ask an AI that knows its history, and carry a trusted health record with the pet wherever life takes it.",
     heroPrimary: "Get started",
     heroSecondary: "See how it works",
     trust1: "Tamper-evident history",
     trust2: "AI grounded in each pet's log",
-    trust3: "Handover in one tap",
+    trust3: "A record that travels with the pet",
     // How it works
     howEyebrow: "How it works",
     howTitle: "One continuous story for every pet",
@@ -550,16 +550,16 @@ export const en = {
         desc: "Get answers grounded in that pet's own history — plus a triage report to share with the vet.",
       },
       {
-        title: "Hand over with trust",
-        desc: "When a pet finds a new home, issue a health passport. The new owner scans a QR code and continues the story.",
+        title: "Carry it for life",
+        desc: "When a pet moves to a new home, its full health history travels with it through a portable health passport — scan a QR code and continue the story.",
       },
     ],
     // Features
     featuresEyebrow: "Why PawSure",
-    featuresTitle: "Built for the people who care for pets",
+    featuresTitle: "Built for everyone who cares for a pet",
     features: [
-      { title: "A record that can't be faked", desc: "History is logged over time and frozen at handover — a cheap, honest signal of good care." },
-      { title: "Lineage & documents", desc: "Pedigree, vaccine certificates and lab results live with the pet, ready to share." },
+      { title: "A history you can trust", desc: "Entries are logged over time and frozen when a pet changes hands, so the record stays honest." },
+      { title: "An AI that knows your pet", desc: "Answers grounded in that pet's own history, plus triage reports you can share with the vet." },
       { title: "Reminders that follow the pet", desc: "Vaccines, deworming and check-ups — never lost in a chat thread again." },
       { title: "Works in English & 中文", desc: "The whole app and the AI assistant speak your language." },
     ],
@@ -627,7 +627,8 @@ export const en = {
       whatTitle: "What a Shop Account gives you",
       bullets: [
         "Manage many animals with weights, logs and lineage.",
-        "Issue tamper-evident health passports at handover.",
+        "Keep pedigree, vaccine certificates and lab results with each pet.",
+        "Issue tamper-evident health passports — an honest signal of good care.",
         "Every passport becomes a new owner on PawSure.",
         "AI triage reports to communicate clearly with vets.",
       ],

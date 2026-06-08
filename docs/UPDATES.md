@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Home page now explains the app in general.** The landing page speaks to
+  everyone who cares for a pet rather than leaning toward shops/breeders; account-specific
+  details (pedigree, certificates, "proof of good care", lineage) now live on the shop page,
+  with owner specifics on the owner page.
+
 - **2026-06-08 — Chinese is now the default language.** New visitors see the app in
   简体中文 first; switch to English anytime with the language toggle.
 

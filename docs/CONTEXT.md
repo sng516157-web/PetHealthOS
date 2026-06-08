@@ -214,6 +214,12 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Home page is account-neutral.** Why (user request): the landing copy
+  leaned toward shops/breeders. Reworded hero, the "how it works" step 3, and the four
+  feature cards to describe the product generally (trust, AI, reminders, bilingual).
+  Moved shop-specific selling points (pedigree/vaccine certs/lab results, "honest signal
+  of good care") into the `/shop` page's "what you get" bullets; owner specifics stay on
+  `/owner`. Copy only — all in `landing.*` of `en.ts`/`zh.ts`.
 - **2026-06-08** — **Default UI language is Chinese.** Why (user request): China-first
   product. `DEFAULT_LOCALE` → `zh` in `src/lib/i18n/config.ts`; first visit (no
   `locale` cookie) renders 简体中文. English still available via the language toggle.
