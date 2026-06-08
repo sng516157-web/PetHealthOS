@@ -46,7 +46,6 @@ export default async function OrgBillingPage() {
         priceMonth={SHOP_BILLING.month}
         priceYearFull={SHOP_BILLING.year}
         priceYear={yearlyPriceRmb(referralCount)}
-        priceLifetime={SHOP_BILLING.lifetime}
         discountPct={discountPct}
         referralCode={code}
         referralCount={referralCount}

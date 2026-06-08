@@ -214,6 +214,12 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Shop pricing changed; lifetime removed.** Why (user request): `SHOP_BILLING`
+  is now `{ month: 599, year: 4888 }` (was 59 / 599 / 3888 lifetime). `BillingInterval` dropped
+  `"lifetime"`; removed the lifetime tile/card from `ShopBilling` + `/pricing`, the
+  `priceLifetime` prop, and i18n `shopBilling.lifetime`/`once`. Yearly referral discount (5%
+  per referral, 50% cap) unchanged — e.g. 1 referral → ¥4644, 10 → ¥2444. Comparison row
+  `landing.shop.diffPrice` updated.
 - **2026-06-08** — **Looping demo GIFs on landing pages.** Why (user request): show the app in
   action. Three ~6s GIFs in `public/demos/` — `home.gif` (note → AI-structured log), `shop.gif`
   (issue health passport), `owner.gif` (scan passport → AI). Embedded in `/` hero (replacing the

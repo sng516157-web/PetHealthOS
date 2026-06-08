@@ -116,16 +116,16 @@ async function createStripeCheckout(opts: {
   productName: string;
   metadata: Record<string, string>;
   baseUrl: string;
-  // "month"/"year" bill as a real recurring subscription on card; "lifetime"
-  // (and any Alipay/WeChat payment, which can't recur) is a one-time charge.
+  // "month"/"year" bill as a real recurring subscription on card; Alipay/WeChat
+  // payments (which can't recur in Stripe) are a one-time charge.
   interval?: BillingInterval;
 }): Promise<CheckoutResult> {
   const { provider, amountRmb, productName, metadata, baseUrl, interval } = opts;
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const method = stripeMethodFor(provider);
-  // Cards can auto-renew monthly/yearly; lifetime is one-time. Alipay/WeChat
-  // have no recurring support in Stripe, so they're always one-time.
+  // Cards can auto-renew monthly/yearly. Alipay/WeChat have no recurring
+  // support in Stripe, so they're always one-time.
   const recurring =
     method === "card" && (interval === "month" || interval === "year");
   const session = await stripe.checkout.sessions.create({

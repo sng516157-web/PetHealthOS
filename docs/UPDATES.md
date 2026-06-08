@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Shop pricing updated.** The shop plan is now **¥599/month** or **¥4888/year**,
+  and the one-time lifetime option has been removed. The yearly referral discount (5% per
+  referred shop, up to 50%) still applies.
+
 - **2026-06-08 — Animated demos on the landing pages.** The home, shop and owner pages now
   show short looping GIF demos of the product in action: writing a note that AI turns into a
   structured log (home), issuing a health passport (shop), and scanning a passport + asking the

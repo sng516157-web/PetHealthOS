@@ -46,7 +46,7 @@ export default async function PricingPage() {
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
             {t.pricing.forShops}
           </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <ShopBillingCard
               t={t}
               name={t.shopBilling.monthly}
@@ -60,12 +60,6 @@ export default async function PricingPage() {
               cadence={t.shopBilling.perYear}
               note={t.shopBilling.referralPitch}
               highlight
-            />
-            <ShopBillingCard
-              t={t}
-              name={t.shopBilling.lifetime}
-              price={t.pricing.rmb(SHOP_BILLING.lifetime)}
-              cadence={t.shopBilling.once}
             />
           </div>
           <p className="mt-3 text-xs text-muted">{t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}</p>

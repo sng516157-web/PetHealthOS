@@ -6,7 +6,7 @@ import { Check, CreditCard, Copy, Gift, Crown } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
 
-type Interval = "month" | "year" | "lifetime";
+type Interval = "month" | "year";
 
 export function ShopBilling({
   currentPlan,
@@ -14,7 +14,6 @@ export function ShopBilling({
   priceMonth,
   priceYearFull,
   priceYear,
-  priceLifetime,
   discountPct,
   referralCode,
   referralCount,
@@ -24,7 +23,6 @@ export function ShopBilling({
   priceMonth: number;
   priceYearFull: number;
   priceYear: number;
-  priceLifetime: number;
   discountPct: number;
   referralCode: string;
   referralCount: number;
@@ -48,13 +46,7 @@ export function ShopBilling({
   const isShop = currentPlan === "SHOP";
 
   const intervalLabel = (i: string): string =>
-    i === "month"
-      ? t.shopBilling.monthly
-      : i === "year"
-        ? t.shopBilling.yearly
-        : i === "lifetime"
-          ? t.shopBilling.lifetime
-          : i;
+    i === "month" ? t.shopBilling.monthly : i === "year" ? t.shopBilling.yearly : i;
 
   const options: { id: Interval; label: string; price: string; sub?: string }[] = [
     { id: "month", label: t.shopBilling.monthly, price: t.pricing.rmb(priceMonth), sub: t.pricing.perMonth.trim() },
@@ -67,7 +59,6 @@ export function ShopBilling({
           ? t.shopBilling.yearDiscount(discountPct, priceYearFull)
           : t.shopBilling.perYear,
     },
-    { id: "lifetime", label: t.shopBilling.lifetime, price: t.pricing.rmb(priceLifetime), sub: t.shopBilling.once },
   ];
 
   function mapError(code: string): string {
@@ -132,7 +123,7 @@ export function ShopBilling({
         <p className="mt-1 text-xs text-muted">{t.shopBilling.subtitle}</p>
 
         {/* Interval selector */}
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {options.map((o) => {
             const active = interval === o.id;
             return (

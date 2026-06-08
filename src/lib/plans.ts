@@ -35,9 +35,9 @@ export const ORG_PLANS: Record<string, Plan> = {
     key: "SHOP",
     audience: "org",
     includedPets: 50,
-    // Monthly "from" price (the SHOP plan is sold in three ways — see
+    // Monthly "from" price (the SHOP plan is sold monthly or yearly — see
     // SHOP_BILLING). Kept for display fallbacks.
-    priceRmb: 59,
+    priceRmb: 599,
     extraPetPriceRmb: 30,
     petCap: null,
     canIssuePassport: true,
@@ -45,24 +45,22 @@ export const ORG_PLANS: Record<string, Plan> = {
   },
 };
 
-// The paid SHOP plan is sold three ways: pay monthly, pay yearly (cheaper than
-// 12× monthly), or buy once for life. Prices in RMB.
-export type BillingInterval = "month" | "year" | "lifetime";
+// The paid SHOP plan is sold two ways: pay monthly, or pay yearly (cheaper than
+// 12× monthly). Prices in RMB.
+export type BillingInterval = "month" | "year";
 
 export const SHOP_BILLING: Record<BillingInterval, number> = {
-  month: 59,
-  year: 599,
-  lifetime: 3888,
+  month: 599,
+  year: 4888,
 };
 
 export function isBillingInterval(v: string | null | undefined): v is BillingInterval {
-  return v === "month" || v === "year" || v === "lifetime";
+  return v === "month" || v === "year";
 }
 
 // Referral programme: for each other shop that registers through a shop's link,
 // that shop earns 5% off its YEARLY payment, stacking up to a 50% cap (i.e. 10
-// referrals). The discount applies to the yearly option only — not monthly or
-// lifetime.
+// referrals). The discount applies to the yearly option only — not monthly.
 export const REFERRAL_DISCOUNT_STEP = 0.05;
 export const REFERRAL_DISCOUNT_MAX = 0.5;
 
@@ -77,7 +75,7 @@ export function yearlyPriceRmb(referralCount: number): number {
 
 export function shopPriceRmb(interval: BillingInterval, referralCount = 0): number {
   if (interval === "year") return yearlyPriceRmb(referralCount);
-  return SHOP_BILLING[interval];
+  return SHOP_BILLING.month;
 }
 
 // Owners have a single tier — the "Owner's Account": free, created on

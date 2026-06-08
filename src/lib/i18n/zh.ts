@@ -535,12 +535,10 @@ export const zh: Dictionary = {
   },
   shopBilling: {
     title: "商家套餐",
-    subtitle: "可按月付费、按年更省，或一次买断终身使用。",
+    subtitle: "可按月付费，按年更省。",
     monthly: "按月",
     yearly: "按年",
-    lifetime: "终身",
     perYear: "每年",
-    once: "一次性",
     featurePets: "管理众多动物",
     yearDiscount: (pct: number, full: number) =>
       `推荐可省 ${pct}%（原价 ¥${full}）`,
@@ -660,7 +658,7 @@ export const zh: Dictionary = {
       diffPets: { label: "宠物数量", owner: "1 只免费，最多 10 只", shop: "众多——按套餐" },
       diffPassport: { label: "签发护照", owner: "不可", shop: "可以（审核通过后）" },
       diffLineage: { label: "血统与窝", owner: "基础", shop: "支持" },
-      diffPrice: { label: "价格", owner: "免费 + 每多一只 ¥15/月", shop: "¥59/月 · ¥599/年 · ¥3888 买断" },
+      diffPrice: { label: "价格", owner: "免费 + 每多一只 ¥15/月", shop: "¥599/月 · ¥4888/年" },
       seePricing: "查看商家价格",
       loginTitle: "商家登录 / 创建账户",
     },

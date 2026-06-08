@@ -540,12 +540,10 @@ export const en = {
   },
   shopBilling: {
     title: "Shop plan",
-    subtitle: "Pay monthly, save with yearly, or buy once for life.",
+    subtitle: "Pay monthly, or save with yearly.",
     monthly: "Monthly",
     yearly: "Yearly",
-    lifetime: "Lifetime",
     perYear: "per year",
-    once: "one-time",
     featurePets: "Manage many animals",
     yearDiscount: (pct: number, full: number) =>
       `${pct}% off with referrals (was ¥${full})`,
@@ -675,7 +673,7 @@ export const en = {
     diffPets: { label: "Pets", owner: "1 free, up to 10", shop: "Many — plan based" },
     diffPassport: { label: "Issue passports", owner: "No", shop: "Yes (once verified)" },
     diffLineage: { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
-    diffPrice: { label: "Price", owner: "Free + ¥15/mo per extra pet", shop: "¥59/mo · ¥599/yr · ¥3888 lifetime" },
+    diffPrice: { label: "Price", owner: "Free + ¥15/mo per extra pet", shop: "¥599/mo · ¥4888/yr" },
       seePricing: "See shop pricing",
       loginTitle: "Shop sign in / create account",
     },
