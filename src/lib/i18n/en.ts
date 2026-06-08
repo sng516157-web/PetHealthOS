@@ -682,6 +682,10 @@ export const en = {
     backHome: "Back to home",
     alreadyMember: "Already have an account?",
     disclaimer: "Disclaimer",
+    demoHomeAlt: "Writing a health note and AI organising it into a structured log entry",
+    demoShopAlt: "Issuing a tamper-evident health passport for a pet from the shop workspace",
+    demoOwnerAlt: "Scanning a passport to add a pet and asking the AI assistant about it",
+    seeItTitle: "See it in action",
   },
   verify: {
     title: "Verify your shop",

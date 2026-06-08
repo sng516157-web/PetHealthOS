@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Animated demos on the landing pages.** The home, shop and owner pages now
+  show short looping GIF demos of the product in action: writing a note that AI turns into a
+  structured log (home), issuing a health passport (shop), and scanning a passport + asking the
+  AI (owner). Assets live in `public/demos/`.
+
 - **2026-06-08 — Disclaimer (免责声明) added.** A full, bilingual disclaimer now lives at
   `/disclaimer` covering "not veterinary advice", AI limitations, user-entered records, health
   passports & guarantees, transactions, payments, limitation of liability, data/privacy and

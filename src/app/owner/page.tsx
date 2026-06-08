@@ -48,6 +48,20 @@ export default async function OwnerLandingPage() {
               <Info size={15} className="mt-0.5 shrink-0 text-[#b88a2a]" />
               {o.note}
             </p>
+
+            <div className="mt-6">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sage">
+                {t.landing.seeItTitle}
+              </p>
+              <div className="overflow-hidden rounded-2xl border border-border bg-surface p-1.5 shadow-soft">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/demos/owner.gif"
+                  alt={t.landing.demoOwnerAlt}
+                  className="block w-full rounded-xl"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Start options + auth */}

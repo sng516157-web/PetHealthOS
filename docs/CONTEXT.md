@@ -214,6 +214,16 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Looping demo GIFs on landing pages.** Why (user request): show the app in
+  action. Three ~6s GIFs in `public/demos/` — `home.gif` (note → AI-structured log), `shop.gif`
+  (issue health passport), `owner.gif` (scan passport → AI). Embedded in `/` hero (replacing the
+  static steps card), `/shop` and `/owner` (a "实际效果 / See it in action" block). i18n alts:
+  `landing.demo*Alt`, `landing.seeItTitle`. **How made:** built throwaway CSS-animated scenes
+  using the real design tokens, captured fullscreen, converted with ffmpeg (crop 904×512,
+  15fps, 760px wide, palettegen/paletteuse). The capture scaffolding (`/demos` route,
+  `components/demos/DemoScenes.tsx`, `demo*` keyframes) was **removed after export** — only the
+  GIFs + embeds ship. No `gifsicle` on the box, so sizes are 390/559/710 KB; revisit (or switch
+  to muted-autoplay webm) if asset weight matters.
 - **2026-06-08** — **Full disclaimer (免责声明) at `/disclaimer`.** Why (user request): reduce
   legal exposure. Bilingual long-form copy lives in `src/lib/legal.ts` (`getDisclaimer(locale)`,
   not in the i18n Dictionary since it's prose, not UI strings); the page is

@@ -667,6 +667,10 @@ export const zh: Dictionary = {
     backHome: "返回首页",
     alreadyMember: "已有账户？",
     disclaimer: "免责声明",
+    demoHomeAlt: "用日常语言记录健康，AI 自动整理成结构化日志",
+    demoShopAlt: "在商家工作台为宠物签发防篡改的健康护照",
+    demoOwnerAlt: "扫描护照即可添加宠物，并向 AI 助手提问",
+    seeItTitle: "实际效果",
   },
   verify: {
     title: "商家资质审核",

@@ -16,7 +16,6 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
-import { PawSureMark } from "@/components/PawSureLogo";
 
 const STEP_ICONS = [NotebookPen, MessagesSquare, QrCode];
 const FEATURE_ICONS = [ShieldCheck, Sparkles, CalendarClock, Languages];
@@ -71,33 +70,14 @@ export default async function HomePage() {
             </ul>
           </div>
 
-          <div className="relative mx-auto w-full max-w-sm">
-            <div className="rounded-[2rem] border border-border bg-surface p-7 shadow-soft">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-paper shadow-soft ring-1 ring-inset ring-border">
-                  <PawSureMark className="h-9 w-9" />
-                </span>
-                <div>
-                  <div className="text-sm font-bold text-forest">PawSure 宠诺</div>
-                  <div className="text-xs text-muted">{l.footerTagline}</div>
-                </div>
-              </div>
-              <div className="mt-5 space-y-2.5">
-                {l.steps.map((s, i) => {
-                  const Icon = STEP_ICONS[i];
-                  return (
-                    <div
-                      key={s.title}
-                      className="flex items-center gap-3 rounded-2xl border border-border/70 bg-paper px-3.5 py-3"
-                    >
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-                        <Icon size={16} />
-                      </span>
-                      <span className="text-sm font-medium text-ink">{s.title}</span>
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="relative mx-auto w-full max-w-md">
+            <div className="overflow-hidden rounded-[2rem] border border-border bg-surface p-2 shadow-soft">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/demos/home.gif"
+                alt={l.demoHomeAlt}
+                className="block w-full rounded-[1.5rem]"
+              />
             </div>
           </div>
         </div>

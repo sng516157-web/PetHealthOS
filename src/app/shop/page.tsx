@@ -52,6 +52,20 @@ export default async function ShopLandingPage({
               </ul>
             </div>
 
+            <div className="mt-6">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sage">
+                {t.landing.seeItTitle}
+              </p>
+              <div className="overflow-hidden rounded-2xl border border-border bg-surface p-1.5 shadow-soft">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/demos/shop.gif"
+                  alt={t.landing.demoShopAlt}
+                  className="block w-full rounded-xl"
+                />
+              </div>
+            </div>
+
             {/* Comparison */}
             <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
               <div className="grid grid-cols-3 bg-forest/5 px-4 py-3 text-xs font-semibold text-forest">
