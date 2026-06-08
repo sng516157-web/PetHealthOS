@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ShieldCheck, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { ShieldCheck, Clock, CheckCircle2, XCircle, LogOut } from "lucide-react";
 import { getActiveOrg } from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
 import { formatDate } from "@/lib/format";
 import { LandingHeader } from "@/components/LandingHeader";
 import { VerifyForm } from "@/components/VerifyForm";
+import { signOut } from "@/app/actions";
 
 export default async function VerifyPage() {
   const org = await getActiveOrg();
@@ -28,6 +29,14 @@ export default async function VerifyPage() {
             <h1 className="text-xl font-bold text-forest">{t.verify.title}</h1>
             <p className="text-sm text-muted">{org.name}</p>
           </div>
+          <form action={signOut} className="ml-auto">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-rose-300 hover:text-rose-600"
+            >
+              <LogOut size={13} /> {t.auth.signOut}
+            </button>
+          </form>
         </div>
 
         {status === "APPROVED" ? (
