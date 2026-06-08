@@ -10,7 +10,7 @@ import { FieldError } from "@/components/FieldError";
 import {
   validateRequiredName,
   validateWeightKg,
-  validatePastOrToday,
+  validatePetDates,
   validatePetSex,
   validatePetPhoto,
   validationMessage,
@@ -33,6 +33,8 @@ export function OwnedPetForm() {
     color?: string | null;
     sex?: string | null;
     birthDate?: string | null;
+    intakeAt?: string | null;
+    dates?: string | null;
     weightKg?: string | null;
     photo?: string | null;
   }>({});
@@ -47,12 +49,20 @@ export function OwnedPetForm() {
       breed: validateRequiredName(String(formData.get("breed") || ""), VErr.BREED_REQUIRED),
       color: validateRequiredName(String(formData.get("color") || ""), VErr.COLOR_REQUIRED),
       sex: validatePetSex(String(formData.get("sex") || "")),
-      birthDate: validatePastOrToday(String(formData.get("birthDate") || ""), true),
       weightKg: validateWeightKg(String(formData.get("weightKg") || ""), true),
       photo: validatePetPhoto(photo),
     };
-    setFieldErr(fe);
-    if (Object.values(fe).some(Boolean)) return;
+    const birthRaw = String(formData.get("birthDate") || "");
+    const intakeRaw = String(formData.get("intakeAt") || "");
+    const dateErrs = validatePetDates(birthRaw, intakeRaw);
+    const merged = {
+      ...fe,
+      birthDate: dateErrs?.birth ?? dateErrs?.dates ?? null,
+      intakeAt: dateErrs?.intake ?? dateErrs?.dates ?? null,
+      dates: dateErrs?.dates ?? null,
+    };
+    setFieldErr(merged);
+    if (Object.values(merged).some(Boolean)) return;
     startTransition(async () => {
       const res = await addOwnedPet(formData);
       if (res && "quota" in res && res.quota) {
@@ -110,10 +120,21 @@ export function OwnedPetForm() {
             <input name="color" className={inputCls} placeholder={t.newPet.colorPlaceholder} />
             <FieldError code={fieldErr.color} />
           </div>
-          <div>
-            <label className={labelCls}>{t.newPet.birthDate} *</label>
-            <input name="birthDate" type="date" max={TODAY} className={inputCls} />
-            <FieldError code={fieldErr.birthDate} />
+          <div className="sm:col-span-2">
+            <p className="mb-2 text-xs text-muted">{t.newPet.datesHint}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>{t.newPet.birthDate}</label>
+                <input name="birthDate" type="date" max={TODAY} className={inputCls} />
+                <FieldError code={fieldErr.birthDate} />
+              </div>
+              <div>
+                <label className={labelCls}>{t.newPet.intakeDate}</label>
+                <input name="intakeAt" type="date" max={TODAY} className={inputCls} />
+                <FieldError code={fieldErr.intakeAt} />
+              </div>
+            </div>
+            <FieldError code={fieldErr.dates} />
           </div>
           <div>
             <label className={labelCls}>{t.newPet.weight} *</label>

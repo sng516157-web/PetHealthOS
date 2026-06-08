@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Pet" ALTER COLUMN "intakeAt" DROP NOT NULL,
+ALTER COLUMN "intakeAt" DROP DEFAULT;

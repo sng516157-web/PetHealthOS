@@ -133,6 +133,8 @@ export const en = {
     color: "Color / markings",
     colorPlaceholder: "e.g. Tricolor",
     birthDate: "Birth date",
+    intakeDate: "Intake date",
+    datesHint: "Enter birth date and/or intake date — at least one is required.",
     weight: "Weight (kg)",
     weightPlaceholder: "e.g. 7.2",
     photo: "Profile photo",
@@ -742,6 +744,8 @@ export const en = {
     SEX_REQUIRED: "Please select male or female.",
     PHOTO_REQUIRED: "Please choose a profile photo.",
     PHOTO_TOO_BIG: "Photo must be under 8 MB.",
+    BIRTH_OR_INTAKE_REQUIRED:
+      "Enter a birth date and/or an intake date (when the pet entered your care).",
   },
 };
 

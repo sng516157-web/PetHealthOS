@@ -299,7 +299,10 @@ export default async function PassportPage({
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <Field label={t.passport.microchip} value={pet.microchip || "—"} />
-            <Field label={t.passport.intakeDate} value={formatDate(pet.intakeAt)} />
+            <Field
+              label={t.passport.intakeDate}
+              value={pet.intakeAt ? formatDate(pet.intakeAt) : "—"}
+            />
             <Field label={t.passport.from} value={orgName} />
             {(pet.sire || pet.dam) && (
               <Field

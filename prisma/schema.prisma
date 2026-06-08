@@ -100,7 +100,8 @@ model Pet {
   microchip String?
   photoUrl  String?
   status    String    @default("ACTIVE") // ACTIVE | UNDER_OBSERVATION | TRANSFERRED | ARCHIVED
-  intakeAt  DateTime  @default(now())
+  // When the pet entered this shop/breeder's care (optional if birth date is known).
+  intakeAt  DateTime?
   notes     String?
 
   // Consumer owner once a buyer claims the passport. The pet stays in the

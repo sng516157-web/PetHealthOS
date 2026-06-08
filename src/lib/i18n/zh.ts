@@ -132,6 +132,8 @@ export const zh: Dictionary = {
     color: "毛色 / 花纹",
     colorPlaceholder: "例如：三色",
     birthDate: "出生日期",
+    intakeDate: "入舍日期",
+    datesHint: "请填写出生日期和/或入舍日期 — 至少填写一项。",
     weight: "体重（公斤）",
     weightPlaceholder: "例如：7.2",
     photo: "头像照片",
@@ -728,5 +730,6 @@ export const zh: Dictionary = {
     SEX_REQUIRED: "请选择公或母。",
     PHOTO_REQUIRED: "请选择一张头像照片。",
     PHOTO_TOO_BIG: "照片须小于 8 MB。",
+    BIRTH_OR_INTAKE_REQUIRED: "请填写出生日期和/或入舍日期（宠物进入您照护的日期）。",
   },
 };

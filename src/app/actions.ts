@@ -55,6 +55,7 @@ import {
   validateWeightKg,
   validatePetSex,
   validatePetPhoto,
+  validatePetDates,
   parseWeightKg,
   validatePastOrToday,
   validateDate,
@@ -76,13 +77,15 @@ type PetFields = {
   sex: string;
   breed: string;
   color: string;
-  birthDate: Date;
+  birthDate: Date | null;
+  intakeAt: Date | null;
   weightKg: number;
   notes: string | null;
 };
 
 // Shared validation for the pet create forms (breeder + owner). Every field is
-// required except sire, dam (handled in addPet), and general notes. Returns a
+// required except sire, dam (handled in addPet), general notes, and the date
+// pair — at least one of birth date or intake date must be provided. Returns a
 // `{ error: CODE }` the client maps to a localized message, or the clean values.
 function readPetFields(formData: FormData): { error: string } | { data: PetFields } {
   const name = String(formData.get("name") || "").trim();
@@ -101,8 +104,13 @@ function readPetFields(formData: FormData): { error: string } | { data: PetField
   if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
 
   const birthDateRaw = String(formData.get("birthDate") || "");
-  const birthErr = validatePastOrToday(birthDateRaw, true);
-  if (birthErr) return { error: birthErr };
+  const intakeAtRaw = String(formData.get("intakeAt") || "");
+  const dateErrs = validatePetDates(birthDateRaw, intakeAtRaw);
+  if (dateErrs) {
+    if (dateErrs.dates) return { error: dateErrs.dates };
+    if (dateErrs.birth) return { error: dateErrs.birth };
+    if (dateErrs.intake) return { error: dateErrs.intake };
+  }
 
   const weightRaw = String(formData.get("weightKg") || "");
   const weightErr = validateWeightKg(weightRaw, true);
@@ -125,7 +133,8 @@ function readPetFields(formData: FormData): { error: string } | { data: PetField
       sex: sexRaw,
       breed,
       color,
-      birthDate: new Date(birthDateRaw),
+      birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
+      intakeAt: intakeAtRaw ? new Date(intakeAtRaw) : null,
       weightKg,
       notes: notes || null,
     },

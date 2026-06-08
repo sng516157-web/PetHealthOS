@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Intake date when adding a pet.** You can now record when a pet entered your
+  care (intake date / 入舍日期). Birth date and intake date are a pair — fill one or both,
+  but at least one is required.
+
 - **2026-06-08 — Required fields when adding a pet.** When creating a dog or cat (shop or
   owner), every field is now required except sire, dam, and general notes — including breed,
   color, sex, birth date, weight, and a profile photo. Validation runs on the form and again

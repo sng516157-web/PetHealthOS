@@ -58,6 +58,7 @@ export const VErr = {
   SEX_REQUIRED: "SEX_REQUIRED",
   PHOTO_REQUIRED: "PHOTO_REQUIRED",
   PHOTO_TOO_BIG: "PHOTO_TOO_BIG",
+  BIRTH_OR_INTAKE_REQUIRED: "BIRTH_OR_INTAKE_REQUIRED",
 } as const;
 
 export type VErrCode = (typeof VErr)[keyof typeof VErr];
@@ -252,6 +253,29 @@ function endOfToday(): number {
   const d = new Date();
   d.setHours(23, 59, 59, 999);
   return d.getTime();
+}
+
+/**
+ * Pet create: birth date and/or intake date — at least one required; each provided
+ * value must be a valid past-or-today date.
+ */
+export function validatePetDates(
+  birthRaw: string,
+  intakeRaw: string,
+): { birth?: VErrCode; intake?: VErrCode; dates?: VErrCode } | null {
+  const birth = birthRaw.trim();
+  const intake = intakeRaw.trim();
+  if (!birth && !intake) return { dates: VErr.BIRTH_OR_INTAKE_REQUIRED };
+  const out: { birth?: VErrCode; intake?: VErrCode } = {};
+  if (birth) {
+    const err = validatePastOrToday(birth, false);
+    if (err) out.birth = err;
+  }
+  if (intake) {
+    const err = validatePastOrToday(intake, false);
+    if (err) out.intake = err;
+  }
+  return out.birth || out.intake ? out : null;
 }
 
 /** A date that must be a real date and not in the future (birthDate, weigh-in). */
