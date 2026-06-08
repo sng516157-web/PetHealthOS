@@ -212,6 +212,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Pet create: all fields required except sire, dam, notes.** Why (user
+  request): incomplete pet profiles on create. **Changes:** `readPetFields` (shared by
+  `addPet` + `addOwnedPet`) now requires name, species, breed, color, sex (MALE/FEMALE —
+  not UNKNOWN), birth date, weight, and profile photo; sire/dam and general notes stay
+  optional. New validators `validatePetSex`, `validatePetPhoto`; i18n codes
+  `BREED_REQUIRED`, `COLOR_REQUIRED`, `SEX_REQUIRED`, `PHOTO_*`. Both `NewPetForm` and
+  `OwnedPetForm` mirror the same client checks and mark optional fields explicitly.
 - **2026-06-08** — **Transfer flow: owner registers only on scan; one passport per pet;
   archived list.** Why (user request): entering the new owner's name/email/password twice
   (shop form + claim) was redundant and confusing; shops should only issue the passport,

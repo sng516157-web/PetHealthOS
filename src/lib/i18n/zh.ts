@@ -140,6 +140,7 @@ export const zh: Dictionary = {
     damMother: "母系（母）",
     notes: "综合备注",
     notesPlaceholder: "性格、入舍信息、其他值得记录的内容…",
+    selectSex: "选择性别…",
     adding: "添加中…",
   },
   quickLog: {
@@ -722,5 +723,10 @@ export const zh: Dictionary = {
     DAYS_INVALID: "请输入整数天数。",
     NOTE_TOO_LONG: "备注过长。",
     TERMS_TOO_LONG: "条款内容过长。",
+    BREED_REQUIRED: "请填写品种。",
+    COLOR_REQUIRED: "请填写毛色或斑纹。",
+    SEX_REQUIRED: "请选择公或母。",
+    PHOTO_REQUIRED: "请选择一张头像照片。",
+    PHOTO_TOO_BIG: "照片须小于 8 MB。",
   },
 };

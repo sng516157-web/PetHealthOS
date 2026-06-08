@@ -53,6 +53,8 @@ import {
   validatePassword,
   validateRequiredName,
   validateWeightKg,
+  validatePetSex,
+  validatePetPhoto,
   parseWeightKg,
   validatePastOrToday,
   validateDate,
@@ -67,20 +69,20 @@ import {
 } from "@/lib/validation";
 
 const SPECIES = ["DOG", "CAT"];
-const SEXES = ["MALE", "FEMALE", "UNKNOWN"];
 
 type PetFields = {
   name: string;
   species: string;
   sex: string;
-  breed: string | null;
-  color: string | null;
-  birthDate: Date | null;
-  weightKg: number | null;
+  breed: string;
+  color: string;
+  birthDate: Date;
+  weightKg: number;
   notes: string | null;
 };
 
-// Shared validation for the pet create forms (breeder + owner). Returns a
+// Shared validation for the pet create forms (breeder + owner). Every field is
+// required except sire, dam (handled in addPet), and general notes. Returns a
 // `{ error: CODE }` the client maps to a localized message, or the clean values.
 function readPetFields(formData: FormData): { error: string } | { data: PetFields } {
   const name = String(formData.get("name") || "").trim();
@@ -88,32 +90,43 @@ function readPetFields(formData: FormData): { error: string } | { data: PetField
   if (nameErr) return { error: nameErr };
 
   const breed = String(formData.get("breed") || "").trim();
-  if (breed.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
+  const breedErr = validateRequiredName(breed, VErr.BREED_REQUIRED);
+  if (breedErr) return { error: breedErr };
+
   const color = String(formData.get("color") || "").trim();
-  if (color.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
+  const colorErr = validateRequiredName(color, VErr.COLOR_REQUIRED);
+  if (colorErr) return { error: colorErr };
+
   const notes = String(formData.get("notes") || "").trim();
   if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
 
   const birthDateRaw = String(formData.get("birthDate") || "");
-  const birthErr = validatePastOrToday(birthDateRaw, false);
+  const birthErr = validatePastOrToday(birthDateRaw, true);
   if (birthErr) return { error: birthErr };
 
   const weightRaw = String(formData.get("weightKg") || "");
-  const weightErr = validateWeightKg(weightRaw, false);
+  const weightErr = validateWeightKg(weightRaw, true);
   if (weightErr) return { error: weightErr };
 
-  const speciesRaw = String(formData.get("species") || "DOG");
-  const sexRaw = String(formData.get("sex") || "UNKNOWN");
+  const speciesRaw = String(formData.get("species") || "");
+  if (!SPECIES.includes(speciesRaw)) return { error: VErr.REQUIRED };
+
+  const sexRaw = String(formData.get("sex") || "");
+  const sexErr = validatePetSex(sexRaw);
+  if (sexErr) return { error: sexErr };
+
+  const weightKg = parseWeightKg(weightRaw);
+  if (weightKg == null) return { error: VErr.WEIGHT_INVALID };
 
   return {
     data: {
       name,
-      species: SPECIES.includes(speciesRaw) ? speciesRaw : "DOG",
-      sex: SEXES.includes(sexRaw) ? sexRaw : "UNKNOWN",
-      breed: breed || null,
-      color: color || null,
-      birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
-      weightKg: weightRaw ? parseWeightKg(weightRaw) : null,
+      species: speciesRaw,
+      sex: sexRaw,
+      breed,
+      color,
+      birthDate: new Date(birthDateRaw),
+      weightKg,
       notes: notes || null,
     },
   };
@@ -196,10 +209,9 @@ export async function addPet(formData: FormData) {
   }
 
   const photo = formData.get("photo") as File | null;
-  let photoUrl: string | null = null;
-  if (photo && photo.size > 0 && photo.size <= 8 * 1024 * 1024) {
-    photoUrl = await saveUpload(photo);
-  }
+  const photoErr = validatePetPhoto(photo);
+  if (photoErr) return { error: photoErr };
+  const photoUrl = await saveUpload(photo as File);
 
   const pet = await prisma.pet.create({
     data: {
@@ -840,10 +852,9 @@ export async function addOwnedPet(formData: FormData) {
   }
 
   const photo = formData.get("photo") as File | null;
-  let photoUrl: string | null = null;
-  if (photo && photo.size > 0 && photo.size <= 8 * 1024 * 1024) {
-    photoUrl = await saveUpload(photo);
-  }
+  const photoErr = validatePetPhoto(photo);
+  if (photoErr) return { error: photoErr };
+  const photoUrl = await saveUpload(photo as File);
 
   const pet = await prisma.pet.create({
     data: {

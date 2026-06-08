@@ -141,6 +141,7 @@ export const en = {
     damMother: "Dam (mother)",
     notes: "General notes",
     notesPlaceholder: "Temperament, intake info, anything notable…",
+    selectSex: "Select sex…",
     adding: "Adding…",
   },
   quickLog: {
@@ -736,6 +737,11 @@ export const en = {
     DAYS_INVALID: "Enter a whole number of days.",
     NOTE_TOO_LONG: "This note is too long.",
     TERMS_TOO_LONG: "These terms are too long.",
+    BREED_REQUIRED: "Please enter a breed.",
+    COLOR_REQUIRED: "Please enter a color or markings.",
+    SEX_REQUIRED: "Please select male or female.",
+    PHOTO_REQUIRED: "Please choose a profile photo.",
+    PHOTO_TOO_BIG: "Photo must be under 8 MB.",
   },
 };
 

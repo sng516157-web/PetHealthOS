@@ -53,6 +53,11 @@ export const VErr = {
   DAYS_INVALID: "DAYS_INVALID",
   NOTE_TOO_LONG: "NOTE_TOO_LONG",
   TERMS_TOO_LONG: "TERMS_TOO_LONG",
+  BREED_REQUIRED: "BREED_REQUIRED",
+  COLOR_REQUIRED: "COLOR_REQUIRED",
+  SEX_REQUIRED: "SEX_REQUIRED",
+  PHOTO_REQUIRED: "PHOTO_REQUIRED",
+  PHOTO_TOO_BIG: "PHOTO_TOO_BIG",
 } as const;
 
 export type VErrCode = (typeof VErr)[keyof typeof VErr];
@@ -198,6 +203,22 @@ export function parseWeightKg(value: string): number | null {
   const n = Number(v);
   if (!Number.isFinite(n) || n <= 0 || n > WEIGHT_MAX_KG) return null;
   return n;
+}
+
+/** Pet sex on create — MALE or FEMALE only (not UNKNOWN). */
+export function validatePetSex(value: string): VErrCode | null {
+  const v = value.trim();
+  if (!v || v === "UNKNOWN" || (v !== "MALE" && v !== "FEMALE")) {
+    return VErr.SEX_REQUIRED;
+  }
+  return null;
+}
+
+/** Profile photo on pet create — required, max 8 MB. */
+export function validatePetPhoto(file: File | null | undefined): VErrCode | null {
+  if (!file || file.size === 0) return VErr.PHOTO_REQUIRED;
+  if (file.size > 8 * 1024 * 1024) return VErr.PHOTO_TOO_BIG;
+  return null;
 }
 
 export function validateWeightKg(

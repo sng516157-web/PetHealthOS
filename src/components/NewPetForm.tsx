@@ -11,7 +11,10 @@ import {
   validateRequiredName,
   validateWeightKg,
   validatePastOrToday,
+  validatePetSex,
+  validatePetPhoto,
   validationMessage,
+  VErr,
 } from "@/lib/validation";
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -35,8 +38,12 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
   const [error, setError] = useState<string | null>(null);
   const [fieldErr, setFieldErr] = useState<{
     name?: string | null;
-    weightKg?: string | null;
+    breed?: string | null;
+    color?: string | null;
+    sex?: string | null;
     birthDate?: string | null;
+    weightKg?: string | null;
+    photo?: string | null;
   }>({});
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null);
   const [species, setSpecies] = useState("DOG");
@@ -48,13 +55,18 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
   function onSubmit(formData: FormData) {
     setError(null);
     setQuotaLimit(null);
+    const photo = formData.get("photo") as File | null;
     const fe = {
       name: validateRequiredName(String(formData.get("name") || "")),
-      weightKg: validateWeightKg(String(formData.get("weightKg") || ""), false),
-      birthDate: validatePastOrToday(String(formData.get("birthDate") || ""), false),
+      breed: validateRequiredName(String(formData.get("breed") || ""), VErr.BREED_REQUIRED),
+      color: validateRequiredName(String(formData.get("color") || ""), VErr.COLOR_REQUIRED),
+      sex: validatePetSex(String(formData.get("sex") || "")),
+      birthDate: validatePastOrToday(String(formData.get("birthDate") || ""), true),
+      weightKg: validateWeightKg(String(formData.get("weightKg") || ""), true),
+      photo: validatePetPhoto(photo),
     };
     setFieldErr(fe);
-    if (fe.name || fe.weightKg || fe.birthDate) return;
+    if (Object.values(fe).some(Boolean)) return;
     startTransition(async () => {
       const res = await addPet(formData);
       if (res && "quota" in res && res.quota) {
@@ -85,7 +97,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
             <FieldError code={fieldErr.name} />
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.species}</label>
+            <label className={labelCls}>{t.newPet.species} *</label>
             <select
               name="species"
               className={inputCls}
@@ -97,41 +109,45 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
             </select>
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.breed}</label>
+            <label className={labelCls}>{t.newPet.breed} *</label>
             <input name="breed" className={inputCls} placeholder={t.newPet.breedPlaceholder} />
+            <FieldError code={fieldErr.breed} />
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.sex}</label>
-            <select name="sex" className={inputCls} defaultValue="UNKNOWN">
-              <option value="UNKNOWN">{t.sex.UNKNOWN}</option>
+            <label className={labelCls}>{t.newPet.sex} *</label>
+            <select name="sex" className={inputCls} defaultValue="">
+              <option value="" disabled>
+                {t.newPet.selectSex}
+              </option>
               <option value="MALE">{t.sex.MALE}</option>
               <option value="FEMALE">{t.sex.FEMALE}</option>
             </select>
+            <FieldError code={fieldErr.sex} />
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.color}</label>
+            <label className={labelCls}>{t.newPet.color} *</label>
             <input name="color" className={inputCls} placeholder={t.newPet.colorPlaceholder} />
+            <FieldError code={fieldErr.color} />
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.birthDate}</label>
+            <label className={labelCls}>{t.newPet.birthDate} *</label>
             <input name="birthDate" type="date" max={TODAY} className={inputCls} />
             <FieldError code={fieldErr.birthDate} />
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.weight}</label>
+            <label className={labelCls}>{t.newPet.weight} *</label>
             <input name="weightKg" type="number" step="0.1" min="0" max="200" className={inputCls} placeholder={t.newPet.weightPlaceholder} />
             <FieldError code={fieldErr.weightKg} />
           </div>
           <div>
-            <label className={labelCls}>
-              {t.newPet.photo} <span className="font-normal normal-case">({t.common.optional})</span>
-            </label>
+            <label className={labelCls}>{t.newPet.photo} *</label>
             <input
               name="photo"
               type="file"
               accept="image/*"
               className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-brand-700"
             />
+            <FieldError code={fieldErr.photo} />
           </div>
 
           <div className="sm:col-span-2 mt-1 border-t border-border pt-4">
@@ -165,7 +181,10 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
           </div>
 
           <div className="sm:col-span-2">
-            <label className={labelCls}>{t.newPet.notes}</label>
+            <label className={labelCls}>
+              {t.newPet.notes}{" "}
+              <span className="font-normal normal-case">({t.common.optional})</span>
+            </label>
             <textarea name="notes" rows={3} className={inputCls} placeholder={t.newPet.notesPlaceholder} />
           </div>
         </div>
