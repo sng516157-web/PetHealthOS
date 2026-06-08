@@ -163,7 +163,10 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
             <FieldError code={fieldErr.weightKg} />
           </div>
           <div>
-            <label className={labelCls}>{t.newPet.photo} *</label>
+            <label className={labelCls}>
+              {t.newPet.photo}{" "}
+              <span className="font-normal normal-case">({t.common.optional})</span>
+            </label>
             <input
               name="photo"
               type="file"

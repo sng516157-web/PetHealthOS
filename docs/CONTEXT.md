@@ -214,6 +214,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Pet profile photo optional on create.** Why (user request). `validatePetPhoto`
+  now returns null for an empty file (only size-checks when a photo is provided); `addPet` /
+  `addOwnedPet` set `photoUrl = null` when none is uploaded. Both create forms mark the photo
+  field "(optional)". Everything else about pet create is unchanged (name/species/breed/color/
+  sex/weight still required; birth-or-intake date still required).
 - **2026-06-08** — **Shop pricing changed; lifetime removed.** Why (user request): `SHOP_BILLING`
   is now `{ month: 599, year: 4888 }` (was 59 / 599 / 3888 lifetime). `BillingInterval` dropped
   `"lifetime"`; removed the lifetime tile/card from `ShopBilling` + `/pricing`, the

@@ -221,7 +221,7 @@ export async function addPet(formData: FormData) {
   const photo = formData.get("photo") as File | null;
   const photoErr = validatePetPhoto(photo);
   if (photoErr) return { error: photoErr };
-  const photoUrl = await saveUpload(photo as File);
+  const photoUrl = photo && photo.size > 0 ? await saveUpload(photo) : null;
 
   const pet = await prisma.pet.create({
     data: {
@@ -917,7 +917,7 @@ export async function addOwnedPet(formData: FormData) {
   const photo = formData.get("photo") as File | null;
   const photoErr = validatePetPhoto(photo);
   if (photoErr) return { error: photoErr };
-  const photoUrl = await saveUpload(photo as File);
+  const photoUrl = photo && photo.size > 0 ? await saveUpload(photo) : null;
 
   const pet = await prisma.pet.create({
     data: {

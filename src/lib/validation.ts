@@ -215,9 +215,9 @@ export function validatePetSex(value: string): VErrCode | null {
   return null;
 }
 
-/** Profile photo on pet create — required, max 8 MB. */
+/** Profile photo on pet create — optional; only size-checked when provided (max 8 MB). */
 export function validatePetPhoto(file: File | null | undefined): VErrCode | null {
-  if (!file || file.size === 0) return VErr.PHOTO_REQUIRED;
+  if (!file || file.size === 0) return null;
   if (file.size > 8 * 1024 * 1024) return VErr.PHOTO_TOO_BIG;
   return null;
 }

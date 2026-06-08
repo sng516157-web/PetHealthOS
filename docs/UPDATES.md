@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Pet profile photo is now optional.** When adding a pet you no longer have to
+  upload a profile photo (if you do, it's still capped at 8 MB). All other fields are unchanged.
+
 - **2026-06-08 — Shop pricing updated.** The shop plan is now **¥599/month** or **¥4888/year**,
   and the one-time lifetime option has been removed. The yearly referral discount (5% per
   referred shop, up to 50%) still applies.

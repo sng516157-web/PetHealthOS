@@ -144,7 +144,10 @@ export function OwnedPetForm() {
             <FieldError code={fieldErr.weightKg} />
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>{t.newPet.photo} *</label>
+            <label className={labelCls}>
+              {t.newPet.photo}{" "}
+              <span className="font-normal normal-case">({t.common.optional})</span>
+            </label>
             <input
               name="photo"
               type="file"
