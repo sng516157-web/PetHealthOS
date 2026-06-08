@@ -214,6 +214,18 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Full disclaimer (免责声明) at `/disclaimer`.** Why (user request): reduce
+  legal exposure. Bilingual long-form copy lives in `src/lib/legal.ts` (`getDisclaimer(locale)`,
+  not in the i18n Dictionary since it's prose, not UI strings); the page is
+  `src/app/disclaimer/page.tsx`. Sections: not veterinary/medical advice (AI, triage, watch are
+  informational only; emergencies → vet), AI limitations, user-generated content (we don't
+  verify), passport ≠ health certification, health guarantee is breeder↔buyer (PawSure not a
+  party), transactions/payments, "as is" limitation of liability, data/privacy, third-party
+  services, changes, contact. Linked from `LandingFooter`, `/pricing`, the register form +
+  `ClaimPassport` ("you agree to…"), and `TriageReport`. `DISCLAIMER_CONTACT_EMAIL` /
+  governing law are **placeholders** — flagged to the operator as a template that needs a
+  lawyer's review for their jurisdiction (HK/mainland). New i18n: `landing.disclaimer`,
+  `auth.agreePrefix`.
 - **2026-06-08** — **Pricing overhaul: shop billing intervals + referrals; owner 1 free pet.**
   Why (user request). **Shop:** the paid SHOP plan is now sold three ways — `month` ¥59,
   `year` ¥599, `lifetime` ¥3888 (`SHOP_BILLING` in `src/lib/plans.ts`). `Organization`

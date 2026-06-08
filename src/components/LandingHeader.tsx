@@ -47,6 +47,9 @@ export function LandingFooter({ t }: { t: Dictionary }) {
           <Link href="/pricing" className="hover:text-forest">
             {t.landing.nav.pricing}
           </Link>
+          <Link href="/disclaimer" className="hover:text-forest">
+            {t.landing.disclaimer}
+          </Link>
           <Link href="/login" className="hover:text-forest">
             {t.landing.nav.signIn}
           </Link>

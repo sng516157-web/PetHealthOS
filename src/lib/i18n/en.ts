@@ -317,6 +317,7 @@ export const en = {
     tabPhone: "Phone",
     phoneSoon: "Soon",
     referredNote: "You were invited by another shop — they'll earn a referral discount when you join.",
+    agreePrefix: "By creating an account you agree to our",
     name: "Your name",
     namePlaceholder: "e.g. Jordan Lee",
     emailPlaceholder: "you@example.com",
@@ -680,6 +681,7 @@ export const en = {
     },
     backHome: "Back to home",
     alreadyMember: "Already have an account?",
+    disclaimer: "Disclaimer",
   },
   verify: {
     title: "Verify your shop",

@@ -9,6 +9,12 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Disclaimer (免责声明) added.** A full, bilingual disclaimer now lives at
+  `/disclaimer` covering "not veterinary advice", AI limitations, user-entered records, health
+  passports & guarantees, transactions, payments, limitation of liability, data/privacy and
+  third-party services. It's linked from the site footer, the pricing page, account sign-up and
+  passport claim ("by creating an account you agree…"), and from AI triage reports.
+
 - **2026-06-08 — New pricing: shops & owners.** Shops can now pay **¥59/month**, **¥599/year**,
   or **¥3888 once for life**, chosen on the billing page. Refer another shop with your link and
   earn **5% off your yearly price per referral** (up to 50%). Owners now get **1 free pet** (was

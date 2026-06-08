@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Stethoscope,
   AlertCircle,
@@ -87,7 +88,10 @@ export function TriageReport({
       )}
 
       <p className="text-center text-xs text-muted">
-        {t.triage.generatedAt} {formatDateTime(createdAt)} · {t.triage.disclaimer}
+        {t.triage.generatedAt} {formatDateTime(createdAt)} · {t.triage.disclaimer}{" "}
+        <Link href="/disclaimer" className="underline hover:text-forest">
+          {t.landing.disclaimer}
+        </Link>
       </p>
     </div>
   );

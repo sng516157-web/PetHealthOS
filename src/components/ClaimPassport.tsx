@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, Check } from "lucide-react";
 import { claimPassport } from "@/app/actions";
@@ -121,7 +122,10 @@ export function ClaimPassport({
           <FieldError code={fieldErr.password} />
         </div>
         <p className="text-[11px] text-brand-700">
-          {t.claim.accountNote}
+          {t.claim.accountNote}{" "}
+          <Link href="/disclaimer" target="_blank" className="underline hover:text-forest">
+            {t.landing.disclaimer}
+          </Link>
         </p>
         {error && <p className="text-xs text-rose-600">{error}</p>}
         <button

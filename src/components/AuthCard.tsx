@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus, Smartphone, Store } from "lucide-react";
 import { signIn, register, requestPhoneOtp, verifyPhoneOtp } from "@/app/actions";
@@ -281,6 +282,12 @@ function RegisterTab({
         {isShop ? <Store size={15} /> : <UserPlus size={15} />}{" "}
         {pending ? t.auth.registering : isShop ? t.auth.createShop : t.auth.register}
       </button>
+      <p className="text-center text-[11px] leading-relaxed text-muted">
+        {t.auth.agreePrefix}{" "}
+        <Link href="/disclaimer" target="_blank" className="underline hover:text-forest">
+          {t.landing.disclaimer}
+        </Link>
+      </p>
     </form>
   );
 }

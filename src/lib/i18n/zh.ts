@@ -315,6 +315,7 @@ export const zh: Dictionary = {
     tabPhone: "手机号",
     phoneSoon: "即将开放",
     referredNote: "你由另一家商家邀请——你注册后，他们将获得推荐折扣。",
+    agreePrefix: "创建账户即表示你同意我们的",
     name: "你的名字",
     namePlaceholder: "例如：李明",
     emailPlaceholder: "you@example.com",
@@ -665,6 +666,7 @@ export const zh: Dictionary = {
     },
     backHome: "返回首页",
     alreadyMember: "已有账户？",
+    disclaimer: "免责声明",
   },
   verify: {
     title: "商家资质审核",

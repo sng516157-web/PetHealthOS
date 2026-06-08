@@ -87,6 +87,12 @@ export default async function PricingPage() {
             ))}
           </div>
         </section>
+
+        <p className="mt-10 text-center text-xs text-muted">
+          <Link href="/disclaimer" className="underline hover:text-forest">
+            {t.landing.disclaimer}
+          </Link>
+        </p>
       </main>
     </div>
   );
