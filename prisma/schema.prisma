@@ -21,6 +21,18 @@ model Organization {
   // capacity purchased on top of the plan's included pets.
   plan          String @default("STARTER") // STARTER | SHOP
   extraPetSlots Int    @default(0)
+  // How the paid SHOP plan was purchased: month | year | lifetime (null on the
+  // free STARTER tier). planActivatedAt is when it was last (re)activated.
+  planInterval    String?
+  planActivatedAt DateTime?
+
+  // Referral programme. Each shop gets a unique referral code to share; shops
+  // that register through it set referredById to the referrer. The referrer
+  // earns a stacking discount on its yearly payment (see src/lib/plans.ts).
+  referralCode String? @unique
+  referredById String?
+  referredBy   Organization?  @relation("Referrals", fields: [referredById], references: [id])
+  referrals    Organization[] @relation("Referrals")
 
   // Shop verification (KYC). A shop must upload a business licence (营业执照) or
   // alternative proof and be approved by the PawSure team before it can issue

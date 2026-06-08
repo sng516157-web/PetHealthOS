@@ -20,6 +20,8 @@ import { petAge, formatDate, relativeTime } from "@/lib/format";
 import { safeTags } from "@/lib/ai";
 import { ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
 import { ClaimPassport } from "@/components/ClaimPassport";
+import { OwnerClaimButton } from "@/components/OwnerClaimButton";
+import { getCurrentUser } from "@/lib/auth";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { PrintButton } from "@/components/PrintButton";
 import { getI18n } from "@/lib/i18n/server";
@@ -59,6 +61,9 @@ export default async function PassportPage({
 
   const pet = transfer.pet;
   const orgName = pet.org?.name ?? t.common.appName;
+  // An already-signed-in owner can inherit the pet in one tap (no re-auth).
+  const currentUser = await getCurrentUser();
+  const isSignedInOwner = Boolean(currentUser && !currentUser.orgId);
   const meta = [
     pet.breed,
     pet.sex && pet.sex !== "UNKNOWN" ? t.sex[pet.sex as Sex] : null,
@@ -278,7 +283,11 @@ export default async function PassportPage({
               {formatDate(transfer.claimedAt)}
             </div>
           ) : transfer.claimable ? (
-            <ClaimPassport token={transfer.token} petName={pet.name} />
+            isSignedInOwner ? (
+              <OwnerClaimButton token={transfer.token} petName={pet.name} />
+            ) : (
+              <ClaimPassport token={transfer.token} petName={pet.name} />
+            )
           ) : (
             <p className="rounded-2xl border border-border bg-surface p-4 text-center text-xs text-muted">
               {t.passport.viewOnly(orgName)}

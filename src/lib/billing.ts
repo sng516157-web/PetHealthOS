@@ -1,5 +1,14 @@
+import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
-import { getOrgPlan, getUserPlan, maxExtraSlots, type Plan } from "./plans";
+import {
+  getOrgPlan,
+  getUserPlan,
+  maxExtraSlots,
+  shopPriceRmb,
+  isBillingInterval,
+  type BillingInterval,
+  type Plan,
+} from "./plans";
 
 export type CheckoutScope =
   | { kind: "org"; id: string }
@@ -39,11 +48,17 @@ export function anyProviderConfigured(): boolean {
 export async function activatePlan(
   scope: CheckoutScope,
   planKey: string,
+  interval?: BillingInterval,
 ): Promise<void> {
   if (scope.kind === "org") {
     await prisma.organization.update({
       where: { id: scope.id },
-      data: { plan: planKey },
+      data: {
+        plan: planKey,
+        // Free tier clears the interval; paid records how it was bought.
+        planInterval: planKey === "STARTER" ? null : (interval ?? null),
+        planActivatedAt: planKey === "STARTER" ? null : new Date(),
+      },
     });
   } else {
     await prisma.user.update({
@@ -51,6 +66,34 @@ export async function activatePlan(
       data: { plan: planKey },
     });
   }
+}
+
+// Count of shops that registered through this org's referral link.
+export async function getReferralCount(orgId: string): Promise<number> {
+  return prisma.organization.count({ where: { referredById: orgId } });
+}
+
+// Ensure an org has a unique referral code, creating one on first access.
+export async function ensureReferralCode(orgId: string): Promise<string> {
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { referralCode: true },
+  });
+  if (org?.referralCode) return org.referralCode;
+  // Retry on the rare unique collision.
+  for (let i = 0; i < 5; i++) {
+    const code = randomBytes(5).toString("hex"); // 10 hex chars
+    try {
+      await prisma.organization.update({
+        where: { id: orgId },
+        data: { referralCode: code },
+      });
+      return code;
+    } catch {
+      /* collision — try again */
+    }
+  }
+  throw new Error("Could not allocate referral code");
 }
 
 type StripeMethod = "card" | "wechat_pay" | "alipay";
@@ -73,12 +116,18 @@ async function createStripeCheckout(opts: {
   productName: string;
   metadata: Record<string, string>;
   baseUrl: string;
+  // "month"/"year" bill as a real recurring subscription on card; "lifetime"
+  // (and any Alipay/WeChat payment, which can't recur) is a one-time charge.
+  interval?: BillingInterval;
 }): Promise<CheckoutResult> {
-  const { provider, amountRmb, productName, metadata, baseUrl } = opts;
+  const { provider, amountRmb, productName, metadata, baseUrl, interval } = opts;
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const method = stripeMethodFor(provider);
-  const recurring = method === "card";
+  // Cards can auto-renew monthly/yearly; lifetime is one-time. Alipay/WeChat
+  // have no recurring support in Stripe, so they're always one-time.
+  const recurring =
+    method === "card" && (interval === "month" || interval === "year");
   const session = await stripe.checkout.sessions.create({
     mode: recurring ? "subscription" : "payment",
     payment_method_types: [method],
@@ -88,7 +137,9 @@ async function createStripeCheckout(opts: {
         price_data: {
           currency: "cny",
           unit_amount: amountRmb * 100,
-          ...(recurring ? { recurring: { interval: "month" as const } } : {}),
+          ...(recurring
+            ? { recurring: { interval: interval as "month" | "year" } }
+            : {}),
           product_data: { name: productName },
         },
       },
@@ -109,6 +160,7 @@ export async function startCheckout(opts: {
   planKey: string;
   provider: Provider;
   baseUrl: string;
+  interval?: BillingInterval;
 }): Promise<CheckoutResult> {
   const { scope, planKey, provider, baseUrl } = opts;
   const plan = planFor(scope, planKey);
@@ -120,10 +172,21 @@ export async function startCheckout(opts: {
     return { activated: true };
   }
 
+  // Resolve price. The paid SHOP plan is interval-based; the yearly option
+  // applies the referrer's stacking discount. Other (user) plans use priceRmb.
+  let interval: BillingInterval | undefined;
+  let amountRmb = plan.priceRmb;
+  if (scope.kind === "org" && planKey === "SHOP") {
+    interval = isBillingInterval(opts.interval) ? opts.interval : "month";
+    const referralCount =
+      interval === "year" ? await getReferralCount(scope.id) : 0;
+    amountRmb = shopPriceRmb(interval, referralCount);
+  }
+
   // No provider configured anywhere → demo mode: activate immediately so the
   // upgrade flow is fully demoable before real credentials are added.
   if (!anyProviderConfigured()) {
-    await activatePlan(scope, planKey);
+    await activatePlan(scope, planKey, interval);
     return { activated: true, demo: true };
   }
 
@@ -131,10 +194,16 @@ export async function startCheckout(opts: {
     if (stripeConfigured()) {
       return createStripeCheckout({
         provider,
-        amountRmb: plan.priceRmb,
+        amountRmb,
         productName: `Pet Health OS — ${plan.key}`,
-        metadata: { scopeKind: scope.kind, scopeId: scope.id, planKey },
+        metadata: {
+          scopeKind: scope.kind,
+          scopeId: scope.id,
+          planKey,
+          ...(interval ? { interval } : {}),
+        },
         baseUrl,
+        interval,
       });
     }
     if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
@@ -217,6 +286,7 @@ export async function finalizeStripeSession(
 
   if (!md.planKey) return { ok: false };
   const scopeKind = md.scopeKind as "org" | "user";
-  await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey);
+  const interval = isBillingInterval(md.interval) ? md.interval : undefined;
+  await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey, interval);
   return { ok: true, planKey: md.planKey, scopeKind };
 }

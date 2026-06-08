@@ -35,7 +35,9 @@ export const ORG_PLANS: Record<string, Plan> = {
     key: "SHOP",
     audience: "org",
     includedPets: 50,
-    priceRmb: 2000,
+    // Monthly "from" price (the SHOP plan is sold in three ways — see
+    // SHOP_BILLING). Kept for display fallbacks.
+    priceRmb: 59,
     extraPetPriceRmb: 30,
     petCap: null,
     canIssuePassport: true,
@@ -43,19 +45,54 @@ export const ORG_PLANS: Record<string, Plan> = {
   },
 };
 
+// The paid SHOP plan is sold three ways: pay monthly, pay yearly (cheaper than
+// 12× monthly), or buy once for life. Prices in RMB.
+export type BillingInterval = "month" | "year" | "lifetime";
+
+export const SHOP_BILLING: Record<BillingInterval, number> = {
+  month: 59,
+  year: 599,
+  lifetime: 3888,
+};
+
+export function isBillingInterval(v: string | null | undefined): v is BillingInterval {
+  return v === "month" || v === "year" || v === "lifetime";
+}
+
+// Referral programme: for each other shop that registers through a shop's link,
+// that shop earns 5% off its YEARLY payment, stacking up to a 50% cap (i.e. 10
+// referrals). The discount applies to the yearly option only — not monthly or
+// lifetime.
+export const REFERRAL_DISCOUNT_STEP = 0.05;
+export const REFERRAL_DISCOUNT_MAX = 0.5;
+
+export function referralDiscountRate(referralCount: number): number {
+  return Math.min(REFERRAL_DISCOUNT_MAX, REFERRAL_DISCOUNT_STEP * Math.max(0, referralCount));
+}
+
+// Yearly price after applying a shop's referral discount (rounded to whole RMB).
+export function yearlyPriceRmb(referralCount: number): number {
+  return Math.round(SHOP_BILLING.year * (1 - referralDiscountRate(referralCount)));
+}
+
+export function shopPriceRmb(interval: BillingInterval, referralCount = 0): number {
+  if (interval === "year") return yearlyPriceRmb(referralCount);
+  return SHOP_BILLING[interval];
+}
+
 // Owners have a single tier — the "Owner's Account": free, created on
-// passport-claim or self-signup. 2 pets included; beyond that, ¥25/mo per
-// extra pet, hard-capped at 10 pets total. Cannot issue passports. (An owner
-// who needs more than 10 / wants passports should use a Shop account.)
+// passport-claim or self-signup. 1 pet included; beyond that, ¥15/mo per extra
+// pet, hard-capped at 10 pets total. Cannot issue passports. (An owner who
+// needs more than 10 / wants passports should use a Shop account.)
 export const OWNER_EXTRA_PET_CAP = 10;
 
 export const USER_PLANS: Record<string, Plan> = {
   FREE: {
     key: "FREE",
     audience: "user",
-    includedPets: 2,
+    includedPets: 1,
     priceRmb: 0,
-    extraPetPriceRmb: 25,
+    extraPetPriceRmb: 15,
     petCap: OWNER_EXTRA_PET_CAP,
     canIssuePassport: false,
     multiSeat: false,

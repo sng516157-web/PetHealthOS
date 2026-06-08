@@ -214,6 +214,23 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Pricing overhaul: shop billing intervals + referrals; owner 1 free pet.**
+  Why (user request). **Shop:** the paid SHOP plan is now sold three ways — `month` ¥59,
+  `year` ¥599, `lifetime` ¥3888 (`SHOP_BILLING` in `src/lib/plans.ts`). `Organization`
+  gained `planInterval`, `planActivatedAt`. Checkout is interval-aware (`startCheckout`
+  takes `interval`; card month/year = real Stripe subscription, lifetime + Alipay/WeChat =
+  one-time `payment`). **Referrals:** each org has a unique `referralCode`; new shops
+  registering via `/shop?ref=CODE` set `referredById`. The referrer earns **5% off its
+  YEARLY price per referred shop, stacking, capped at 50%** (`referralDiscountRate`,
+  `yearlyPriceRmb`). Discount applies to the yearly option only. Billing page shows the
+  share link + status (`getOrgReferral`, `ensureReferralCode`, `getReferralCount`).
+  **Decision:** free STARTER tier kept as-is (pre-purchase default) to avoid breaking
+  legacy shops — revisit if we want to force paid before passport issuance.
+  **Owner:** FREE plan now `includedPets: 1` (was 2), `extraPetPriceRmb: 15` (was 25),
+  cap unchanged at 10. Owners can scan a passport from `/me` (`OwnerScanCard`) and an
+  already-signed-in owner claims in one tap via `claimAsOwner` (`OwnerClaimButton`) — no
+  re-auth. Adding a brand-new pet past the limit shows a gentle upsell on `/me/pets/new`
+  (claiming inherited pets stays unblocked). Migration: `shop_billing_referral`.
 - **2026-06-08** — **Home page is account-neutral.** Why (user request): the landing copy
   leaned toward shops/breeders. Reworded hero, the "how it works" step 3, and the four
   feature cards to describe the product generally (trust, AI, reminders, bilingual).

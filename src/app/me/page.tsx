@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getOwnedPets, getUserNotifications } from "@/lib/data";
 import { Card, Badge, EmptyState, PetAvatar, Tone } from "@/components/ui";
 import { NotificationList } from "@/components/NotificationList";
+import { OwnerScanCard } from "@/components/OwnerScanCard";
 import { PetStatus } from "@/lib/constants";
 import { petAge } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
@@ -85,6 +86,10 @@ export default async function MeHome() {
             ))}
           </div>
         )}
+      </section>
+
+      <section>
+        <OwnerScanCard />
       </section>
 
       <section>

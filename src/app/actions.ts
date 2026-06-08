@@ -35,7 +35,7 @@ import {
   getCurrentUser,
 } from "@/lib/auth";
 import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
-import { getOrgPlan } from "@/lib/plans";
+import { getOrgPlan, isBillingInterval } from "@/lib/plans";
 import {
   GUARANTEE_TYPES,
   GUARANTEE_PRESET_DAYS,
@@ -44,6 +44,7 @@ import {
 import {
   startCheckout,
   buyOwnerPetSlot,
+  ensureReferralCode,
   type CheckoutScope,
   type Provider,
 } from "@/lib/billing";
@@ -657,6 +658,47 @@ export async function claimPassport(token: string, formData: FormData) {
   return { ok: true, claimedByName: name };
 }
 
+// Claim a passport as the already-signed-in owner — used by the in-dashboard
+// scanner so an existing owner can inherit another pet without re-entering
+// credentials. Claiming is intentionally NOT quota-blocked (it's an inherited
+// pet, not a brand-new add). Shops can't claim — they manage pets in /app.
+export async function claimAsOwner(token: string) {
+  const current = await getCurrentUser();
+  if (!current) return { error: "NOT_SIGNED_IN" };
+  if (current.orgId) return { error: "NOT_OWNER" };
+
+  const transfer = await prisma.transfer.findUnique({ where: { token } });
+  if (!transfer) return { error: "NOT_FOUND" };
+  if (!transfer.claimable) return { error: "NOT_CLAIMABLE" };
+  if (transfer.claimedAt) return { error: "ALREADY_CLAIMED" };
+
+  await prisma.transfer.update({
+    where: { id: transfer.id },
+    data: {
+      claimedAt: new Date(),
+      claimedByName: current.name,
+      claimedByUserId: current.id,
+    },
+  });
+  const pet = await prisma.pet.update({
+    where: { id: transfer.petId },
+    data: { ownerUserId: current.id, status: "ARCHIVED" },
+    include: { org: true },
+  });
+  await prisma.notification.create({
+    data: {
+      petId: pet.id,
+      orgId: pet.orgId,
+      kind: "CLAIM",
+      title: `${current.name} claimed ${pet.name}'s passport`,
+      body: `${pet.name} now has a lifelong owner account. The handover history stays frozen.`,
+    },
+  });
+  revalidatePath(`/passport/${token}`);
+  revalidatePath("/me");
+  return { ok: true };
+}
+
 export async function signIn(formData: FormData) {
   const email = normalizeEmail(String(formData.get("email") || ""));
   const password = String(formData.get("password") || "");
@@ -780,9 +822,21 @@ export async function register(formData: FormData) {
     const orgKind = ["BREEDER", "SHOP", "SHELTER"].includes(orgKindRaw)
       ? orgKindRaw
       : "BREEDER";
+    // Referral attribution: a new shop may arrive via another shop's link
+    // (?ref=CODE). Credit the referrer so they earn their yearly discount.
+    const refCode = String(formData.get("ref") || "").trim();
+    let referredById: string | null = null;
+    if (refCode) {
+      const referrer = await prisma.organization.findUnique({
+        where: { referralCode: refCode },
+        select: { id: true },
+      });
+      referredById = referrer?.id ?? null;
+    }
     const org = await prisma.organization.create({
-      data: { name: orgName, kind: orgKind },
+      data: { name: orgName, kind: orgKind, referredById },
     });
+    await ensureReferralCode(org.id);
     const user = await prisma.user.create({
       data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
     });
@@ -891,6 +945,8 @@ export async function startPlanCheckout(formData: FormData) {
   const scopeKind = String(formData.get("scope") || "");
   const planKey = String(formData.get("plan") || "");
   const provider = String(formData.get("provider") || "stripe") as Provider;
+  const intervalRaw = String(formData.get("interval") || "");
+  const interval = isBillingInterval(intervalRaw) ? intervalRaw : undefined;
 
   let scope: CheckoutScope;
   if (scopeKind === "org") {
@@ -905,7 +961,7 @@ export async function startPlanCheckout(formData: FormData) {
   }
 
   const baseUrl = await baseUrlFromHeaders();
-  const result = await startCheckout({ scope, planKey, provider, baseUrl });
+  const result = await startCheckout({ scope, planKey, provider, baseUrl, interval });
 
   if ("error" in result) return { error: result.error };
   if ("url" in result) return { url: result.url };

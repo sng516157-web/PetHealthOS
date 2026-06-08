@@ -6,11 +6,17 @@ import { getI18n } from "@/lib/i18n/server";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
 
-export default async function ShopLandingPage() {
+export default async function ShopLandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
   const user = await getCurrentUser();
   if (user) redirect(user.orgId ? "/app" : "/me");
   const { t } = await getI18n();
   const sh = t.landing.shop;
+  const { ref } = await searchParams;
+  const referralCode = ref?.trim() || undefined;
 
   const rows = [sh.diffPets, sh.diffPassport, sh.diffLineage, sh.diffPrice];
 
@@ -81,7 +87,11 @@ export default async function ShopLandingPage() {
               {sh.loginTitle}
             </span>
             <div className="mt-3">
-              <AuthCard accountType="shop" defaultTab="register" />
+              <AuthCard
+                accountType="shop"
+                defaultTab="register"
+                referralCode={referralCode}
+              />
             </div>
             <p className="mt-4 text-center text-xs text-muted">
               {t.landing.alreadyMember}{" "}

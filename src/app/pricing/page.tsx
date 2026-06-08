@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check, Star } from "lucide-react";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
-import { ORG_PLANS, USER_PLANS, type Plan } from "@/lib/plans";
+import { ORG_PLANS, USER_PLANS, SHOP_BILLING, type Plan } from "@/lib/plans";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/en";
@@ -46,17 +46,29 @@ export default async function PricingPage() {
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
             {t.pricing.forShops}
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {Object.values(ORG_PLANS).map((p) => (
-              <PlanCard
-                key={p.key}
-                plan={p}
-                t={t}
-                cta={{ href: "/app/billing", label: p.priceRmb > 0 ? t.pricing.choose : t.pricing.getStarted }}
-                highlight={p.key === "SHOP"}
-              />
-            ))}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <ShopBillingCard
+              t={t}
+              name={t.shopBilling.monthly}
+              price={t.pricing.rmb(SHOP_BILLING.month)}
+              cadence={t.pricing.perMonth.trim()}
+            />
+            <ShopBillingCard
+              t={t}
+              name={t.shopBilling.yearly}
+              price={t.pricing.rmb(SHOP_BILLING.year)}
+              cadence={t.shopBilling.perYear}
+              note={t.shopBilling.referralPitch}
+              highlight
+            />
+            <ShopBillingCard
+              t={t}
+              name={t.shopBilling.lifetime}
+              price={t.pricing.rmb(SHOP_BILLING.lifetime)}
+              cadence={t.shopBilling.once}
+            />
           </div>
+          <p className="mt-3 text-xs text-muted">{t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}</p>
         </section>
 
         <section className="mt-12">
@@ -76,6 +88,66 @@ export default async function PricingPage() {
           </div>
         </section>
       </main>
+    </div>
+  );
+}
+
+function ShopBillingCard({
+  t,
+  name,
+  price,
+  cadence,
+  note,
+  highlight,
+}: {
+  t: Dictionary;
+  name: string;
+  price: string;
+  cadence: string;
+  note?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`relative rounded-2xl border p-6 ${
+        highlight ? "border-brand-400 bg-brand-50/40 shadow-sm" : "border-border bg-surface"
+      }`}
+    >
+      {highlight && (
+        <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
+          <Star size={11} /> {t.pricing.mostPopular}
+        </span>
+      )}
+      <h3 className="text-base font-semibold text-foreground">{name}</h3>
+      <div className="mt-2 text-3xl font-bold text-foreground">
+        {price}
+        <span className="text-sm font-normal text-muted"> {cadence}</span>
+      </div>
+      {note && <p className="mt-2 text-xs text-brand-700">{note}</p>}
+      <ul className="mt-4 space-y-2 text-sm text-slate-600">
+        <li className="flex items-center gap-2">
+          <Check size={15} className="text-emerald-500" /> {t.shopBilling.featurePets}
+        </li>
+        <li className="flex items-center gap-2">
+          <Check size={15} className="text-emerald-500" /> {t.pricing.issuePassports}
+        </li>
+        <li className="flex items-center gap-2">
+          <Check size={15} className="text-emerald-500" /> {t.pricing.multiSeat}
+        </li>
+        <li className="flex items-center gap-2">
+          <Check size={15} className="text-emerald-500" /> {t.pricing.aiAssistant}
+        </li>
+      </ul>
+      <Link
+        href="/shop"
+        className={`mt-5 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+          highlight
+            ? "bg-brand-600 text-white hover:bg-brand-700"
+            : "border border-border text-slate-700 hover:border-brand-300"
+        }`}
+      >
+        {t.pricing.choose}
+      </Link>
     </div>
   );
 }

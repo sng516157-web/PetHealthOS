@@ -1,25 +1,20 @@
-import { getOrgUsage } from "@/lib/data";
-import { ORG_PLANS, type Plan } from "@/lib/plans";
-import { UpgradePanel, type PlanOption } from "@/components/UpgradePanel";
+import { getOrgUsage, getOrgReferral } from "@/lib/data";
+import {
+  SHOP_BILLING,
+  yearlyPriceRmb,
+  referralDiscountRate,
+} from "@/lib/plans";
+import { ShopBilling } from "@/components/ShopBilling";
 import { getI18n } from "@/lib/i18n/server";
-
-function toOption(p: Plan): PlanOption {
-  return {
-    key: p.key,
-    priceRmb: p.priceRmb,
-    includedPets: p.includedPets,
-    extraPetPriceRmb: p.extraPetPriceRmb,
-    issuePassports: p.canIssuePassport,
-    multiSeat: p.multiSeat,
-  };
-}
 
 export default async function OrgBillingPage() {
   const { t } = await getI18n();
-  const { plan, count, limit } = await getOrgUsage();
+  const { org, plan, count, limit } = await getOrgUsage();
+  const { code, referralCount } = await getOrgReferral();
   const planName = (t.plans as Record<string, string>)[plan.key] ?? plan.key;
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
   const atLimit = count >= limit;
+  const discountPct = Math.round(referralDiscountRate(referralCount) * 100);
 
   return (
     <div className="space-y-6">
@@ -45,10 +40,16 @@ export default async function OrgBillingPage() {
         )}
       </div>
 
-      <UpgradePanel
-        scope="org"
+      <ShopBilling
         currentPlan={plan.key}
-        plans={Object.values(ORG_PLANS).map(toOption)}
+        currentInterval={org.planInterval}
+        priceMonth={SHOP_BILLING.month}
+        priceYearFull={SHOP_BILLING.year}
+        priceYear={yearlyPriceRmb(referralCount)}
+        priceLifetime={SHOP_BILLING.lifetime}
+        discountPct={discountPct}
+        referralCode={code}
+        referralCount={referralCount}
       />
     </div>
   );

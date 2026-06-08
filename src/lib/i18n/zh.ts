@@ -290,6 +290,11 @@ export const zh: Dictionary = {
     accountNote: "这将创建你的免费账号并登录。微信 / 手机登录将在手机端推出。",
     confirm: "认领并创建账号",
     claiming: "认领中…",
+    addToAccount: (name: string) => `将 ${name} 添加到你的账户`,
+    addDesc: "你已登录，我们会把这只宠物加入你的账户并续写它的时间线。",
+    addCta: "添加到我的账户",
+    adding: "添加中…",
+    addError: "无法添加这只宠物，它可能已被认领。",
   },
   auth: {
     email: "邮箱",
@@ -309,6 +314,7 @@ export const zh: Dictionary = {
     tabRegister: "注册",
     tabPhone: "手机号",
     phoneSoon: "即将开放",
+    referredNote: "你由另一家商家邀请——你注册后，他们将获得推荐折扣。",
     name: "你的名字",
     namePlaceholder: "例如：李明",
     emailPlaceholder: "you@example.com",
@@ -364,6 +370,13 @@ export const zh: Dictionary = {
     addPetSubtitle: "为你已经拥有的宠物创建一份健康档案。",
     billing: "套餐与账单",
     planLabel: (plan: string) => `套餐：${plan}`,
+    scanTitle: "扫描护照",
+    scanDesc: "宠物来自宠诺上的繁育者或商家？扫描它的护照即可添加到这里。",
+    limitTitle: (limit: number) =>
+      limit === 1 ? "免费套餐包含 1 只宠物" : `你的套餐包含 ${limit} 只宠物`,
+    limitDesc: (price: number) =>
+      `你已用完免费名额。每多一只 ¥${price}/月——或扫描护照以继承额外的宠物。`,
+    limitUpgrade: "添加宠物名额",
   },
   notifications: {
     title: "通知",
@@ -519,6 +532,29 @@ export const zh: Dictionary = {
     slotCapReached: (cap: number) =>
       `主人账户最多 ${cap} 只宠物。如需更多，请使用商家账户。`,
   },
+  shopBilling: {
+    title: "商家套餐",
+    subtitle: "可按月付费、按年更省，或一次买断终身使用。",
+    monthly: "按月",
+    yearly: "按年",
+    lifetime: "终身",
+    perYear: "每年",
+    once: "一次性",
+    featurePets: "管理众多动物",
+    yearDiscount: (pct: number, full: number) =>
+      `推荐可省 ${pct}%（原价 ¥${full}）`,
+    referralPitch: "每推荐一家商家，年费立减 5%。",
+    starterNote: (n: number) =>
+      `新商家免费起步，最多 ${n} 只宠物——随时升级即可签发更多护照、添加成员。`,
+    activeInterval: (label: string) => `生效中 · ${label}`,
+    referralTitle: "推荐商家，年费立减",
+    referralDesc:
+      "分享你的链接。每有一家商家通过它注册，你的年费即立减 5%（最多 50%）。",
+    referralStatus: (count: number, pct: number) =>
+      count === 0
+        ? "还没有推荐——分享链接即可开始省钱。"
+        : `已有 ${count} 家商家加入 · 年费立减 ${pct}%。`,
+  },
   landing: {
     nav: { pricing: "价格", signIn: "登录", getStarted: "立即开始" },
     heroEyebrow: "让每一只宠物，都带着安心来到你身边",
@@ -558,7 +594,7 @@ export const zh: Dictionary = {
     chooseTitle: "你将如何使用宠诺？",
     chooseSubtitle: "选择适合你的账户。你随时都可以了解两者。",
     ownerCardTitle: "我是宠物主人",
-    ownerCardDesc: "把宠物一生的健康集中在一处——最多 2 只免费。可全新开始，也可扫描繁育者给你的护照。",
+    ownerCardDesc: "把宠物一生的健康集中在一处——第一只免费。可全新开始，也可扫描繁育者给你的护照。",
     ownerCardCta: "以主人身份继续",
     shopCardTitle: "我是繁育者、宠物店或救助机构",
     shopCardDesc: "管理众多动物，追踪血统与体重，并在宠物前往新家时签发可信的健康护照。",
@@ -571,10 +607,10 @@ export const zh: Dictionary = {
       eyebrow: "面向宠物主人",
       title: "宠物完整的健康故事，安放于一处。",
       subtitle:
-        "最多 2 只宠物免费。记录笔记与体重，获取提醒，并向真正了解宠物病史的 AI 提问。",
+        "第一只宠物免费。记录笔记与体重，获取提醒，并向真正了解宠物病史的 AI 提问。",
       whatTitle: "主人账户为你提供",
       bullets: [
-        "永久免费保存最多 2 只宠物的健康记录。",
+        "永久免费保存第一只宠物的健康记录。",
         "基于宠物自身日志的 AI 助手。",
         "疫苗、用药与体检提醒。",
         "若你从宠诺繁育者处领养，可继承完整历史。",
@@ -620,10 +656,10 @@ export const zh: Dictionary = {
       differenceTitle: "主人账户与商家账户——有何区别？",
       ownerCol: "主人账户",
       shopCol: "商家账户",
-      diffPets: { label: "宠物数量", owner: "2 只免费，最多 10 只", shop: "众多——按套餐" },
+      diffPets: { label: "宠物数量", owner: "1 只免费，最多 10 只", shop: "众多——按套餐" },
       diffPassport: { label: "签发护照", owner: "不可", shop: "可以（审核通过后）" },
       diffLineage: { label: "血统与窝", owner: "基础", shop: "支持" },
-      diffPrice: { label: "价格", owner: "免费 + 每多一只 ¥25/月", shop: "从月度套餐起" },
+      diffPrice: { label: "价格", owner: "免费 + 每多一只 ¥15/月", shop: "¥59/月 · ¥599/年 · ¥3888 买断" },
       seePricing: "查看商家价格",
       loginTitle: "商家登录 / 创建账户",
     },

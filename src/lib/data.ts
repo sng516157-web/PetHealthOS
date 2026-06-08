@@ -4,6 +4,7 @@ import type { Organization } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 import { getCurrentUser } from "./auth";
 import { getOrgPlan, getUserPlan, petLimit } from "./plans";
+import { ensureReferralCode, getReferralCount } from "./billing";
 
 // Unified auth: the "active org" is the logged-in shop user's organization.
 // A user with an org is a shop/breeder account (/app workspace); a user
@@ -179,4 +180,13 @@ export async function getUserUsage(userId: string) {
   const plan = getUserPlan(user.plan);
   const count = await prisma.pet.count({ where: { ownerUserId: userId } });
   return { user, plan, count, limit: petLimit(plan, user.extraPetSlots) };
+}
+
+// Referral summary for the active shop: its code (created on demand) + how many
+// shops it has referred so far. Used by the billing page's referral card.
+export async function getOrgReferral() {
+  const org = await requireActiveOrg();
+  const code = await ensureReferralCode(org.id);
+  const referralCount = await getReferralCount(org.id);
+  return { code, referralCount };
 }

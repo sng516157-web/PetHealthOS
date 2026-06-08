@@ -292,6 +292,11 @@ export const en = {
     accountNote: "This creates your free account and signs you in. WeChat / phone sign-in is coming on mobile.",
     confirm: "Claim & create account",
     claiming: "Claiming…",
+    addToAccount: (name: string) => `Add ${name} to your account`,
+    addDesc: "You're signed in, so we'll add this pet to your account and continue its timeline.",
+    addCta: "Add to my account",
+    adding: "Adding…",
+    addError: "Couldn't add this pet. It may already be claimed.",
   },
   auth: {
     email: "Email",
@@ -311,6 +316,7 @@ export const en = {
     tabRegister: "Register",
     tabPhone: "Phone",
     phoneSoon: "Soon",
+    referredNote: "You were invited by another shop — they'll earn a referral discount when you join.",
     name: "Your name",
     namePlaceholder: "e.g. Jordan Lee",
     emailPlaceholder: "you@example.com",
@@ -366,6 +372,13 @@ export const en = {
     addPetSubtitle: "Create a health record for a pet you already own.",
     billing: "Plan & billing",
     planLabel: (plan: string) => `Plan: ${plan}`,
+    scanTitle: "Scan a passport",
+    scanDesc: "Got a pet from a PawSure breeder or shop? Scan its passport to add it here.",
+    limitTitle: (limit: number) =>
+      limit === 1 ? "Your free plan includes 1 pet" : `Your plan includes ${limit} pets`,
+    limitDesc: (price: number) =>
+      `You've used your free pet. Add more for ¥${price}/mo each — or scan a passport to inherit an extra pet.`,
+    limitUpgrade: "Add a pet slot",
   },
   notifications: {
     title: "Notifications",
@@ -524,6 +537,29 @@ export const en = {
     slotCapReached: (cap: number) =>
       `You've reached the ${cap}-pet limit for owner accounts. For more, use a Shop account.`,
   },
+  shopBilling: {
+    title: "Shop plan",
+    subtitle: "Pay monthly, save with yearly, or buy once for life.",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    lifetime: "Lifetime",
+    perYear: "per year",
+    once: "one-time",
+    featurePets: "Manage many animals",
+    yearDiscount: (pct: number, full: number) =>
+      `${pct}% off with referrals (was ¥${full})`,
+    referralPitch: "Earn 5% off yearly for every shop you refer.",
+    starterNote: (n: number) =>
+      `New shops start free with up to ${n} pets — upgrade anytime to issue more passports and add seats.`,
+    activeInterval: (label: string) => `Active · ${label}`,
+    referralTitle: "Refer a shop, save on yearly",
+    referralDesc:
+      "Share your link. For every shop that registers through it, you get 5% off your yearly payment (up to 50%).",
+    referralStatus: (count: number, pct: number) =>
+      count === 0
+        ? "No referrals yet — share your link to start saving."
+        : `${count} shop${count === 1 ? "" : "s"} joined · ${pct}% off your yearly payment.`,
+  },
   landing: {
     // Header / shared
     nav: { pricing: "Pricing", signIn: "Sign in", getStarted: "Get started" },
@@ -568,7 +604,7 @@ export const en = {
     chooseTitle: "How will you use PawSure?",
     chooseSubtitle: "Pick the account that fits you. You can always explore both.",
     ownerCardTitle: "I'm a pet owner",
-    ownerCardDesc: "Keep your pet's lifelong health in one place — free for up to 2 pets. Start fresh, or scan a passport from your breeder.",
+    ownerCardDesc: "Keep your pet's lifelong health in one place — free for your first pet. Start fresh, or scan a passport from your breeder.",
     ownerCardCta: "Continue as owner",
     shopCardTitle: "I'm a breeder, shop or shelter",
     shopCardDesc: "Manage many animals, track lineage and weights, and issue trusted health passports when pets go to their new homes.",
@@ -584,10 +620,10 @@ export const en = {
       eyebrow: "For pet owners",
       title: "Your pet's whole health story, in one calm place.",
       subtitle:
-        "Free for up to 2 pets. Log notes and weights, get reminders, and ask an AI that actually knows your pet's history.",
+        "Free for your first pet. Log notes and weights, get reminders, and ask an AI that actually knows your pet's history.",
       whatTitle: "What an Owner's Account gives you",
       bullets: [
-        "Keep up to 2 pets' health records — free, forever.",
+        "Keep your first pet's health record — free, forever.",
         "An AI assistant grounded in your pet's own log.",
         "Reminders for vaccines, medication and check-ups.",
         "If you adopted from a PawSure breeder, inherit the full history.",
@@ -635,10 +671,10 @@ export const en = {
       differenceTitle: "Owner vs Shop — what's the difference?",
       ownerCol: "Owner's Account",
       shopCol: "Shop Account",
-    diffPets: { label: "Pets", owner: "2 free, up to 10", shop: "Many — plan based" },
+    diffPets: { label: "Pets", owner: "1 free, up to 10", shop: "Many — plan based" },
     diffPassport: { label: "Issue passports", owner: "No", shop: "Yes (once verified)" },
     diffLineage: { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
-    diffPrice: { label: "Price", owner: "Free + ¥25/mo per extra pet", shop: "From a monthly plan" },
+    diffPrice: { label: "Price", owner: "Free + ¥15/mo per extra pet", shop: "¥59/mo · ¥599/yr · ¥3888 lifetime" },
       seePricing: "See shop pricing",
       loginTitle: "Shop sign in / create account",
     },

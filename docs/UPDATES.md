@@ -9,6 +9,13 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — New pricing: shops & owners.** Shops can now pay **¥59/month**, **¥599/year**,
+  or **¥3888 once for life**, chosen on the billing page. Refer another shop with your link and
+  earn **5% off your yearly price per referral** (up to 50%). Owners now get **1 free pet** (was
+  2); extra pets are **¥15/month** each (was ¥25). Owners can **scan a passport from their
+  dashboard** to add an inherited pet, and adding a brand-new pet beyond the free limit now shows
+  a gentle upgrade prompt.
+
 - **2026-06-08 — Home page now explains the app in general.** The landing page speaks to
   everyone who cares for a pet rather than leaning toward shops/breeders; account-specific
   details (pedigree, certificates, "proof of good care", lineage) now live on the shop page,
