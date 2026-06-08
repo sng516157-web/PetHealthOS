@@ -33,7 +33,17 @@ const STATUS_TONE: Record<string, Tone> = {
   ARCHIVED: "slate",
 };
 
-export function PetsList({ pets }: { pets: PetItem[] }) {
+export function PetsList({
+  pets,
+  emptyTitle,
+  emptyDescription,
+  showAddAction = true,
+}: {
+  pets: PetItem[];
+  emptyTitle?: string;
+  emptyDescription?: string;
+  showAddAction?: boolean;
+}) {
   const { t } = useI18n();
   const [q, setQ] = useState("");
   const [species, setSpecies] = useState<"ALL" | "DOG" | "CAT">("ALL");
@@ -77,15 +87,17 @@ export function PetsList({ pets }: { pets: PetItem[] }) {
       {filtered.length === 0 ? (
         <div className="mt-6">
           <EmptyState
-            title={t.pets.noPetsFound}
-            description={q ? t.pets.tryDifferent : t.pets.addFirst}
+            title={emptyTitle ?? t.pets.noPetsFound}
+            description={q ? t.pets.tryDifferent : (emptyDescription ?? t.pets.addFirst)}
             action={
-              <Link
-                href="/app/pets/new"
-                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-              >
-                <Plus size={16} /> {t.common.addPet}
-              </Link>
+              showAddAction ? (
+                <Link
+                  href="/app/pets/new"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+                >
+                  <Plus size={16} /> {t.common.addPet}
+                </Link>
+              ) : undefined
             }
           />
         </div>

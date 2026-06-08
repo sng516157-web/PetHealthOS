@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PawPrint, BellRing, Activity, Plus, ArrowRight } from "lucide-react";
-import { getPetsWithStats, getUpcomingReminders, requireActiveOrg } from "@/lib/data";
+import { getActivePetsWithStats, getUpcomingReminders, requireActiveOrg } from "@/lib/data";
 import { Badge, Card, PetAvatar, SectionTitle, Tone } from "@/components/ui";
 import {
   LOG_TYPE_META,
@@ -16,7 +16,7 @@ export default async function Dashboard() {
   const [{ t }, org, pets, reminders] = await Promise.all([
     getI18n(),
     requireActiveOrg(),
-    getPetsWithStats(),
+    getActivePetsWithStats(),
     getUpcomingReminders(),
   ]);
 

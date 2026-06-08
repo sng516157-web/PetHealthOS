@@ -467,24 +467,20 @@ export async function createTransfer(petId: string, formData: FormData) {
   if (subject.org.verificationStatus !== "APPROVED") {
     return { error: "NOT_VERIFIED" };
   }
-  // A pet's passport can only be claimed once. Once a new owner has registered an
-  // account through a passport for this pet, the shop can't issue another one —
-  // the record now lives with that owner.
-  const claimed = await prisma.transfer.findFirst({
-    where: { petId, claimedAt: { not: null } },
-    select: { id: true },
+  // One passport per pet — ever. Once issued, the pet moves to the shop's
+  // archived list and no second passport can be created.
+  const existing = await prisma.transfer.findFirst({
+    where: { petId },
+    select: { id: true, claimedAt: true },
   });
-  if (claimed) return { error: "ALREADY_CLAIMED" };
+  if (existing) {
+    return { error: existing.claimedAt ? "ALREADY_CLAIMED" : "ALREADY_ISSUED" };
+  }
+  if (subject.status === "TRANSFERRED" || subject.status === "ARCHIVED") {
+    return { error: "ALREADY_ISSUED" };
+  }
 
   const token = randomBytes(8).toString("hex");
-  const newOwnerNameRaw = String(formData.get("newOwnerName") || "").trim();
-  if (newOwnerNameRaw.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
-  const newOwnerName = newOwnerNameRaw || null;
-
-  const newOwnerEmailRaw = String(formData.get("newOwnerEmail") || "").trim();
-  if (newOwnerEmailRaw && !isValidEmail(newOwnerEmailRaw)) {
-    return { error: VErr.EMAIL_INVALID };
-  }
   const note = String(formData.get("note") || "").trim();
   if (note.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
 
@@ -523,8 +519,8 @@ export async function createTransfer(petId: string, formData: FormData) {
     data: {
       petId,
       token,
-      newOwnerName,
-      newOwnerEmail: newOwnerEmailRaw || null,
+      newOwnerName: null,
+      newOwnerEmail: null,
       note: note || null,
       visibility,
       claimable,
@@ -549,9 +545,7 @@ export async function createTransfer(petId: string, formData: FormData) {
     data: {
       petId,
       occurredAt: new Date(),
-      rawText: newOwnerName
-        ? `Went to a new home with ${newOwnerName}. 🎉`
-        : `Went to a new home. 🎉`,
+      rawText: "Went to a new home. 🎉",
       type: "MILESTONE",
       severity: "NONE",
       title: "🏡 Homecoming day",
@@ -568,6 +562,8 @@ export async function createTransfer(petId: string, formData: FormData) {
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath(`/app/pets/${petId}/transfer`);
+  revalidatePath("/app/pets");
+  revalidatePath("/app");
   return { token };
 }
 
@@ -581,10 +577,11 @@ export async function claimPassport(token: string, formData: FormData) {
     return { error: "This passport hasn't been made claimable by the breeder." };
   if (transfer.claimedAt) return { error: "This passport is already claimed." };
 
-  const name =
-    String(formData.get("claimedByName") || "").trim() ||
-    transfer.newOwnerName ||
-    "New owner";
+  const nameRaw = String(formData.get("claimedByName") || "").trim();
+  const nameErr = validateRequiredName(nameRaw);
+  if (nameErr) return { error: nameErr };
+  const name = nameRaw;
+
   const email = normalizeEmail(String(formData.get("email") || ""));
   const password = String(formData.get("password") || "");
 
@@ -613,7 +610,7 @@ export async function claimPassport(token: string, formData: FormData) {
   // breeder's org as their read-only copy.
   const pet = await prisma.pet.update({
     where: { id: transfer.petId },
-    data: { ownerUserId: user.id },
+    data: { ownerUserId: user.id, status: "ARCHIVED" },
     include: { org: true },
   });
 
@@ -632,6 +629,10 @@ export async function claimPassport(token: string, formData: FormData) {
   // session (kicking any other device this owner had).
   await setSession(user.id, { single: true });
   revalidatePath(`/passport/${token}`);
+  revalidatePath(`/app/pets/${transfer.petId}`);
+  revalidatePath(`/app/pets/${transfer.petId}/transfer`);
+  revalidatePath("/app/pets");
+  revalidatePath("/app");
   return { ok: true, claimedByName: name };
 }
 

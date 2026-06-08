@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Link2, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Link2, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card, Badge } from "@/components/ui";
 import { TransferForm } from "@/components/TransferForm";
@@ -19,9 +19,9 @@ export default async function TransferPage({
   });
   if (!pet) notFound();
 
-  // A passport can only be claimed once. If a new owner has already registered an
-  // account through this pet's passport, the shop can't issue another one.
-  const claimedTransfer = pet.transfers.find((tr) => tr.claimedAt);
+  const transfer = pet.transfers[0] ?? null;
+  const claimedTransfer = transfer?.claimedAt ? transfer : null;
+  const pendingTransfer = transfer && !transfer.claimedAt ? transfer : null;
 
   return (
     <div className="space-y-6">
@@ -42,10 +42,26 @@ export default async function TransferPage({
             <p className="font-semibold">{t.transferPage.alreadyClaimedTitle}</p>
             <p className="mt-0.5 text-emerald-800">
               {t.transferPage.alreadyClaimedDesc(
-                claimedTransfer.claimedByName || t.transferPage.unnamed,
+                claimedTransfer.claimedByName || t.transferPage.unnamedOwner,
                 formatDate(claimedTransfer.claimedAt as Date),
               )}
             </p>
+          </div>
+        </div>
+      ) : pendingTransfer ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <Clock size={20} className="mt-0.5 shrink-0 text-amber-600" />
+          <div>
+            <p className="font-semibold">{t.transferPage.awaitingClaimTitle}</p>
+            <p className="mt-0.5 text-amber-800">{t.transferPage.awaitingClaimDesc}</p>
+            <a
+              href={`/passport/${pendingTransfer.token}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-sm font-medium text-brand-600 hover:underline"
+            >
+              /passport/{pendingTransfer.token}
+            </a>
           </div>
         </div>
       ) : (
@@ -59,32 +75,32 @@ export default async function TransferPage({
         </>
       )}
 
-      {pet.transfers.length > 0 && (
+      {transfer && (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-foreground">{t.transferPage.issued}</h3>
           <Card className="divide-y divide-border">
-            {pet.transfers.map((tr) => (
-              <div key={tr.id} className="flex items-center gap-3 p-3.5">
-                <Link2 size={16} className="shrink-0 text-slate-400" />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-foreground">
-                    {tr.newOwnerName || t.transferPage.unnamed}
-                    {tr.newOwnerEmail ? ` · ${tr.newOwnerEmail}` : ""}
-                  </div>
-                  <a
-                    href={`/passport/${tr.token}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="truncate text-xs text-brand-600 hover:underline"
-                  >
-                    /passport/{tr.token}
-                  </a>
+            <div className="flex items-center gap-3 p-3.5">
+              <Link2 size={16} className="shrink-0 text-slate-400" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-foreground">
+                  {transfer.claimedByName
+                    ? t.transferPage.claimedBy(transfer.claimedByName)
+                    : t.transferPage.awaitingOwner}
                 </div>
-                <Badge tone={tr.claimedAt ? "emerald" : "slate"}>
-                  {tr.claimedAt ? t.transferPage.claimed : t.transferPage.issuedBadge} · {formatDate(tr.createdAt)}
-                </Badge>
+                <a
+                  href={`/passport/${transfer.token}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="truncate text-xs text-brand-600 hover:underline"
+                >
+                  /passport/{transfer.token}
+                </a>
               </div>
-            ))}
+              <Badge tone={transfer.claimedAt ? "emerald" : "amber"}>
+                {transfer.claimedAt ? t.transferPage.claimed : t.transferPage.issuedBadge} ·{" "}
+                {formatDate(transfer.createdAt)}
+              </Badge>
+            </div>
           </Card>
         </div>
       )}

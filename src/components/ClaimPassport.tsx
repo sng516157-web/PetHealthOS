@@ -17,11 +17,9 @@ import {
 export function ClaimPassport({
   token,
   petName,
-  defaultName,
 }: {
   token: string;
   petName: string;
-  defaultName?: string | null;
 }) {
   const router = useRouter();
   const { t } = useI18n();
@@ -91,7 +89,6 @@ export function ClaimPassport({
           </label>
           <input
             name="claimedByName"
-            defaultValue={defaultName ?? ""}
             placeholder={t.claim.yourNamePlaceholder}
             className="w-full rounded-xl border border-brand-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />

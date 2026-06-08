@@ -188,9 +188,7 @@ export default async function PassportPage({
         <div className="mb-6 overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-brand-100/50 p-6 text-center">
           <div className="text-3xl">🎉</div>
           <h2 className="mt-2 text-lg font-semibold text-brand-900">
-            {transfer.newOwnerName
-              ? t.passport.welcome(transfer.newOwnerName)
-              : t.passport.welcomeNoName}
+            {t.passport.welcomeNoName}
           </h2>
           <p className="mt-1 text-sm text-brand-800">
             {t.passport.travels(pet.name)}
@@ -276,15 +274,11 @@ export default async function PassportPage({
           {transfer.claimedAt ? (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
               <CheckCircle2 size={16} />
-              {t.passport.claimedBy(transfer.claimedByName ?? t.transferPage.unnamed)} ·{" "}
+              {t.passport.claimedBy(transfer.claimedByName ?? t.transferPage.unnamedOwner)} ·{" "}
               {formatDate(transfer.claimedAt)}
             </div>
           ) : transfer.claimable ? (
-            <ClaimPassport
-              token={transfer.token}
-              petName={pet.name}
-              defaultName={transfer.newOwnerName}
-            />
+            <ClaimPassport token={transfer.token} petName={pet.name} />
           ) : (
             <p className="rounded-2xl border border-border bg-surface p-4 text-center text-xs text-muted">
               {t.passport.viewOnly(orgName)}

@@ -9,6 +9,12 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Simpler passport handover.** Shops no longer enter the new owner's name or
+  email when issuing a passport — the owner registers (name, email, password) only when they
+  scan the QR code. Only one passport can be issued per pet; transferred pets move to an
+  **Archived** tab in the shop's pet list (awaiting claim = Transferred, fully handed off =
+  Archived).
+
 - **2026-06-05 — China access: proxy domain support.** The app can now run behind a Hong
   Kong reverse proxy on a custom domain so it's reachable from mainland China without a VPN.
   Server Actions accept the proxy domain (`serverActions.allowedOrigins` in `next.config.ts`,

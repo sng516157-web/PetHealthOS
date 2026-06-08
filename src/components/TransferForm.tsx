@@ -10,7 +10,6 @@ import { GUARANTEE_TYPES, type GuaranteeType } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
 import { FieldError } from "@/components/FieldError";
 import {
-  isValidEmail,
   validatePositiveInt,
   validatePastOrToday,
   validationMessage,
@@ -35,7 +34,6 @@ export function TransferForm({ petId }: { petId: string }) {
   const [guaranteeType, setGuaranteeType] = useState<GuaranteeType>("D30");
   const [vetChecked, setVetChecked] = useState(false);
   const [fieldErr, setFieldErr] = useState<{
-    newOwnerEmail?: string | null;
     guaranteeDays?: string | null;
     vetCheckedAt?: string | null;
   }>({});
@@ -56,9 +54,7 @@ export function TransferForm({ petId }: { petId: string }) {
 
   function submit(formData: FormData) {
     setError(null);
-    const email = String(formData.get("newOwnerEmail") || "").trim();
     const fe = {
-      newOwnerEmail: email && !isValidEmail(email) ? VErr.EMAIL_INVALID : null,
       guaranteeDays:
         guaranteeType === "CUSTOM"
           ? validatePositiveInt(
@@ -72,7 +68,7 @@ export function TransferForm({ petId }: { petId: string }) {
         : null,
     };
     setFieldErr(fe);
-    if (fe.newOwnerEmail || fe.guaranteeDays || fe.vetCheckedAt) return;
+    if (fe.guaranteeDays || fe.vetCheckedAt) return;
     startTransition(async () => {
       const res = await createTransfer(petId, formData);
       if (res?.token) {
@@ -86,7 +82,9 @@ export function TransferForm({ petId }: { petId: string }) {
               ? t.transferForm.notVerified
               : res.error === "ALREADY_CLAIMED"
                 ? t.transferForm.alreadyClaimed
-                : validationMessage(
+                : res.error === "ALREADY_ISSUED"
+                  ? t.transferForm.alreadyIssued
+                  : validationMessage(
                     t.validation as unknown as Record<string, string>,
                     res.error,
                     res.error,
@@ -152,17 +150,9 @@ export function TransferForm({ petId }: { petId: string }) {
   return (
     <Card className="p-5">
       <form action={submit} noValidate className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>{t.transferForm.newOwnerName}</label>
-            <input name="newOwnerName" className={inputCls} placeholder={t.transferForm.newOwnerNamePlaceholder} />
-          </div>
-          <div>
-            <label className={labelCls}>{t.transferForm.newOwnerEmail}</label>
-            <input name="newOwnerEmail" type="email" className={inputCls} placeholder="owner@email.com" />
-            <FieldError code={fieldErr.newOwnerEmail} />
-          </div>
-        </div>
+        <p className="rounded-xl border border-brand-100 bg-brand-50/50 px-3 py-2.5 text-sm text-brand-900">
+          {t.transferForm.ownerRegistersOnScan}
+        </p>
         <div>
           <label className={labelCls}>{t.transferForm.note}</label>
           <textarea name="note" rows={2} className={inputCls} placeholder={t.transferForm.notePlaceholder} />

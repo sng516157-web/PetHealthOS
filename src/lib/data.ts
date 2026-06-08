@@ -25,17 +25,35 @@ export async function requireActiveOrg(): Promise<Organization> {
   return org;
 }
 
-export async function getPetsWithStats() {
+const petStatsInclude = {
+  logs: { orderBy: { occurredAt: "desc" as const }, take: 1 },
+  _count: { select: { logs: true } },
+};
+
+// Pets the shop is actively caring for (not yet transferred/archived).
+export async function getActivePetsWithStats() {
   const org = await requireActiveOrg();
-  const pets = await prisma.pet.findMany({
-    where: { orgId: org.id },
-    orderBy: { updatedAt: "desc" },
-    include: {
-      logs: { orderBy: { occurredAt: "desc" }, take: 1 },
-      _count: { select: { logs: true } },
+  return prisma.pet.findMany({
+    where: {
+      orgId: org.id,
+      status: { in: ["ACTIVE", "UNDER_OBSERVATION"] },
     },
+    orderBy: { updatedAt: "desc" },
+    include: petStatsInclude,
   });
-  return pets;
+}
+
+// Pets that have been transferred (passport issued) or fully handed off (claimed).
+export async function getArchivedPetsWithStats() {
+  const org = await requireActiveOrg();
+  return prisma.pet.findMany({
+    where: {
+      orgId: org.id,
+      status: { in: ["TRANSFERRED", "ARCHIVED"] },
+    },
+    orderBy: { updatedAt: "desc" },
+    include: petStatsInclude,
+  });
 }
 
 export async function getPet(id: string) {

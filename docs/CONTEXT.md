@@ -109,11 +109,15 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 ## 4. Key flows
 
-- **Transfer / passport:** breeder calls `createTransfer` → freezes pre-transfer
-  history (`lockedAt`), adds a "🏡 Homecoming day" milestone, marks pet
-  `TRANSFERRED`, returns a token → public `/passport/[token]`.
-- **Claim:** if the breeder enabled it, a buyer claims the passport (`claimPassport`),
-  which creates/signs into an Owner's Account and sets `ownerUserId`.
+- **Transfer / passport:** breeder calls `createTransfer` (no owner name/email — the
+  shop only configures guarantee, visibility, and claimability) → freezes pre-transfer
+  history (`lockedAt`), adds a "🏡 Homecoming day" milestone, marks pet `TRANSFERRED`
+  (moves to the shop's **Archived** list), returns a token → public `/passport/[token]`.
+  **One passport per pet** — a second `createTransfer` is rejected (`ALREADY_ISSUED`).
+- **Claim:** if the breeder enabled it, the new owner scans the QR and registers
+  (`claimPassport`: name, email, password — the only place owner credentials are
+  collected) → creates/signs into an Owner's Account, sets `ownerUserId`, marks pet
+  `ARCHIVED`.
 - **Owner self-signup:** from `/` → `/owner`, "start fresh" → `register` (owner) → `/me`;
   or "scan a passport QR" (`PassportScanner`: camera via `html5-qrcode` + paste-link
   fallback) → `/passport/[token]` claim.
@@ -208,6 +212,21 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Transfer flow: owner registers only on scan; one passport per pet;
+  archived list.** Why (user request): entering the new owner's name/email/password twice
+  (shop form + claim) was redundant and confusing; shops should only issue the passport,
+  and the owner creates their account when they scan the QR. Also: once a passport is
+  issued the shop must not be able to issue another, and transferred pets should leave the
+  active list. **Changes:**
+  - Removed `newOwnerName` / `newOwnerEmail` from `TransferForm`; shop form explains that
+    the owner registers on scan. `claimPassport` requires `claimedByName` (no shop prefill).
+  - `createTransfer` blocks if **any** `Transfer` exists for the pet (`ALREADY_ISSUED`) or
+    status is `TRANSFERRED`/`ARCHIVED` — supersedes the 2026-06-03 rule that allowed
+    re-issuing unclaimed passports.
+  - On issue: `status = TRANSFERRED` → shop **Archived** tab (`getArchivedPetsWithStats`).
+    On claim: `status = ARCHIVED`. Dashboard + active pets list use `getActivePetsWithStats`
+    (`ACTIVE` / `UNDER_OBSERVATION` only). Transfer tab shows "awaiting claim" when issued
+    but not yet claimed.
 - **2026-06-05** — **China access via HK reverse proxy (app-side wiring).** Why
   (user request): be reachable from mainland China without a VPN. The GFW
   interferes with `*.vercel.app` and `*.blob.vercel-storage.com`, so a Hong Kong
