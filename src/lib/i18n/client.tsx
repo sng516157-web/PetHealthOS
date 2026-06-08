@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { Locale } from "./config";
+import { DEFAULT_LOCALE, Locale } from "./config";
 import { en, type Dictionary } from "./en";
 import { zh } from "./zh";
 
@@ -9,7 +9,10 @@ const DICTS: Record<Locale, Dictionary> = { en, zh };
 
 type I18nValue = { locale: Locale; t: Dictionary };
 
-const I18nContext = createContext<I18nValue>({ locale: "en", t: en });
+const I18nContext = createContext<I18nValue>({
+  locale: DEFAULT_LOCALE,
+  t: DICTS[DEFAULT_LOCALE],
+});
 
 export function I18nProvider({
   locale,

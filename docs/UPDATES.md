@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-08 — Chinese is now the default language.** New visitors see the app in
+  简体中文 first; switch to English anytime with the language toggle.
+
 - **2026-06-08 — Intake date when adding a pet.** You can now record when a pet entered your
   care (intake date / 入舍日期). Birth date and intake date are a pair — fill one or both,
   but at least one is required.

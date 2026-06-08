@@ -42,6 +42,8 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
 - **Uploads:** Vercel Blob in prod, local filesystem fallback in dev (`saveUpload`).
 - **i18n:** `en`/`zh` dictionaries in `src/lib/i18n/` (`en.ts` is the source of
   truth; `zh.ts` must mirror its shape — enforced by the `Dictionary` type).
+  Default locale is **zh** (`DEFAULT_LOCALE` in `src/lib/i18n/config.ts`); users
+  who pick English get a `locale` cookie that persists.
 - **Auth:** **unified** — one `User` account system (scrypt email+password and/or
   phone OTP, signed cookies; `src/lib/auth.ts`). A `User` with `orgId` set is a
   **shop** account (manages an `Organization`); a `User` without `orgId` is an
@@ -212,6 +214,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-08** — **Default UI language is Chinese.** Why (user request): China-first
+  product. `DEFAULT_LOCALE` → `zh` in `src/lib/i18n/config.ts`; first visit (no
+  `locale` cookie) renders 简体中文. English still available via the language toggle.
 - **2026-06-08** — **Intake date on pet create; birth OR intake required.** Why (user
   request): shops need to record when a pet entered their care, and shouldn't be forced to
   know birth date if unknown. **Changes:** `Pet.intakeAt` is now user-set on create

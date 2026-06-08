@@ -3,7 +3,7 @@ import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import { LOG_TYPES, SEVERITY, URGENCY } from "./constants";
 import { petAge } from "./format";
-import type { Locale } from "./i18n/config";
+import { DEFAULT_LOCALE, type Locale } from "./i18n/config";
 
 // Instruction appended to every AI prompt so the model replies in the user's UI language.
 export function languageInstruction(locale: Locale): string {
@@ -108,7 +108,7 @@ export type LogImage = { data: Uint8Array; mediaType: string };
 export async function structureLogEntry(
   rawText: string,
   pet: PetLike,
-  locale: Locale = "en",
+  locale: Locale = DEFAULT_LOCALE,
   image?: LogImage,
 ): Promise<StructuredLogResult> {
   if (!hasAI()) return heuristicStructure(rawText || "Photo log");
@@ -199,7 +199,7 @@ export async function summarizeHealthWatch(opts: {
   recentLogs: LogLike[];
   locale?: Locale;
 }): Promise<string | null> {
-  const { pet, signals, recentLogs, locale = "en" } = opts;
+  const { pet, signals, recentLogs, locale = DEFAULT_LOCALE } = opts;
   if (!hasAI() || signals.length === 0) return null;
   try {
     const { text } = await generateText({
@@ -242,7 +242,7 @@ export type TriageResult = z.infer<typeof TriageSchema>;
 export async function generateTriage(
   pet: PetLike,
   logs: LogLike[],
-  locale: Locale = "en",
+  locale: Locale = DEFAULT_LOCALE,
 ): Promise<TriageResult> {
   if (!hasAI()) return heuristicTriage(pet, logs, locale);
   try {
@@ -261,7 +261,11 @@ export async function generateTriage(
   }
 }
 
-function heuristicTriage(pet: PetLike, logs: LogLike[], locale: Locale = "en"): TriageResult {
+function heuristicTriage(
+  pet: PetLike,
+  logs: LogLike[],
+  locale: Locale = DEFAULT_LOCALE,
+): TriageResult {
   const recent = logs
     .filter((l) => l.occurredAt.getTime() > Date.now() - 1000 * 60 * 60 * 24 * 14)
     .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
