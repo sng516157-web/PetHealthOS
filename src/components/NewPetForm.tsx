@@ -20,7 +20,9 @@ import {
 const TODAY = new Date().toISOString().slice(0, 10);
 
 const inputCls =
-  "w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
+  "box-border min-w-0 w-full max-w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
+const fileCls =
+  "box-border block min-w-0 w-full max-w-full overflow-hidden text-xs text-slate-500 file:mr-2 file:shrink-0 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-brand-700";
 const labelCls = "block text-xs font-medium text-muted mb-1.5";
 
 export type ParentOption = {
@@ -98,9 +100,9 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
   }
 
   return (
-    <Card className="p-6">
-      <form action={onSubmit} noValidate className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
+    <Card className="min-w-0 overflow-hidden p-4 sm:p-6">
+      <form action={onSubmit} noValidate className="min-w-0 space-y-5">
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 [&>*]:min-w-0">
           <div className="sm:col-span-2">
             <label className={labelCls}>{t.newPet.name} *</label>
             <input name="name" className={inputCls} placeholder={t.newPet.namePlaceholder} />
@@ -141,7 +143,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
           </div>
           <div className="sm:col-span-2">
             <p className="mb-2 text-xs text-muted">{t.newPet.datesHint}</p>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 [&>*]:min-w-0">
               <div>
                 <label className={labelCls}>{t.newPet.birthDate}</label>
                 <input name="birthDate" type="date" max={TODAY} className={inputCls} />
@@ -166,7 +168,7 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
               name="photo"
               type="file"
               accept="image/*"
-              className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-brand-700"
+              className={fileCls}
             />
             <FieldError code={fieldErr.photo} />
           </div>
@@ -224,18 +226,18 @@ export function NewPetForm({ parents }: { parents: ParentOption[] }) {
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            className="w-full rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 sm:w-auto"
           >
             {t.common.cancel}
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-60"
+            className="w-full rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
           >
             {pending ? t.newPet.adding : t.common.addPet}
           </button>

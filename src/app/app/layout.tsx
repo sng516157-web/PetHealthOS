@@ -33,7 +33,7 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} unread={unread} />
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
         {/* Mobile-only top bar: the sidebar (with sign-out) is hidden on mobile. */}
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-surface/95 px-5 py-3 backdrop-blur md:hidden">
           <Link href="/app" className="flex min-w-0 items-center gap-2">

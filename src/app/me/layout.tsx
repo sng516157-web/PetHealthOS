@@ -45,7 +45,9 @@ export default async function MeLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-5 py-8 md:px-8">{children}</main>
+      <main className="mx-auto min-w-0 max-w-3xl overflow-x-hidden px-5 py-8 md:px-8">
+        {children}
+      </main>
     </div>
   );
 }
