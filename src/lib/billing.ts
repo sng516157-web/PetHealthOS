@@ -6,6 +6,7 @@ import {
   maxExtraSlots,
   shopPriceRmb,
   isBillingInterval,
+  FACILITY_EXTRA_SLOT_PRICE_RMB,
   type BillingInterval,
   type Plan,
 } from "./plans";
@@ -257,6 +258,42 @@ export async function buyOwnerPetSlot(opts: {
   return { error: "UNKNOWN_PROVIDER" };
 }
 
+// Buy one extra facility "care slot" (¥15/mo). Demo-grants the slot when no
+// provider is configured; otherwise routes through Stripe and the slot is
+// granted on return. The slot persists (org.extraPetSlots) until cancelled.
+export async function buyFacilitySlot(opts: {
+  orgId: string;
+  baseUrl: string;
+  provider: Provider;
+}): Promise<CheckoutResult> {
+  const { orgId, baseUrl, provider } = opts;
+
+  if (!anyProviderConfigured()) {
+    await prisma.organization.update({
+      where: { id: orgId },
+      data: { extraPetSlots: { increment: 1 } },
+    });
+    return { activated: true, demo: true };
+  }
+
+  if (provider === "stripe" || provider === "wechat" || provider === "alipay") {
+    if (stripeConfigured()) {
+      return createStripeCheckout({
+        provider,
+        amountRmb: FACILITY_EXTRA_SLOT_PRICE_RMB,
+        productName: "PawSure — facility care slot",
+        metadata: { scopeKind: "org_slot", scopeId: orgId },
+        baseUrl,
+        interval: "month",
+      });
+    }
+    if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
+    if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
+    return { error: "PROVIDER_NOT_IMPLEMENTED" };
+  }
+  return { error: "UNKNOWN_PROVIDER" };
+}
+
 // Confirm a returning Stripe Checkout session and apply what it paid for —
 // either a plan upgrade or a single extra pet slot.
 export async function finalizeStripeSession(
@@ -264,7 +301,7 @@ export async function finalizeStripeSession(
 ): Promise<{
   ok: boolean;
   planKey?: string;
-  scopeKind?: "org" | "user" | "user_slot";
+  scopeKind?: "org" | "user" | "user_slot" | "org_slot";
 }> {
   if (!stripeConfigured()) return { ok: false };
   const { default: Stripe } = await import("stripe");
@@ -282,6 +319,14 @@ export async function finalizeStripeSession(
       data: { extraPetSlots: { increment: 1 } },
     });
     return { ok: true, scopeKind: "user_slot" };
+  }
+
+  if (md.scopeKind === "org_slot") {
+    await prisma.organization.update({
+      where: { id: md.scopeId },
+      data: { extraPetSlots: { increment: 1 } },
+    });
+    return { ok: true, scopeKind: "org_slot" };
   }
 
   if (!md.planKey) return { ok: false };

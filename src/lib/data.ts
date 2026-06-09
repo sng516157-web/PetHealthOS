@@ -3,7 +3,13 @@ import { redirect } from "next/navigation";
 import type { Organization } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 import { getCurrentUser } from "./auth";
-import { getOrgPlan, getUserPlan, petLimit } from "./plans";
+import {
+  getOrgPlan,
+  getUserPlan,
+  petLimit,
+  facilityCapacity,
+  FACILITY_BASE_CAPACITY,
+} from "./plans";
 import { ensureReferralCode, getReferralCount } from "./billing";
 import { isFacilityKind } from "./constants";
 
@@ -86,6 +92,22 @@ export async function getFacilityPets(status: "ACTIVE" | "ARCHIVED") {
 export async function getFacilityActiveCount() {
   const org = await requireActiveOrg();
   return prisma.petStay.count({ where: { orgId: org.id, status: "ACTIVE" } });
+}
+
+// Care capacity: base + purchased extra slots, and how many are in use now.
+export async function getFacilityCapacity() {
+  const org = await requireActiveOrg();
+  const inCare = await prisma.petStay.count({
+    where: { orgId: org.id, status: "ACTIVE" },
+  });
+  const extra = Math.max(0, org.extraPetSlots);
+  return {
+    org,
+    inCare,
+    base: FACILITY_BASE_CAPACITY,
+    extra,
+    limit: facilityCapacity(org.extraPetSlots),
+  };
 }
 
 export async function getFacilityStay(petId: string) {

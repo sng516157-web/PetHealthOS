@@ -790,9 +790,15 @@ export const zh: Dictionary = {
     statusActive: "照护中",
     statusArchived: "已离店",
     planTitle: "机构套餐",
-    planSubtitle: "可按月付费，按年更省。照护宠物数量不限。",
+    planSubtitle: "可按月付费，按年更省。",
     inCareNow: (n: number) => `当前照护中 ${n} 只宠物`,
-    billingUsageNote: "机构按套餐计费——照护中的宠物数量没有上限。",
+    slotsTitle: "照护名额",
+    slotsDesc: (base: number, price: number) =>
+      `最多可同时照护 ${base} 只宠物。每增加一个名额 ¥${price}/月，只要持续付费名额就一直保留——即使暂时空置。`,
+    slotsStatus: (inCare: number, limit: number) => `照护中 ${inCare} / ${limit}`,
+    addSlot: (price: number) => `新增照护名额（¥${price}/月）`,
+    slotAdded: "已新增照护名额（演示模式——尚未配置支付渠道）。",
+    capacityReached: "已达照护上限。请在「套餐与账单」中新增照护名额以接收更多宠物。",
     readonlyNotice:
       "该宠物已被主人接回——你正在查看离店时的只读快照。下次到店时再次扫码即可恢复。",
   },

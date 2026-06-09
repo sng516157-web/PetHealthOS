@@ -804,9 +804,15 @@ export const en = {
     statusActive: "In care",
     statusArchived: "Released",
     planTitle: "Facility plan",
-    planSubtitle: "Pay monthly, or save with yearly. Unlimited pets in your care.",
+    planSubtitle: "Pay monthly, or save with yearly.",
     inCareNow: (n: number) => `${n} ${n === 1 ? "pet" : "pets"} currently in your care`,
-    billingUsageNote: "Facilities are billed by plan — no per-pet limit on pets in your care.",
+    slotsTitle: "Care slots",
+    slotsDesc: (base: number, price: number) =>
+      `Care for up to ${base} pets at once. Each extra slot is ¥${price}/mo and stays yours as long as you keep it — even when it's empty.`,
+    slotsStatus: (inCare: number, limit: number) => `${inCare} of ${limit} in care`,
+    addSlot: (price: number) => `Add a care slot (¥${price}/mo)`,
+    slotAdded: "Care slot added (demo mode — no payment provider configured yet).",
+    capacityReached: "You've reached your care capacity. Add a care slot in Plan & billing to admit more pets.",
     readonlyNotice:
       "This pet has been taken back by the owner — you're viewing a read-only snapshot from when it left your care. Scan the QR again on the next visit to resume.",
   },

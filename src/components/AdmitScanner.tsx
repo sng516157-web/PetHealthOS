@@ -46,7 +46,11 @@ export function AdmitScanner() {
     startTransition(async () => {
       const res = await admitPetByToken(token);
       if (res?.error) {
-        setError(t.facility.admitInvalid);
+        setError(
+          res.error === "CAPACITY_REACHED"
+            ? t.facility.capacityReached
+            : t.facility.admitInvalid,
+        );
         handled.current = false;
         return;
       }

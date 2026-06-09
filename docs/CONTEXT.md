@@ -214,6 +214,17 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Facility care-slot capacity (20 base + ¥15/mo slots).** Why (user request):
+  cap concurrent pets-in-care and monetise overage. `FACILITY_BASE_CAPACITY = 20`,
+  `FACILITY_EXTRA_SLOT_PRICE_RMB = 15`, `facilityCapacity(extra) = 20 + extraSlots` (no hard cap;
+  `plans.ts`). Extra slots are stored in `Organization.extraPetSlots` and **persist while paid even
+  when unoccupied**. `admitPetByToken` counts ACTIVE stays and returns `CAPACITY_REACHED` when a
+  new/re-admitted pet would exceed the limit (re-confirming an already-active stay is free).
+  `addFacilitySlot` → `buyFacilitySlot` (`billing.ts`) increments `extraPetSlots` — demo-grant now,
+  Stripe path ready via metadata `scopeKind: "org_slot"` (handled in `finalizeStripeSession`).
+  UI: `FacilitySlots` panel on `/app/billing` (capacity bar + buy), `AdmitScanner` surfaces the
+  capacity error. Real Stripe billing for facilities is deferred (user will wire it). i18n
+  `facility.slots*`/`capacityReached`.
 - **2026-06-09** — **Third account type: facility (vet clinic / boarding).** Why (user request):
   serve businesses where pets come and go and "post-service" disputes are the real pressure.
   **Model:** `Organization.kind` adds `HOSPITAL`|`BOARDING` (`isFacilityKind` in `constants.ts`,

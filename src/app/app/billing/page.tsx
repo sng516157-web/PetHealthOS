@@ -2,14 +2,16 @@ import {
   getOrgUsage,
   getOrgReferral,
   isFacilityOrg,
-  getFacilityActiveCount,
+  getFacilityCapacity,
 } from "@/lib/data";
 import {
   SHOP_BILLING,
   yearlyPriceRmb,
   referralDiscountRate,
+  FACILITY_EXTRA_SLOT_PRICE_RMB,
 } from "@/lib/plans";
 import { ShopBilling } from "@/components/ShopBilling";
+import { FacilitySlots } from "@/components/FacilitySlots";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OrgBillingPage() {
@@ -19,9 +21,8 @@ export default async function OrgBillingPage() {
   const planName = (t.plans as Record<string, string>)[plan.key] ?? plan.key;
   const discountPct = Math.round(referralDiscountRate(referralCount) * 100);
   const facility = isFacilityOrg(org);
-  // Facilities don't own pets — show how many are currently in their care
-  // instead of a per-pet quota bar.
-  const inCare = facility ? await getFacilityActiveCount() : 0;
+  // Facilities don't own pets — show care-slot capacity instead of a pet quota.
+  const capacity = facility ? await getFacilityCapacity() : null;
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
   const atLimit = count >= limit;
 
@@ -37,12 +38,7 @@ export default async function OrgBillingPage() {
           <span className="text-sm text-muted">{t.billing.currentPlan}</span>
           <span className="text-sm font-semibold text-foreground">{planName}</span>
         </div>
-        {facility ? (
-          <>
-            <p className="mt-3 text-sm text-foreground">{t.facility.inCareNow(inCare)}</p>
-            <p className="mt-1 text-xs text-muted">{t.facility.billingUsageNote}</p>
-          </>
-        ) : (
+        {!facility && (
           <>
             <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
               <div
@@ -57,6 +53,15 @@ export default async function OrgBillingPage() {
           </>
         )}
       </div>
+
+      {facility && capacity && (
+        <FacilitySlots
+          base={capacity.base}
+          price={FACILITY_EXTRA_SLOT_PRICE_RMB}
+          inCare={capacity.inCare}
+          limit={capacity.limit}
+        />
+      )}
 
       <ShopBilling
         currentPlan={plan.key}

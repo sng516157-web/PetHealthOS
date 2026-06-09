@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Facility care-slot capacity.** Vet clinics / boarding can hold up to **20 pets in
+  care at once**; need more? Each extra **care slot is ¥15/month** and stays yours as long as you
+  keep it, even when empty. Manage it on the facility's Plan & billing page; admitting a pet beyond
+  capacity prompts you to add a slot. (Real Stripe billing wires in later; slots demo-grant for now.)
+
 - **2026-06-09 — New account type: vet clinics & boarding (宠物医院 / 宠物寄养).** Facilities sign
   up, upload a business certificate, and admit a pet by scanning the owner's check-in QR. While the
   pet is in their care they see its full history and can log notes/weights/photos — each tagged

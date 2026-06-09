@@ -36,7 +36,7 @@ import {
   getCurrentUser,
 } from "@/lib/auth";
 import { requestOtp, verifyOtp, normalizePhone, isValidPhone } from "@/lib/sms";
-import { getOrgPlan, isBillingInterval } from "@/lib/plans";
+import { getOrgPlan, isBillingInterval, facilityCapacity } from "@/lib/plans";
 import {
   GUARANTEE_TYPES,
   GUARANTEE_PRESET_DAYS,
@@ -47,6 +47,7 @@ import {
 import {
   startCheckout,
   buyOwnerPetSlot,
+  buyFacilitySlot,
   ensureReferralCode,
   type CheckoutScope,
   type Provider,
@@ -926,7 +927,7 @@ export async function admitPetByToken(token: string) {
   if (!user?.orgId) return { error: "NOT_FACILITY" };
   const org = await prisma.organization.findUnique({
     where: { id: user.orgId },
-    select: { kind: true },
+    select: { kind: true, extraPetSlots: true },
   });
   if (!isFacilityKind(org?.kind)) return { error: "NOT_FACILITY" };
 
@@ -937,6 +938,21 @@ export async function admitPetByToken(token: string) {
     select: { id: true, name: true },
   });
   if (!pet) return { error: "INVALID_TOKEN" };
+
+  // Capacity: admitting a NEW (or previously-released) pet must fit within
+  // base + purchased slots. Re-confirming an already-active stay is a no-op.
+  const existing = await prisma.petStay.findUnique({
+    where: { petId_orgId: { petId: pet.id, orgId: user.orgId } },
+    select: { status: true },
+  });
+  if (existing?.status !== "ACTIVE") {
+    const activeCount = await prisma.petStay.count({
+      where: { orgId: user.orgId, status: "ACTIVE" },
+    });
+    if (activeCount >= facilityCapacity(org?.extraPetSlots ?? 0)) {
+      return { error: "CAPACITY_REACHED" };
+    }
+  }
 
   await prisma.petStay.upsert({
     where: { petId_orgId: { petId: pet.id, orgId: user.orgId } },
@@ -1131,6 +1147,21 @@ export async function addOwnerPetSlot(formData: FormData) {
 
   revalidatePath("/me/billing");
   revalidatePath("/me");
+  return { ok: true, demo: result.demo ?? false };
+}
+
+// Facility buys one extra care slot (¥15/mo). Demo-grants when no provider set.
+export async function addFacilitySlot(formData: FormData) {
+  const org = await requireActiveOrg();
+  const provider = String(formData.get("provider") || "stripe") as Provider;
+  const baseUrl = await baseUrlFromHeaders();
+  const result = await buyFacilitySlot({ orgId: org.id, baseUrl, provider });
+
+  if ("error" in result) return { error: result.error };
+  if ("url" in result) return { url: result.url };
+
+  revalidatePath("/app/billing");
+  revalidatePath("/app");
   return { ok: true, demo: result.demo ?? false };
 }
 
