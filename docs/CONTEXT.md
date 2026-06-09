@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-06-02
+Last updated: 2026-06-09
 
 ---
 
@@ -214,6 +214,12 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Homepage trust-ecosystem narrative.** Why (user: front page should explain
+  what we're truly building — trust across owners, shops, and facilities — and invite people to
+  join). Rewrote hero, ecosystem steps (owner / shop / facility with matching icons), and trust-pillar
+  features in `en`/`zh` i18n; hero CTA → "Join us" / `#ecosystem`; choose-path section reframed as
+  "which side of the ecosystem are you?". Removed the redundant dark-green closing CTA band at the
+  bottom (choose-path cards already serve that function).
 - **2026-06-09** — **Enlarged home hero demo.** Why (user: GIF too small). `public/demos/home.gif`
   re-exported from the existing raw recording at its native crop width **904px** (was downscaled to
   760) for crispness; home hero grid changed to `md:grid-cols-[1fr_1.25fr]` and the image's

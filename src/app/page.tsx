@@ -5,9 +5,6 @@ import {
   Sparkles,
   CalendarClock,
   Languages,
-  NotebookPen,
-  MessagesSquare,
-  QrCode,
   ArrowRight,
   User,
   Store,
@@ -18,7 +15,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 
-const STEP_ICONS = [NotebookPen, MessagesSquare, QrCode];
+const STEP_ICONS = [User, Store, Hospital];
 const FEATURE_ICONS = [ShieldCheck, Sparkles, CalendarClock, Languages];
 
 export default async function HomePage() {
@@ -56,7 +53,7 @@ export default async function HomePage() {
                 {l.heroPrimary} <ArrowRight size={16} />
               </Link>
               <Link
-                href="#how"
+                href="#ecosystem"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-white px-6 py-3 text-sm font-semibold text-forest transition hover:border-brand-300"
               >
                 {l.heroSecondary}
@@ -84,8 +81,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how" className="mx-auto max-w-6xl px-5 py-16 md:px-8">
+      {/* Ecosystem */}
+      <section id="ecosystem" className="mx-auto max-w-6xl px-5 py-16 md:px-8">
         <SectionHeading eyebrow={l.howEyebrow} title={l.howTitle} />
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {l.steps.map((s, i) => {
@@ -128,7 +125,7 @@ export default async function HomePage() {
       </section>
 
       {/* Choose path */}
-      <section id="choose" className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+      <section id="choose" className="mx-auto max-w-6xl px-5 pb-20 pt-16 md:px-8 md:pb-24 md:pt-20">
         <SectionHeading eyebrow={l.chooseEyebrow} title={l.chooseTitle} subtitle={l.chooseSubtitle} />
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           <PathCard
@@ -153,30 +150,6 @@ export default async function HomePage() {
             desc={l.facilityCardDesc}
             cta={l.facilityCardCta}
           />
-        </div>
-      </section>
-
-      {/* Closing CTA */}
-      <section className="px-5 pb-20 md:px-8">
-        <div className="mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-forest px-8 py-14 text-center shadow-soft">
-          <h2 className="mx-auto max-w-2xl text-2xl font-extrabold leading-tight text-white md:text-3xl">
-            {l.ctaTitle}
-          </h2>
-          <p className="mt-3 text-sm text-white/75">{l.ctaDesc}</p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/owner"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-forest transition hover:bg-paper"
-            >
-              <User size={16} /> {l.ownerCardCta}
-            </Link>
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F4C96B] px-6 py-3 text-sm font-semibold text-forest transition hover:brightness-105"
-            >
-              <Store size={16} /> {l.shopCardCta}
-            </Link>
-          </div>
         </div>
       </section>
 

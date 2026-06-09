@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Trust-ecosystem homepage.** The main landing page now tells the owner–shop–facility
+  trust story and invites readers to join; the redundant dark-green bottom CTA box was removed.
+
 - **2026-06-09 — Bigger home demo.** The animated product demo in the home-page hero is now much
   larger (and re-exported at full resolution so it stays crisp).
 

@@ -577,45 +577,45 @@ export const en = {
     // Header / shared
     nav: { pricing: "Pricing", signIn: "Sign in", getStarted: "Get started" },
     // Hero (main page)
-    heroEyebrow: "Every pet comes with confidence",
-    heroTitle: "The lifelong health record that travels with the pet.",
+    heroEyebrow: "Rebuilding trust in pet care",
+    heroTitle: "What we're building: a trusted health ecosystem for owners, shops, and facilities.",
     heroSubtitle:
-      "PawSure keeps a pet's whole health story in one place — log it in plain language, ask an AI that knows its history, and carry a trusted health record with the pet wherever life takes it.",
-    heroPrimary: "Get started",
-    heroSecondary: "See how it works",
-    trust1: "Tamper-evident history",
-    trust2: "AI grounded in each pet's log",
-    trust3: "A record that travels with the pet",
-    // How it works
-    howEyebrow: "How it works",
-    howTitle: "One continuous story for every pet",
+      "PawSure isn't just another pet app. We're building a lifelong chain of trust — owners keep the record and control who sees it, breeders and shops prove good care through verifiable history, and hospitals and boarding facilities add transparent notes while pets are in their care. Three sides, one honest story.",
+    heroPrimary: "Join us",
+    heroSecondary: "See the ecosystem",
+    trust1: "Owners control the record",
+    trust2: "Shops prove care with history",
+    trust3: "Facilities log with transparency",
+    // Ecosystem
+    howEyebrow: "The trust ecosystem",
+    howTitle: "Owners · Shops · Facilities — one chain of trust for life",
     steps: [
       {
-        title: "Log health, simply",
-        desc: "Jot a note, a weight, a vet visit. AI organises it into a clear, searchable timeline.",
+        title: "Pet owners",
+        desc: "The record travels with the pet for life. You decide who can see it and when to revoke access — admit to a clinic, take back, archive.",
       },
       {
-        title: "Ask the assistant",
-        desc: "Get answers grounded in that pet's own history — plus a triage report to share with the vet.",
+        title: "Breeders, shops & shelters",
+        desc: "Daily care builds a verifiable record. Issue a health passport so good stewardship becomes a credential buyers can trust.",
       },
       {
-        title: "Carry it for life",
-        desc: "When a pet moves to a new home, its full health history travels with it through a portable health passport — scan a QR code and continue the story.",
+        title: "Vet clinics & boarding",
+        desc: "Scan to admit, log during the stay, archive on take-back. Transparency that prevents disputes — a clear record even after the pet leaves.",
       },
     ],
-    // Features
-    featuresEyebrow: "Why PawSure",
-    featuresTitle: "Built for everyone who cares for a pet",
+    // Trust pillars
+    featuresEyebrow: "What trust is built on",
+    featuresTitle: "It takes all three sides to make every handover feel safe",
     features: [
-      { title: "A history you can trust", desc: "Entries are logged over time and frozen when a pet changes hands, so the record stays honest." },
-      { title: "An AI that knows your pet", desc: "Answers grounded in that pet's own history, plus triage reports you can share with the vet." },
-      { title: "Reminders that follow the pet", desc: "Vaccines, deworming and check-ups — never lost in a chat thread again." },
-      { title: "Works in English & 中文", desc: "The whole app and the AI assistant speak your language." },
+      { title: "Verifiable health history", desc: "Entries accumulate over time and can't be rewritten; history freezes when a pet changes hands or a stay ends." },
+      { title: "Consent-based sharing", desc: "Passport handovers and QR check-ins — every transfer is explicitly authorised. No hidden access." },
+      { title: "AI that knows the full story", desc: "Answers grounded in the pet's complete history, so owners, shops, and facilities speak from the same facts." },
+      { title: "One record, for life", desc: "From breeding and sale to boarding and vet visits — one timeline, not scattered across chats and paper slips." },
     ],
     // Choose path
-    chooseEyebrow: "Choose your path",
-    chooseTitle: "How will you use PawSure?",
-    chooseSubtitle: "Pick the account that fits you. You can always explore both.",
+    chooseEyebrow: "Join us",
+    chooseTitle: "Which side of the ecosystem are you?",
+    chooseSubtitle: "Whether you're an owner, a breeder or shop, or a clinic or boarding facility — join us in building a more trustworthy pet-care ecosystem.",
     ownerCardTitle: "I'm a pet owner",
     ownerCardDesc: "Keep your pet's lifelong health in one place — free for your first pet. Start fresh, or scan a passport from your breeder.",
     ownerCardCta: "Continue as owner",
