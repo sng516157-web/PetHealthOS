@@ -1,13 +1,26 @@
 import Link from "next/link";
 import { Check, Star } from "lucide-react";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
-import { ORG_PLANS, USER_PLANS, SHOP_BILLING, type Plan } from "@/lib/plans";
+import {
+  ORG_PLANS,
+  USER_PLANS,
+  SHOP_BILLING,
+  FACILITY_BASE_CAPACITY,
+  FACILITY_EXTRA_SLOT_PRICE_RMB,
+  OWNER_EXTRA_PET_CAP,
+  type Plan,
+} from "@/lib/plans";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/en";
 
 export default async function PricingPage() {
   const { t } = await getI18n();
+  const shop = ORG_PLANS.SHOP;
+  const facilityFeatures = t.facility.planBenefits(
+    FACILITY_BASE_CAPACITY,
+    FACILITY_EXTRA_SLOT_PRICE_RMB,
+  );
 
   return (
     <div className="min-h-screen">
@@ -44,42 +57,83 @@ export default async function PricingPage() {
 
         <section className="mt-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+            {t.pricing.forOwners}
+          </h2>
+          <div className="grid gap-4 sm:max-w-md">
+            {Object.values(USER_PLANS).map((p) => (
+              <PlanCard key={p.key} plan={p} t={t} />
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted">{t.pricing.ownerNote}</p>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
             {t.pricing.forShops}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <ShopBillingCard
+            <OrgBillingCard
               t={t}
               name={t.shopBilling.monthly}
               price={t.pricing.rmb(SHOP_BILLING.month)}
               cadence={t.pricing.perMonth.trim()}
+              features={[
+                t.pricing.shopIncluded(shop.includedPets),
+                t.pricing.shopExtraPet(shop.extraPetPriceRmb),
+                t.pricing.issuePassports,
+                t.pricing.multiSeat,
+                t.pricing.aiAssistant,
+              ]}
+              href="/shop"
             />
-            <ShopBillingCard
+            <OrgBillingCard
               t={t}
               name={t.shopBilling.yearly}
               price={t.pricing.rmb(SHOP_BILLING.year)}
               cadence={t.shopBilling.perYear}
               note={t.shopBilling.referralPitch}
+              features={[
+                t.pricing.shopIncluded(shop.includedPets),
+                t.pricing.shopExtraPet(shop.extraPetPriceRmb),
+                t.pricing.issuePassports,
+                t.pricing.multiSeat,
+                t.pricing.aiAssistant,
+              ]}
+              href="/shop"
               highlight
             />
           </div>
-          <p className="mt-3 text-xs text-muted">{t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}</p>
+          <p className="mt-3 text-xs text-muted">
+            {t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}
+          </p>
         </section>
 
         <section className="mt-12">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            {t.pricing.forOwners}
+            {t.pricing.forFacilities}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {Object.values(USER_PLANS).map((p) => (
-              <PlanCard
-                key={p.key}
-                plan={p}
-                t={t}
-                cta={{ href: "/me/billing", label: p.priceRmb > 0 ? t.pricing.choose : t.pricing.getStarted }}
-                highlight={p.key === "PLUS"}
-              />
-            ))}
+            <OrgBillingCard
+              t={t}
+              name={t.shopBilling.monthly}
+              price={t.pricing.rmb(SHOP_BILLING.month)}
+              cadence={t.pricing.perMonth.trim()}
+              features={facilityFeatures}
+              href="/facility"
+            />
+            <OrgBillingCard
+              t={t}
+              name={t.shopBilling.yearly}
+              price={t.pricing.rmb(SHOP_BILLING.year)}
+              cadence={t.shopBilling.perYear}
+              features={facilityFeatures}
+              href="/facility"
+              highlight
+            />
           </div>
+          <p className="mt-3 text-xs text-muted">
+            {t.shopBilling.facilityStarterNote(ORG_PLANS.STARTER.includedPets)}
+          </p>
         </section>
 
         <p className="mt-10 text-center text-xs text-muted">
@@ -92,11 +146,13 @@ export default async function PricingPage() {
   );
 }
 
-function ShopBillingCard({
+function OrgBillingCard({
   t,
   name,
   price,
   cadence,
+  features,
+  href,
   note,
   highlight,
 }: {
@@ -104,6 +160,8 @@ function ShopBillingCard({
   name: string;
   price: string;
   cadence: string;
+  features: string[];
+  href: string;
   note?: string;
   highlight?: boolean;
 }) {
@@ -125,21 +183,14 @@ function ShopBillingCard({
       </div>
       {note && <p className="mt-2 text-xs text-brand-700">{note}</p>}
       <ul className="mt-4 space-y-2 text-sm text-slate-600">
-        <li className="flex items-center gap-2">
-          <Check size={15} className="text-emerald-500" /> {t.shopBilling.featurePets}
-        </li>
-        <li className="flex items-center gap-2">
-          <Check size={15} className="text-emerald-500" /> {t.pricing.issuePassports}
-        </li>
-        <li className="flex items-center gap-2">
-          <Check size={15} className="text-emerald-500" /> {t.pricing.multiSeat}
-        </li>
-        <li className="flex items-center gap-2">
-          <Check size={15} className="text-emerald-500" /> {t.pricing.aiAssistant}
-        </li>
+        {features.map((feature) => (
+          <li key={feature} className="flex items-start gap-2">
+            <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" /> {feature}
+          </li>
+        ))}
       </ul>
       <Link
-        href="/shop"
+        href={href}
         className={`mt-5 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
           highlight
             ? "bg-brand-600 text-white hover:bg-brand-700"
@@ -152,46 +203,18 @@ function ShopBillingCard({
   );
 }
 
-function PlanCard({
-  plan,
-  t,
-  cta,
-  highlight,
-}: {
-  plan: Plan;
-  t: Dictionary;
-  cta: { href: string; label: string };
-  highlight?: boolean;
-}) {
+function PlanCard({ plan, t }: { plan: Plan; t: Dictionary }) {
   const name = (t.plans as Record<string, string>)[plan.key] ?? plan.key;
-  const tagline =
-    plan.key === "STARTER"
-      ? t.pricing.starterTagline
-      : plan.key === "SHOP"
-        ? t.pricing.shopTagline
-        : plan.key === "FREE"
-          ? t.pricing.freeTagline
-          : t.pricing.plusTagline;
+  const cap = plan.petCap ?? OWNER_EXTRA_PET_CAP;
 
   return (
-    <div
-      className={`relative rounded-2xl border p-6 ${
-        highlight ? "border-brand-400 bg-brand-50/40 shadow-sm" : "border-border bg-surface"
-      }`}
-    >
-      {highlight && (
-        <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
-          <Star size={11} /> {t.pricing.mostPopular}
-        </span>
-      )}
+    <div className="relative rounded-2xl border border-brand-400 bg-brand-50/40 p-6 shadow-sm">
+      <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
+        <Star size={11} /> {t.pricing.mostPopular}
+      </span>
       <h3 className="text-base font-semibold text-foreground">{name}</h3>
-      <p className="mt-0.5 text-xs text-muted">{tagline}</p>
-      <div className="mt-3 text-3xl font-bold text-foreground">
-        {plan.priceRmb > 0 ? t.pricing.rmb(plan.priceRmb) : t.pricing.free}
-        {plan.priceRmb > 0 && (
-          <span className="text-sm font-normal text-muted">{t.pricing.perMonth}</span>
-        )}
-      </div>
+      <p className="mt-0.5 text-xs text-muted">{t.pricing.freeTagline}</p>
+      <div className="mt-3 text-3xl font-bold text-foreground">{t.pricing.free}</div>
       <ul className="mt-4 space-y-2 text-sm text-slate-600">
         <li className="flex items-center gap-2">
           <Check size={15} className="text-emerald-500" />
@@ -200,40 +223,23 @@ function PlanCard({
         {plan.extraPetPriceRmb > 0 && (
           <li className="flex items-center gap-2">
             <Check size={15} className="text-emerald-500" />
-            {t.pricing.extraPet(plan.extraPetPriceRmb)}
+            {t.pricing.extraPet(plan.extraPetPriceRmb, cap)}
           </li>
         )}
         <li className="flex items-center gap-2">
           <Check size={15} className="text-emerald-500" />
           {t.pricing.aiAssistant}
         </li>
-        {plan.canIssuePassport ? (
-          <li className="flex items-center gap-2">
-            <Check size={15} className="text-emerald-500" />
-            {t.pricing.issuePassports}
-          </li>
-        ) : (
-          <li className="flex items-center gap-2 text-muted">
-            <Check size={15} className="text-slate-300" />
-            {t.pricing.notForSale}
-          </li>
-        )}
-        {plan.multiSeat && (
-          <li className="flex items-center gap-2">
-            <Check size={15} className="text-emerald-500" />
-            {t.pricing.multiSeat}
-          </li>
-        )}
+        <li className="flex items-center gap-2 text-muted">
+          <Check size={15} className="text-slate-300" />
+          {t.pricing.notForSale}
+        </li>
       </ul>
       <Link
-        href={cta.href}
-        className={`mt-5 inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-          highlight
-            ? "bg-brand-600 text-white hover:bg-brand-700"
-            : "border border-border text-slate-700 hover:border-brand-300"
-        }`}
+        href="/owner"
+        className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
       >
-        {cta.label}
+        {t.pricing.getStarted}
       </Link>
     </div>
   );

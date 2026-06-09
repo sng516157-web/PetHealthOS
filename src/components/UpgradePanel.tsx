@@ -120,7 +120,7 @@ export function UpgradePanel({
                 {p.extraPetPriceRmb > 0 && (
                   <li className="flex items-center gap-1.5">
                     <Check size={13} className="text-emerald-500" />
-                    {t.pricing.extraPet(p.extraPetPriceRmb)}
+                    {t.pricing.extraPet(p.extraPetPriceRmb, p.petCap ?? p.includedPets)}
                   </li>
                 )}
                 {p.issuePassports && (

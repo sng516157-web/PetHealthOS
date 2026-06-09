@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Pricing page refresh.** `/pricing` now covers all three account types (owner, shop,
+  facility) with current numbers — 1 free pet + ¥15/extra for owners; ¥599/mo or ¥4888/yr for shops
+  and facilities (50 included, ¥30 overage).
+
 - **2026-06-09 — Trust-ecosystem homepage.** The main landing page now tells the owner–shop–facility
   trust story and invites readers to join; the redundant dark-green bottom CTA box was removed.
 

@@ -497,18 +497,27 @@ export const en = {
   },
   pricing: {
     title: "Simple, honest pricing",
-    subtitle: "Issue trusted health passports and manage your animals — pay only when you grow.",
+    subtitle:
+      "Three sides of the trust ecosystem — owners, shops, and facilities. Start free where you can; upgrade when you grow.",
     forShops: "For breeders & shops",
+    forFacilities: "For vet clinics & boarding",
     forOwners: "For pet owners",
     perMonth: "/mo",
     free: "Free",
     rmb: (n: number) => `¥${n}`,
-    includedPets: (n: number) => `Up to ${n} active pets`,
-    extraPet: (price: number) => `Then ¥${price}/mo per extra pet`,
-    issuePassports: "Issue health passports",
+    includedPets: (n: number) => `${n} pet included — free forever`,
+    extraPet: (price: number, cap: number) =>
+      `Then ¥${price}/mo per extra pet (up to ${cap} total)`,
+    shopIncluded: (n: number) => `${n} pets included`,
+    shopExtraPet: (price: number) => `Beyond that: ¥${price}/mo per extra pet`,
+    issuePassports: "Issue health passports (once verified)",
     multiSeat: "Multiple staff seats",
     aiAssistant: "AI assistant & triage",
-    notForSale: "Personal use, not for selling pets",
+    notForSale: "Personal use — cannot issue passports",
+    qrCheckin: "QR check-in with owner consent",
+    facilityNoPassport: "Cannot issue health passports",
+    ownerNote:
+      "Create an account when you adopt a pet, scan a passport, or sign up yourself.",
     currentPlan: "Current plan",
     choose: "Choose",
     getStarted: "Get started",
@@ -516,7 +525,7 @@ export const en = {
     mostPopular: "Most popular",
     starterTagline: "Try the full loop with a few animals.",
     shopTagline: "For working catteries, kennels & shops.",
-    freeTagline: "For owners — created when you adopt a pet, or sign up yourself.",
+    freeTagline: "Keep your pet's lifelong health in one calm place.",
     plusTagline: "For owners with a larger household.",
   },
   billing: {
@@ -564,6 +573,8 @@ export const en = {
     referralPitch: "Earn 5% off yearly for every shop you refer.",
     starterNote: (n: number) =>
       `New shops start free with up to ${n} pets — upgrade anytime to issue more passports and add seats.`,
+    facilityStarterNote: (n: number) =>
+      `New facilities start free with up to ${n} pets in care — upgrade anytime for more capacity and team seats.`,
     activeInterval: (label: string) => `Active · ${label}`,
     referralTitle: "Refer a shop, save on yearly",
     referralDesc:

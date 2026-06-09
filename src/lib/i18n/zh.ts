@@ -493,18 +493,25 @@ export const zh: Dictionary = {
   },
   pricing: {
     title: "简单、透明的定价",
-    subtitle: "签发可信的健康护照、管理你的动物 —— 成长了再付费。",
+    subtitle: "信任生态三方——主人、商家与机构。能免费起步就先免费，做大了再升级。",
     forShops: "面向猫舍犬舍与商家",
+    forFacilities: "面向宠物医院与寄养机构",
     forOwners: "面向宠物主人",
     perMonth: "/月",
     free: "免费",
     rmb: (n: number) => `¥${n}`,
-    includedPets: (n: number) => `最多 ${n} 只在管宠物`,
-    extraPet: (price: number) => `之后每多一只 ¥${price}/月`,
-    issuePassports: "签发健康护照",
+    includedPets: (n: number) => `含 ${n} 只宠物——永久免费`,
+    extraPet: (price: number, cap: number) =>
+      `之后每多一只 ¥${price}/月（最多共 ${cap} 只）`,
+    shopIncluded: (n: number) => `含 ${n} 只在管宠物`,
+    shopExtraPet: (price: number) => `超出后每只 ¥${price}/月`,
+    issuePassports: "签发健康护照（审核通过后）",
     multiSeat: "多员工席位",
     aiAssistant: "AI 助手与分诊",
-    notForSale: "个人使用，不用于出售宠物",
+    notForSale: "个人使用——不可签发护照",
+    qrCheckin: "扫码登记，经主人授权",
+    facilityNoPassport: "不可签发健康护照",
+    ownerNote: "领养时、扫描护照时或自行注册时创建账户。",
     currentPlan: "当前套餐",
     choose: "选择",
     getStarted: "开始使用",
@@ -512,7 +519,7 @@ export const zh: Dictionary = {
     mostPopular: "最受欢迎",
     starterTagline: "用几只动物体验完整流程。",
     shopTagline: "适合在营的猫舍、犬舍与商家。",
-    freeTagline: "面向主人 —— 在领养宠物或自行注册时创建。",
+    freeTagline: "把宠物一生的健康集中在一处。",
     plusTagline: "适合养了较多宠物的主人。",
   },
   billing: {
@@ -559,6 +566,8 @@ export const zh: Dictionary = {
     referralPitch: "每推荐一家商家，年费立减 5%。",
     starterNote: (n: number) =>
       `新商家免费起步，最多 ${n} 只宠物——随时升级即可签发更多护照、添加成员。`,
+    facilityStarterNote: (n: number) =>
+      `新机构免费起步，最多照护 ${n} 只宠物——随时升级以扩大照护名额、添加团队成员。`,
     activeInterval: (label: string) => `生效中 · ${label}`,
     referralTitle: "推荐商家，年费立减",
     referralDesc:

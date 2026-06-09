@@ -214,6 +214,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Pricing page aligned to three account types.** Why (user: `/pricing` outdated).
+  Reordered sections (owners first), fixed owner card (1 free pet, ¥15/mo extra, cap 10), shop cards
+  show 50 included + ¥30/mo overage + referral yearly pitch, new facility section mirrors shop
+  intervals with `facility.planBenefits` feature list; subtitle reflects trust ecosystem.
 - **2026-06-09** — **Homepage trust-ecosystem narrative.** Why (user: front page should explain
   what we're truly building — trust across owners, shops, and facilities — and invite people to
   join). Rewrote hero, ecosystem steps (owner / shop / facility with matching icons), and trust-pillar
