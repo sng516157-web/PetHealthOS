@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Owner pet documents.** Pet owners now see the same Documents panel as shops on
+  `/me/pets/[id]` — pedigree certs, vaccine proofs and other files uploaded before transfer stay
+  visible after passport claim.
+
 - **2026-06-09 — Pricing page refresh.** `/pricing` now covers all three account types (owner, shop,
   facility) with current numbers — 1 free pet + ¥15/extra for owners; ¥599/mo or ¥4888/yr for shops
   and facilities (50 included, ¥30 overage).

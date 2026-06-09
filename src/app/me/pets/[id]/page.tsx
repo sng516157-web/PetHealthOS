@@ -5,6 +5,7 @@ import { QuickAddLog } from "@/components/QuickAddLog";
 import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { WeightPanel } from "@/components/WeightPanel";
+import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { CheckinQR } from "@/components/CheckinQR";
 import { safeTags } from "@/lib/ai";
 
@@ -62,6 +63,16 @@ export default async function MePetPage({
             weightKg: w.weightKg,
             measuredAt: w.measuredAt.toISOString(),
             note: w.note,
+          }))}
+        />
+        <DocumentsPanel
+          petId={pet.id}
+          attachments={pet.attachments.map((a) => ({
+            id: a.id,
+            kind: a.kind,
+            label: a.label,
+            url: a.url,
+            mimeType: a.mimeType,
           }))}
         />
       </div>

@@ -488,6 +488,9 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
 }
 
 export async function deleteAttachment(petId: string, id: string) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const att = await prisma.attachment.findFirst({ where: { id, petId } });
+  if (!att) return { error: "Not found" };
   await prisma.attachment.delete({ where: { id } });
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);

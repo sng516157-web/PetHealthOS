@@ -214,6 +214,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Documents panel on owner pet page.** Why (user: transferred pets should show
+  shop-uploaded docs). `DocumentsPanel` added to `/me/pets/[id]` (data was already loaded via
+  `getOwnedPet` → `getPet`); `deleteAttachment` now checks `canAccessPet` + `petId` match.
 - **2026-06-09** — **Pricing page aligned to three account types.** Why (user: `/pricing` outdated).
   Reordered sections (owners first), fixed owner card (1 free pet, ¥15/mo extra, cap 10), shop cards
   show 50 included + ¥30/mo overage + referral yearly pitch, new facility section mirrors shop
