@@ -14,6 +14,7 @@ import {
   getOrgUsage,
   getUserUsage,
   canAccessPet,
+  currentActorIsFacility,
 } from "@/lib/data";
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
 import { notifyAdmins } from "@/lib/email";
@@ -39,6 +40,8 @@ import { getOrgPlan, isBillingInterval } from "@/lib/plans";
 import {
   GUARANTEE_TYPES,
   GUARANTEE_PRESET_DAYS,
+  FACILITY_KINDS,
+  isFacilityKind,
   type GuaranteeType,
 } from "@/lib/constants";
 import {
@@ -269,6 +272,28 @@ export async function addLogEntry(petId: string, formData: FormData) {
   const pet = await prisma.pet.findUnique({ where: { id: petId } });
   if (!pet) return { error: "Pet not found" };
 
+  // Facility (hospital/boarding) attribution: when a facility logs during a
+  // stay, require an ACTIVE stay and tag the entry with the facility's name so
+  // the owner can see who recorded it.
+  let loggedByOrgId: string | null = null;
+  let loggedByName: string | null = null;
+  const actor = await getCurrentUser();
+  if (actor?.orgId) {
+    const actorOrg = await prisma.organization.findUnique({
+      where: { id: actor.orgId },
+      select: { kind: true, name: true },
+    });
+    if (isFacilityKind(actorOrg?.kind)) {
+      const stay = await prisma.petStay.findUnique({
+        where: { petId_orgId: { petId, orgId: actor.orgId } },
+        select: { status: true },
+      });
+      if (stay?.status !== "ACTIVE") return { error: "NO_ACTIVE_STAY" };
+      loggedByOrgId = actor.orgId;
+      loggedByName = actorOrg?.name ?? null;
+    }
+  }
+
   const locale = await getLocale();
 
   // Photo-only entry: log it as-is with NO AI. Vision without a written note can
@@ -288,6 +313,8 @@ export async function addLogEntry(petId: string, formData: FormData) {
         summary: null,
         tags: "[]",
         aiProcessed: true,
+        loggedByOrgId,
+        loggedByName,
       },
     });
     await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
@@ -319,6 +346,8 @@ export async function addLogEntry(petId: string, formData: FormData) {
       summary: initial.summary,
       tags: JSON.stringify(initial.tags),
       aiProcessed: false,
+      loggedByOrgId,
+      loggedByName,
     },
   });
 
@@ -357,6 +386,9 @@ export async function addLogEntry(petId: string, formData: FormData) {
 }
 
 export async function deleteLogEntry(petId: string, id: string) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  // Facilities may add records during a stay but never delete an owner's logs.
+  if (await currentActorIsFacility()) return { error: "Forbidden" };
   const entry = await prisma.logEntry.findUnique({ where: { id } });
   if (entry?.lockedAt) {
     return {
@@ -371,6 +403,7 @@ export async function deleteLogEntry(petId: string, id: string) {
 }
 
 export async function addReminder(petId: string, formData: FormData) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
   const title = String(formData.get("title") || "").trim();
   if (!title) return { error: VErr.TITLE_REQUIRED };
   if (title.length > TITLE_MAX) return { error: VErr.TITLE_TOO_LONG };
@@ -432,6 +465,7 @@ export async function generateTriageReport(petId: string) {
 }
 
 export async function addAttachment(petId: string, formData: FormData) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return { error: "Choose a file to upload" };
   if (file.size > 8 * 1024 * 1024) return { error: "File must be under 8 MB" };
@@ -759,6 +793,7 @@ export async function markAllNotificationsRead() {
 }
 
 export async function addWeight(petId: string, formData: FormData) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
   const weightRaw = String(formData.get("weightKg") || "").trim();
   const weightErr = validateWeightKg(weightRaw, true);
   if (weightErr) return { error: weightErr };
@@ -796,12 +831,13 @@ export async function deleteWeight(petId: string, id: string) {
 // ---- Owner self-registration (no transfer required) ----
 
 export async function register(formData: FormData) {
+  const typeRaw = String(formData.get("accountType") || "owner");
   const accountType =
-    String(formData.get("accountType") || "owner") === "shop" ? "shop" : "owner";
+    typeRaw === "shop" ? "shop" : typeRaw === "facility" ? "facility" : "owner";
+  const isOrg = accountType === "shop" || accountType === "facility";
   const nameRaw = String(formData.get("name") || "").trim();
   if (nameRaw.length > NAME_MAX) return { error: VErr.NAME_TOO_LONG };
-  const name =
-    nameRaw || (accountType === "shop" ? "Shop owner" : "Pet owner");
+  const name = nameRaw || (isOrg ? "Manager" : "Pet owner");
   const email = normalizeEmail(String(formData.get("email") || ""));
   const password = String(formData.get("password") || "");
 
@@ -813,17 +849,22 @@ export async function register(formData: FormData) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return { error: VErr.EMAIL_TAKEN };
 
-  // Shop account: also create the organization the user will manage at /app.
-  if (accountType === "shop") {
+  // Shop or facility account: also create the organization managed at /app.
+  if (isOrg) {
     const orgName = String(formData.get("orgName") || "").trim();
     if (!orgName) return { error: VErr.ORG_NAME_REQUIRED };
     if (orgName.length > ORG_NAME_MAX) return { error: VErr.ORG_NAME_TOO_LONG };
-    const orgKindRaw = String(formData.get("orgKind") || "BREEDER");
-    const orgKind = ["BREEDER", "SHOP", "SHELTER"].includes(orgKindRaw)
-      ? orgKindRaw
-      : "BREEDER";
-    // Referral attribution: a new shop may arrive via another shop's link
-    // (?ref=CODE). Credit the referrer so they earn their yearly discount.
+    const orgKindRaw = String(formData.get("orgKind") || "");
+    const orgKind =
+      accountType === "facility"
+        ? (FACILITY_KINDS as readonly string[]).includes(orgKindRaw)
+          ? orgKindRaw
+          : "HOSPITAL"
+        : ["BREEDER", "SHOP", "SHELTER"].includes(orgKindRaw)
+          ? orgKindRaw
+          : "BREEDER";
+    // Referral attribution: a new shop/facility may arrive via another org's
+    // link (?ref=CODE). Credit the referrer so they earn their yearly discount.
     const refCode = String(formData.get("ref") || "").trim();
     let referredById: string | null = null;
     if (refCode) {
@@ -841,7 +882,7 @@ export async function register(formData: FormData) {
       data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
     });
     await setSession(user.id, { single: false });
-    return { ok: true, accountType: "shop" as const };
+    return { ok: true, accountType };
   }
 
   const user = await prisma.user.create({
@@ -849,6 +890,110 @@ export async function register(formData: FormData) {
   });
   await setSession(user.id, { single: true });
   return { ok: true, accountType: "owner" as const };
+}
+
+// ---- Facility check-in / takeback (hospital & boarding) ----
+
+function newToken(): string {
+  return randomBytes(8).toString("hex");
+}
+
+// Owner: get (creating if needed) the QR check-in token for a pet they own.
+export async function ensureStayToken(petId: string) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "NOT_SIGNED_IN" };
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { ownerUserId: true, stayToken: true },
+  });
+  if (!pet || pet.ownerUserId !== user.id) return { error: "FORBIDDEN" };
+  if (pet.stayToken) return { token: pet.stayToken };
+  for (let i = 0; i < 5; i++) {
+    try {
+      const token = newToken();
+      await prisma.pet.update({ where: { id: petId }, data: { stayToken: token } });
+      return { token };
+    } catch {
+      /* unique collision — retry */
+    }
+  }
+  return { error: "TOKEN_FAILED" };
+}
+
+// Facility: scan an owner's QR token to admit (or re-admit) a pet into care.
+export async function admitPetByToken(token: string) {
+  const user = await getCurrentUser();
+  if (!user?.orgId) return { error: "NOT_FACILITY" };
+  const org = await prisma.organization.findUnique({
+    where: { id: user.orgId },
+    select: { kind: true },
+  });
+  if (!isFacilityKind(org?.kind)) return { error: "NOT_FACILITY" };
+
+  const tok = token.trim();
+  if (!tok) return { error: "INVALID_TOKEN" };
+  const pet = await prisma.pet.findUnique({
+    where: { stayToken: tok },
+    select: { id: true, name: true },
+  });
+  if (!pet) return { error: "INVALID_TOKEN" };
+
+  await prisma.petStay.upsert({
+    where: { petId_orgId: { petId: pet.id, orgId: user.orgId } },
+    create: { petId: pet.id, orgId: user.orgId, status: "ACTIVE" },
+    update: { status: "ACTIVE", admittedAt: new Date(), releasedAt: null },
+  });
+  revalidatePath("/app");
+  revalidatePath("/app/pets");
+  return { ok: true, petId: pet.id, petName: pet.name };
+}
+
+// Owner: confirm they've taken the pet back. Archives every active stay (cutting
+// each facility's access to a frozen snapshot) and rotates the QR token so an
+// old code can't silently re-admit — the next visit needs a fresh scan.
+export async function releasePet(petId: string) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "NOT_SIGNED_IN" };
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { ownerUserId: true, name: true },
+  });
+  if (!pet || pet.ownerUserId !== user.id) return { error: "FORBIDDEN" };
+
+  const active = await prisma.petStay.findMany({
+    where: { petId, status: "ACTIVE" },
+    select: { orgId: true },
+  });
+  const now = new Date();
+  await prisma.petStay.updateMany({
+    where: { petId, status: "ACTIVE" },
+    data: { status: "ARCHIVED", releasedAt: now },
+  });
+  // Rotate the token so previously-shared QRs stop working.
+  for (let i = 0; i < 5; i++) {
+    try {
+      await prisma.pet.update({ where: { id: petId }, data: { stayToken: newToken() } });
+      break;
+    } catch {
+      /* retry */
+    }
+  }
+  for (const s of active) {
+    await prisma.notification.create({
+      data: {
+        orgId: s.orgId,
+        petId,
+        kind: "STAY_END",
+        title: `${pet.name} was taken back by the owner`,
+        body: `Access is now read-only up to today. Scan the QR again on the next visit.`,
+      },
+    });
+  }
+  revalidatePath("/me");
+  revalidatePath(`/me/pets/${petId}`);
+  revalidatePath("/app");
+  revalidatePath("/app/pets");
+  return { ok: true, count: active.length };
 }
 
 export async function requestPhoneOtp(formData: FormData) {

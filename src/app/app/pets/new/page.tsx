@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { NewPetForm } from "@/components/NewPetForm";
-import { getCandidateParents } from "@/lib/data";
+import { getCandidateParents, requireActiveOrg, isFacilityOrg } from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function NewPetPage() {
+  // Facilities don't own pets — they admit owner pets by scanning a QR.
+  const org = await requireActiveOrg();
+  if (isFacilityOrg(org)) redirect("/app/pets");
   const { t } = await getI18n();
   const parents = await getCandidateParents();
   return (

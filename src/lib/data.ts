@@ -5,6 +5,11 @@ import { prisma } from "./prisma";
 import { getCurrentUser } from "./auth";
 import { getOrgPlan, getUserPlan, petLimit } from "./plans";
 import { ensureReferralCode, getReferralCount } from "./billing";
+import { isFacilityKind } from "./constants";
+
+export function isFacilityOrg(org: { kind: string }): boolean {
+  return isFacilityKind(org.kind);
+}
 
 // Unified auth: the "active org" is the logged-in shop user's organization.
 // A user with an org is a shop/breeder account (/app workspace); a user
@@ -54,6 +59,72 @@ export async function getArchivedPetsWithStats() {
     },
     orderBy: { updatedAt: "desc" },
     include: petStatsInclude,
+  });
+}
+
+// ---- Facility (hospital / boarding) — stay-based access to owner pets ----
+
+// Pets currently (ACTIVE) or previously (ARCHIVED) in this facility's care.
+// Returns items shaped for PetsList, with the stay status as the displayed status.
+export async function getFacilityPets(status: "ACTIVE" | "ARCHIVED") {
+  const org = await requireActiveOrg();
+  const stays = await prisma.petStay.findMany({
+    where: { orgId: org.id, status },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      pet: {
+        include: {
+          logs: { orderBy: { occurredAt: "desc" }, take: 1 },
+          _count: { select: { logs: true } },
+        },
+      },
+    },
+  });
+  return stays.map((s) => ({ stay: s, pet: s.pet }));
+}
+
+export async function getFacilityStay(petId: string) {
+  const org = await requireActiveOrg();
+  return prisma.petStay.findUnique({
+    where: { petId_orgId: { petId, orgId: org.id } },
+  });
+}
+
+// Full pet record for a facility, with the privacy window applied: while the
+// stay is ACTIVE the facility sees everything; once ARCHIVED it only sees
+// records created up to releasedAt (no new owner updates leak while away).
+export async function getFacilityPetView(petId: string) {
+  const org = await requireActiveOrg();
+  const stay = await prisma.petStay.findUnique({
+    where: { petId_orgId: { petId, orgId: org.id } },
+  });
+  if (!stay) return null;
+  const active = stay.status === "ACTIVE";
+  const cutoff = active ? undefined : (stay.releasedAt ?? stay.createdAt);
+  const timeFilter = cutoff ? { createdAt: { lte: cutoff } } : {};
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    include: {
+      sire: { select: { id: true, name: true, breed: true } },
+      dam: { select: { id: true, name: true, breed: true } },
+      attachments: { where: timeFilter, orderBy: { createdAt: "desc" } },
+      logs: { where: timeFilter, orderBy: { occurredAt: "desc" } },
+      weights: { where: timeFilter, orderBy: { measuredAt: "asc" } },
+      reminders: { orderBy: { dueAt: "asc" } },
+      reports: { orderBy: { createdAt: "desc" } },
+      conversations: { orderBy: { updatedAt: "desc" } },
+    },
+  });
+  if (!pet) return null;
+  return { pet, stay, active };
+}
+
+// Owner-facing: which facilities currently hold an active stay for this pet.
+export async function getPetActiveStays(petId: string) {
+  return prisma.petStay.findMany({
+    where: { petId, status: "ACTIVE" },
+    orderBy: { admittedAt: "desc" },
+    include: { org: { select: { id: true, name: true, kind: true } } },
   });
 }
 
@@ -136,7 +207,27 @@ export async function canAccessPet(petId: string): Promise<boolean> {
   if (!pet) return false;
   if (pet.ownerUserId && pet.ownerUserId === user.id) return true;
   if (user.orgId && pet.orgId === user.orgId) return true;
+  // Facility access: only while the pet is actively in their care (active stay).
+  if (user.orgId) {
+    const stay = await prisma.petStay.findUnique({
+      where: { petId_orgId: { petId, orgId: user.orgId } },
+      select: { status: true },
+    });
+    if (stay?.status === "ACTIVE") return true;
+  }
   return false;
+}
+
+// Is the current actor a facility (hospital/boarding) account? Used to keep
+// facilities from deleting an owner's records (they may only add).
+export async function currentActorIsFacility(): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user?.orgId) return false;
+  const org = await prisma.organization.findUnique({
+    where: { id: user.orgId },
+    select: { kind: true },
+  });
+  return isFacilityKind(org?.kind);
 }
 
 // ---- Notifications ----

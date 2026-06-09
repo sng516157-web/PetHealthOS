@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, Stethoscope } from "lucide-react";
-import { getPet } from "@/lib/data";
+import { AlertTriangle, Stethoscope, Lock } from "lucide-react";
+import { getPet, getActiveOrg, isFacilityOrg, getFacilityPetView } from "@/lib/data";
 import { QuickAddLog } from "@/components/QuickAddLog";
 import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -11,6 +11,24 @@ import { safeTags } from "@/lib/ai";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
 
+function serializeLogs(
+  logs: { id: string; occurredAt: Date; rawText: string; type: string; severity: string; title: string | null; summary: string | null; tags: string; imageUrl: string | null; imageMime: string | null; loggedByName: string | null }[],
+) {
+  return logs.map((l) => ({
+    id: l.id,
+    occurredAt: l.occurredAt.toISOString(),
+    rawText: l.rawText,
+    type: l.type,
+    severity: l.severity,
+    title: l.title,
+    summary: l.summary,
+    tags: safeTags(l.tags),
+    imageUrl: l.imageUrl,
+    imageMime: l.imageMime,
+    loggedByName: l.loggedByName,
+  }));
+}
+
 export default async function PetOverview({
   params,
 }: {
@@ -18,6 +36,66 @@ export default async function PetOverview({
 }) {
   const { id } = await params;
   const { t } = await getI18n();
+
+  // ---- Facility (hospital/boarding): windowed, stay-gated view ----
+  const org = await getActiveOrg();
+  if (org && isFacilityOrg(org)) {
+    const view = await getFacilityPetView(id);
+    if (!view) notFound();
+    const fLogs = serializeLogs(view.pet.logs);
+    if (!view.active) {
+      return (
+        <div className="space-y-5">
+          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+            <Lock size={18} className="mt-0.5 shrink-0 text-slate-400" />
+            <p>{t.facility.readonlyNotice}</p>
+          </div>
+          <LogTimeline petId={view.pet.id} logs={fLogs} canDelete={false} />
+        </div>
+      );
+    }
+    return (
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-5 lg:col-span-2">
+          <QuickAddLog petId={view.pet.id} />
+          <LogTimeline petId={view.pet.id} logs={fLogs} canDelete={false} />
+        </div>
+        <div className="space-y-5">
+          <RemindersPanel
+            petId={view.pet.id}
+            reminders={view.pet.reminders.map((r) => ({
+              id: r.id,
+              title: r.title,
+              category: r.category,
+              dueAt: r.dueAt.toISOString(),
+              completed: r.completed,
+              notes: r.notes,
+            }))}
+          />
+          <WeightPanel
+            petId={view.pet.id}
+            weights={view.pet.weights.map((w) => ({
+              id: w.id,
+              weightKg: w.weightKg,
+              measuredAt: w.measuredAt.toISOString(),
+              note: w.note,
+            }))}
+          />
+          <DocumentsPanel
+            petId={view.pet.id}
+            attachments={view.pet.attachments.map((a) => ({
+              id: a.id,
+              kind: a.kind,
+              label: a.label,
+              url: a.url,
+              mimeType: a.mimeType,
+            }))}
+          />
+        </div>
+      </div>
+    );
+  }
+
   const pet = await getPet(id);
   if (!pet) notFound();
 
@@ -32,6 +110,7 @@ export default async function PetOverview({
     tags: safeTags(l.tags),
     imageUrl: l.imageUrl,
     imageMime: l.imageMime,
+    loggedByName: l.loggedByName,
   }));
 
   const reminders = pet.reminders.map((r) => ({

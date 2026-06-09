@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { PawPrint, BellRing, Activity, Plus, ArrowRight } from "lucide-react";
-import { getActivePetsWithStats, getUpcomingReminders, requireActiveOrg } from "@/lib/data";
+import {
+  getActivePetsWithStats,
+  getUpcomingReminders,
+  requireActiveOrg,
+  isFacilityOrg,
+  getFacilityPets,
+} from "@/lib/data";
+import { AdmitScanner } from "@/components/AdmitScanner";
+import { PetsList } from "@/components/PetsList";
 import { Badge, Card, PetAvatar, SectionTitle, Tone } from "@/components/ui";
 import {
   LOG_TYPE_META,
@@ -13,9 +21,11 @@ import { petAge, relativeTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function Dashboard() {
-  const [{ t }, org, pets, reminders] = await Promise.all([
+  const org = await requireActiveOrg();
+  if (isFacilityOrg(org)) return <FacilityDashboard orgName={org.name} />;
+
+  const [{ t }, pets, reminders] = await Promise.all([
     getI18n(),
-    requireActiveOrg(),
     getActivePetsWithStats(),
     getUpcomingReminders(),
   ]);
@@ -216,5 +226,58 @@ function StatCard({
       <div className="mt-3 text-2xl font-semibold text-foreground">{value}</div>
       <div className="text-xs text-muted">{label}</div>
     </Card>
+  );
+}
+
+// Hospital / boarding dashboard: pets currently in care + scan-to-admit.
+async function FacilityDashboard({ orgName }: { orgName: string }) {
+  const { t } = await getI18n();
+  const stays = await getFacilityPets("ACTIVE");
+  const items = stays.map(({ pet }) => ({
+    id: pet.id,
+    name: pet.name,
+    species: pet.species,
+    breed: pet.breed,
+    status: "ACTIVE",
+    photoUrl: pet.photoUrl,
+    birthDate: pet.birthDate ? pet.birthDate.toISOString() : null,
+    logCount: pet._count.logs,
+    last: pet.logs[0]
+      ? {
+          title: pet.logs[0].title,
+          rawText: pet.logs[0].rawText,
+          severity: pet.logs[0].severity,
+          occurredAt: pet.logs[0].occurredAt.toISOString(),
+        }
+      : null,
+  }));
+
+  return (
+    <div className="mx-auto max-w-6xl px-5 py-8 md:px-8">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted">{orgName}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
+            {t.facility.inCareTitle}
+          </h1>
+        </div>
+        <AdmitScanner />
+      </header>
+
+      <div className="mt-6">
+        <PetsList
+          pets={items}
+          emptyTitle={t.facility.noActive}
+          emptyDescription={t.facility.noActiveDesc}
+          showAddAction={false}
+        />
+      </div>
+
+      <div className="mt-6">
+        <Link href="/app/pets?tab=archived" className="text-sm font-medium text-brand-600 hover:text-brand-700">
+          {t.facility.tabArchived} →
+        </Link>
+      </div>
+    </div>
   );
 }

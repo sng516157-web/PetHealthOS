@@ -9,6 +9,14 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — New account type: vet clinics & boarding (宠物医院 / 宠物寄养).** Facilities sign
+  up, upload a business certificate, and admit a pet by scanning the owner's check-in QR. While the
+  pet is in their care they see its full history and can log notes/weights/photos — each tagged
+  "Logged by <facility>" so the owner knows. When the owner taps "I've taken my pet back," the
+  facility's access freezes to a read-only snapshot (no further updates leak) and the pet moves to
+  their Past stays; the next visit needs a fresh scan. Owners get a check-in QR + a "currently
+  shared with / take back" control on each pet. Facilities can't issue passports.
+
 - **2026-06-08 — Pet profile photo is now optional.** When adding a pet you no longer have to
   upload a profile photo (if you do, it's still capped at 8 MB). All other fields are unchanged.
 

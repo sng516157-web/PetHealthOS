@@ -14,6 +14,18 @@ export const PET_STATUS = [
 ] as const;
 export type PetStatus = (typeof PET_STATUS)[number];
 
+// Organization kinds. SHOP/BREEDER/SHELTER own pets and may issue passports;
+// HOSPITAL/BOARDING are "facility" accounts (vet clinic / pet hotel) that get
+// time-boxed access to owner-owned pets via check-in and cannot issue passports.
+export const ORG_KINDS = ["BREEDER", "SHOP", "SHELTER", "HOSPITAL", "BOARDING"] as const;
+export type OrgKind = (typeof ORG_KINDS)[number];
+
+export const FACILITY_KINDS = ["HOSPITAL", "BOARDING"] as const;
+
+export function isFacilityKind(kind: string | null | undefined): boolean {
+  return kind === "HOSPITAL" || kind === "BOARDING";
+}
+
 export const LOG_TYPES = [
   "ILLNESS",
   "VET_VISIT",

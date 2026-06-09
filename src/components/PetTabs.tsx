@@ -9,21 +9,25 @@ export function PetTabs({
   petId,
   base = `/app/pets/${petId}`,
   includeTransfer = true,
+  onlyHealthLog = false,
 }: {
   petId: string;
   base?: string;
   includeTransfer?: boolean;
+  onlyHealthLog?: boolean;
 }) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const tabs = [
-    { href: base, label: t.tabs.healthLog, exact: true },
-    { href: `${base}/chat`, label: t.tabs.aiAssistant },
-    { href: `${base}/triage`, label: t.tabs.triage },
-    ...(includeTransfer
-      ? [{ href: `${base}/transfer`, label: t.tabs.transfer }]
-      : []),
-  ];
+  const tabs = onlyHealthLog
+    ? [{ href: base, label: t.tabs.healthLog, exact: true }]
+    : [
+        { href: base, label: t.tabs.healthLog, exact: true },
+        { href: `${base}/chat`, label: t.tabs.aiAssistant },
+        { href: `${base}/triage`, label: t.tabs.triage },
+        ...(includeTransfer
+          ? [{ href: `${base}/transfer`, label: t.tabs.transfer }]
+          : []),
+      ];
   return (
     <div className="flex gap-1 overflow-x-auto border-b border-border">
       {tabs.map((t) => {

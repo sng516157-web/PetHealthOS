@@ -1,8 +1,37 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { getActivePetsWithStats, getArchivedPetsWithStats } from "@/lib/data";
+import {
+  getActivePetsWithStats,
+  getArchivedPetsWithStats,
+  getFacilityPets,
+  isFacilityOrg,
+  requireActiveOrg,
+} from "@/lib/data";
 import { PetsList } from "@/components/PetsList";
+import { AdmitScanner } from "@/components/AdmitScanner";
 import { getI18n } from "@/lib/i18n/server";
+
+type FacilityStays = Awaited<ReturnType<typeof getFacilityPets>>;
+function serializeFacilityPets(stays: FacilityStays, status: string) {
+  return stays.map(({ pet }) => ({
+    id: pet.id,
+    name: pet.name,
+    species: pet.species,
+    breed: pet.breed,
+    status,
+    photoUrl: pet.photoUrl,
+    birthDate: pet.birthDate ? pet.birthDate.toISOString() : null,
+    logCount: pet._count.logs,
+    last: pet.logs[0]
+      ? {
+          title: pet.logs[0].title,
+          rawText: pet.logs[0].rawText,
+          severity: pet.logs[0].severity,
+          occurredAt: pet.logs[0].occurredAt.toISOString(),
+        }
+      : null,
+  }));
+}
 
 function serializePets(
   pets: Awaited<ReturnType<typeof getActivePetsWithStats>>,
@@ -35,17 +64,59 @@ export default async function PetsPage({
   const { tab } = await searchParams;
   const archived = tab === "archived";
   const { t } = await getI18n();
+  const org = await requireActiveOrg();
+  const facility = isFacilityOrg(org);
+
+  const tabCls = (active: boolean) =>
+    `rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+      active ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:text-foreground"
+    }`;
+
+  // ---- Facility (hospital/boarding): pets via stays, plus scan-to-admit ----
+  if (facility) {
+    const [active, past] = await Promise.all([
+      getFacilityPets("ACTIVE"),
+      getFacilityPets("ARCHIVED"),
+    ]);
+    const items = archived
+      ? serializeFacilityPets(past, "ARCHIVED")
+      : serializeFacilityPets(active, "ACTIVE");
+    return (
+      <div className="mx-auto max-w-6xl px-5 py-8 md:px-8">
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {t.facility.inCareTitle}
+          </h1>
+          {!archived && <AdmitScanner />}
+        </header>
+
+        <div className="mt-5 flex w-fit rounded-xl border border-border bg-surface p-1">
+          <Link href="/app/pets" className={tabCls(!archived)}>
+            {t.facility.tabActive} ({active.length})
+          </Link>
+          <Link href="/app/pets?tab=archived" className={tabCls(archived)}>
+            {t.facility.tabArchived} ({past.length})
+          </Link>
+        </div>
+
+        <div className="mt-6">
+          <PetsList
+            pets={items}
+            emptyTitle={archived ? t.facility.noArchived : t.facility.noActive}
+            emptyDescription={archived ? t.facility.noArchivedDesc : t.facility.noActiveDesc}
+            showAddAction={false}
+          />
+        </div>
+      </div>
+    );
+  }
+
   const [activePets, archivedPets] = await Promise.all([
     getActivePetsWithStats(),
     getArchivedPetsWithStats(),
   ]);
   const pets = archived ? archivedPets : activePets;
   const items = serializePets(pets);
-
-  const tabCls = (active: boolean) =>
-    `rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-      active ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:text-foreground"
-    }`;
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 md:px-8">

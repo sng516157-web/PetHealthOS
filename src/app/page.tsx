@@ -11,6 +11,7 @@ import {
   ArrowRight,
   User,
   Store,
+  Hospital,
   Check,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
@@ -129,7 +130,7 @@ export default async function HomePage() {
       {/* Choose path */}
       <section id="choose" className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
         <SectionHeading eyebrow={l.chooseEyebrow} title={l.chooseTitle} subtitle={l.chooseSubtitle} />
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
           <PathCard
             href="/owner"
             icon={<User size={22} />}
@@ -144,6 +145,13 @@ export default async function HomePage() {
             desc={l.shopCardDesc}
             cta={l.shopCardCta}
             highlight
+          />
+          <PathCard
+            href="/facility"
+            icon={<Hospital size={22} />}
+            title={l.facilityCardTitle}
+            desc={l.facilityCardDesc}
+            cta={l.facilityCardCta}
           />
         </div>
       </section>

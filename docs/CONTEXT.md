@@ -214,6 +214,26 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Third account type: facility (vet clinic / boarding).** Why (user request):
+  serve businesses where pets come and go and "post-service" disputes are the real pressure.
+  **Model:** `Organization.kind` adds `HOSPITAL`|`BOARDING` (`isFacilityKind` in `constants.ts`,
+  `isFacilityOrg` in `data.ts`). Facilities reuse the `/app` workspace (branched on
+  `isFacilityOrg`), reuse KYC (`/verify`) and shop billing (`SHOP_BILLING`), but **own no pets**
+  and **can't issue passports**. **Access = `PetStay`** (`@@unique([petId, orgId])`,
+  `ACTIVE`|`ARCHIVED`, `admittedAt`/`releasedAt`). **Flow:** owner shows a QR encoding
+  `Pet.stayToken` (`ensureStayToken`); facility scans (`AdmitScanner`) → `admitPetByToken` upserts
+  an ACTIVE stay; owner taps takeback (`releasePet`) → archives stays + **rotates `stayToken`** so
+  an old QR can't silently re-admit; re-scan re-activates. **Privacy:** `canAccessPet` grants a
+  facility access only on an ACTIVE stay (gates AI/triage/add-log/weight/reminder/attachment);
+  `getFacilityPetView` windows logs/weights/attachments to `releasedAt` when ARCHIVED (read-only
+  snapshot, `PetTabs onlyHealthLog`, `LogTimeline canDelete={false}`); facilities can never delete
+  an owner's logs (`deleteLogEntry` blocks `currentActorIsFacility`). **Attribution:** facility
+  logs set `LogEntry.loggedBy{OrgId,Name}` → "Logged by <facility>" chip in `LogTimeline`. Owner
+  pet page adds `CheckinQR` (QR + "currently shared with" + takeback). New landing `/facility` +
+  a third home choose-path card; `AuthCard` gains a `facility` account type (kind Hospital/
+  Boarding). i18n: `facility.*`, `landing.facility*`, `me.checkin*`, `timeline.loggedBy`,
+  `auth.facility*`. Migration `facility_pet_stays`. Verified end-to-end on localhost
+  (admit → tagged log → owner takeback → read-only snapshot).
 - **2026-06-08** — **Pet profile photo optional on create.** Why (user request). `validatePetPhoto`
   now returns null for an empty file (only size-checks when a photo is provided); `addPet` /
   `addOwnedPet` set `photoUrl = null` when none is uploaded. Both create forms mark the photo

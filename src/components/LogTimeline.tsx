@@ -26,14 +26,17 @@ export type SerializedLog = {
   tags: string[];
   imageUrl?: string | null;
   imageMime?: string | null;
+  loggedByName?: string | null;
 };
 
 export function LogTimeline({
   petId,
   logs,
+  canDelete = true,
 }: {
   petId: string;
   logs: SerializedLog[];
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const { t } = useI18n();
@@ -98,6 +101,11 @@ export function LogTimeline({
                       )}
                     </div>
                     <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>
+                    {l.loggedByName && (
+                      <span className="mt-1.5 inline-flex items-center rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
+                        {t.timeline.loggedBy(l.loggedByName)}
+                      </span>
+                    )}
                     {l.imageUrl && (
                       <a
                         href={proxyImageSrc(l.imageUrl)}
@@ -131,13 +139,15 @@ export function LogTimeline({
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => remove(l.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-slate-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-500 group-hover:opacity-100"
-                    aria-label={t.timeline.deleteEntry}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={() => remove(l.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-slate-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-500 group-hover:opacity-100"
+                      aria-label={t.timeline.deleteEntry}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
                 <div className="mt-2 text-[11px] text-slate-400">
                   {formatDateTime(l.occurredAt)}

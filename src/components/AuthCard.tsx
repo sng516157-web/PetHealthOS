@@ -37,10 +37,10 @@ const labelCls = "mb-1 block text-xs font-medium text-slate-600";
 const PHONE_AUTH_ENABLED: boolean = false;
 
 type Tab = "signin" | "register" | "phone";
-type AccountType = "owner" | "shop";
+type AccountType = "owner" | "shop" | "facility";
 
 function dest(type?: string) {
-  return type === "shop" ? "/app" : "/me";
+  return type === "shop" || type === "facility" ? "/app" : "/me";
 }
 
 export function AuthCard({
@@ -202,6 +202,8 @@ function RegisterTab({
     password?: string | null;
   }>({});
   const isShop = accountType === "shop";
+  const isFacility = accountType === "facility";
+  const isOrg = isShop || isFacility;
 
   function submit(formData: FormData) {
     setError(null);
@@ -210,7 +212,7 @@ function RegisterTab({
     const email = String(formData.get("email") || "");
     const password = String(formData.get("password") || "");
     const fe = {
-      orgName: isShop
+      orgName: isOrg
         ? validateRequiredName(orgName, VErr.ORG_NAME_REQUIRED, 120, VErr.ORG_NAME_TOO_LONG)
         : null,
       name: validateRequiredName(name),
@@ -237,10 +239,10 @@ function RegisterTab({
   return (
     <form action={submit} noValidate className="space-y-3">
       <input type="hidden" name="accountType" value={accountType} />
-      {isShop && referralCode && (
+      {isOrg && referralCode && (
         <input type="hidden" name="ref" value={referralCode} />
       )}
-      {isShop && referralCode && (
+      {isOrg && referralCode && (
         <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-700">
           {t.auth.referredNote}
         </p>
@@ -262,8 +264,24 @@ function RegisterTab({
           </div>
         </>
       )}
+      {isFacility && (
+        <>
+          <div>
+            <label className={labelCls}>{t.auth.facilityName}</label>
+            <input name="orgName" className={inputCls} placeholder={t.auth.facilityNamePlaceholder} />
+            <FieldError code={fieldErr.orgName} />
+          </div>
+          <div>
+            <label className={labelCls}>{t.landing.facility.kindLabel}</label>
+            <select name="orgKind" defaultValue="HOSPITAL" className={inputCls}>
+              <option value="HOSPITAL">{t.landing.facility.kindHospital}</option>
+              <option value="BOARDING">{t.landing.facility.kindBoarding}</option>
+            </select>
+          </div>
+        </>
+      )}
       <div>
-        <label className={labelCls}>{isShop ? t.auth.contactName : t.auth.name}</label>
+        <label className={labelCls}>{isOrg ? t.auth.contactName : t.auth.name}</label>
         <input name="name" className={inputCls} placeholder={t.auth.namePlaceholder} />
         <FieldError code={fieldErr.name} />
       </div>
@@ -279,8 +297,14 @@ function RegisterTab({
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       <button type="submit" disabled={pending} className={primaryBtn}>
-        {isShop ? <Store size={15} /> : <UserPlus size={15} />}{" "}
-        {pending ? t.auth.registering : isShop ? t.auth.createShop : t.auth.register}
+        {isOrg ? <Store size={15} /> : <UserPlus size={15} />}{" "}
+        {pending
+          ? t.auth.registering
+          : isFacility
+            ? t.auth.createFacility
+            : isShop
+              ? t.auth.createShop
+              : t.auth.register}
       </button>
       <p className="text-center text-[11px] leading-relaxed text-muted">
         {t.auth.agreePrefix}{" "}

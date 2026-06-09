@@ -13,8 +13,11 @@ datasource db {
 
 model Organization {
   id        String   @id @default(cuid())
+  // SHOP | BREEDER | SHELTER own pets and may issue passports (if verified).
+  // HOSPITAL | BOARDING are "facility" accounts: they don't own pets — they get
+  // time-boxed access to owner-owned pets via PetStay, and can't issue passports.
   name      String
-  kind      String   @default("SHOP") // SHOP | BREEDER | SHELTER
+  kind      String   @default("SHOP")
   createdAt DateTime @default(now())
 
   // Billing — plan key (see src/lib/plans.ts). extraPetSlots = paid overage
@@ -48,6 +51,7 @@ model Organization {
   pets          Pet[]
   members       User[] @relation("OrgMembers")
   notifications Notification[]
+  stays         PetStay[] @relation("FacilityStays")
 }
 
 // Consumer account — created when a buyer claims a passport or self-registers.
@@ -116,6 +120,11 @@ model Pet {
   intakeAt  DateTime?
   notes     String?
 
+  // QR check-in token for facilities (hospital/boarding). The owner shows the QR
+  // encoding this token; a facility scans it to admit the pet (PetStay). Rotated
+  // when the owner confirms takeback, so an old QR can't silently re-admit.
+  stayToken String?  @unique
+
   // Consumer owner once a buyer claims the passport. The pet stays in the
   // breeder org (their read-only copy); the owner continues the timeline.
   ownerUserId String?
@@ -140,9 +149,33 @@ model Pet {
   attachments   Attachment[]
   weights       WeightEntry[]
   notifications Notification[]
+  stays         PetStay[]
 
   @@index([orgId])
   @@index([ownerUserId])
+}
+
+// A pet's stay at a facility (hospital/boarding). One row per (pet, facility);
+// re-admitting/taking-back toggles status. While ACTIVE the facility sees the
+// pet's full current history; once ARCHIVED (owner confirmed takeback) the
+// facility only sees history up to releasedAt — no further owner updates leak.
+model PetStay {
+  id         String    @id @default(cuid())
+  petId      String
+  pet        Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  orgId      String
+  org        Organization @relation("FacilityStays", fields: [orgId], references: [id], onDelete: Cascade)
+
+  status     String    @default("ACTIVE") // ACTIVE | ARCHIVED
+  admittedAt DateTime  @default(now())
+  releasedAt DateTime?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([petId, orgId])
+  @@index([orgId])
+  @@index([petId])
 }
 
 // Per-pet weight tracking — the daily-use ritual for breeders (neonate/growth
@@ -199,6 +232,12 @@ model LogEntry {
   // Credibility: once a passport is issued, the pre-transfer history is frozen
   // so it can't be retroactively edited/backdated. lockedAt marks that freeze.
   lockedAt   DateTime?
+
+  // When a facility (hospital/boarding) adds the entry during a stay, we tag it
+  // so the owner can see who recorded it ("Logged by: <facility>"). Null for the
+  // owner's / shop's own entries.
+  loggedByOrgId String?
+  loggedByName  String?
 
   createdAt  DateTime @default(now())
 
