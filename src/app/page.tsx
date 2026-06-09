@@ -37,7 +37,7 @@ export default async function HomePage() {
           <div className="absolute -top-24 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-brand-100/50 blur-3xl" />
           <div className="absolute right-0 top-40 h-64 w-64 rounded-full bg-[#F4C96B]/20 blur-3xl" />
         </div>
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:px-8 md:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1fr_1.25fr] md:px-8 md:py-24">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-medium text-forest">
               <Sparkles size={13} /> {l.heroEyebrow}
@@ -71,7 +71,7 @@ export default async function HomePage() {
             </ul>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md">
+          <div className="relative w-full">
             <div className="overflow-hidden rounded-[2rem] border border-border bg-surface p-2 shadow-soft">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

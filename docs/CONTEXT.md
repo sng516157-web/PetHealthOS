@@ -214,6 +214,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Enlarged home hero demo.** Why (user: GIF too small). `public/demos/home.gif`
+  re-exported from the existing raw recording at its native crop width **904px** (was downscaled to
+  760) for crispness; home hero grid changed to `md:grid-cols-[1fr_1.25fr]` and the image's
+  `max-w-md` cap removed so the demo fills the (wider) column (~60% of the hero). shop/owner GIFs
+  unchanged.
 - **2026-06-09** — **Synchronous log structuring + post-scan refresh.** Why (user request: more
   flow). `addLogEntry` now **awaits** `structureLogEntry` (when `hasAI()`) and persists the final
   AI fields in one write — removed the `heuristic-now + after() refine` pattern (and the `after`

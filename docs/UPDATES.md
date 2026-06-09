@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Bigger home demo.** The animated product demo in the home-page hero is now much
+  larger (and re-exported at full resolution so it stays crisp).
+
 - **2026-06-09 — Smoother note logging + instant scan refresh.** When you log a note, the AI now
   finishes structuring it before it appears, so you see one clean, finished entry instead of a rough
   version that changes a moment later (the button shows a brief "structuring…" state). And when a
