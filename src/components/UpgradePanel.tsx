@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { Check, CreditCard } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
+import { OWNER_EXTRA_PET_CAP } from "@/lib/plans";
 
 export type PlanOption = {
   key: string;
   priceRmb: number;
   includedPets: number;
   extraPetPriceRmb: number;
+  petCap?: number | null;
   issuePassports: boolean;
   multiSeat: boolean;
 };
@@ -120,7 +122,10 @@ export function UpgradePanel({
                 {p.extraPetPriceRmb > 0 && (
                   <li className="flex items-center gap-1.5">
                     <Check size={13} className="text-emerald-500" />
-                    {t.pricing.extraPet(p.extraPetPriceRmb, p.petCap ?? p.includedPets)}
+                    {t.pricing.extraPet(
+                      p.extraPetPriceRmb,
+                      p.petCap ?? (scope === "user" ? OWNER_EXTRA_PET_CAP : p.includedPets),
+                    )}
                   </li>
                 )}
                 {p.issuePassports && (
