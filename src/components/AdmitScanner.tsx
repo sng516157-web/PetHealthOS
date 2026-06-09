@@ -54,7 +54,12 @@ export function AdmitScanner() {
         handled.current = false;
         return;
       }
-      if (res?.petId) router.push(`/app/pets/${res.petId}`);
+      if (res?.petId) {
+        // Navigate to the freshly-admitted pet and invalidate cached lists
+        // (dashboard / in-care) so everything reflects the scan without a manual reload.
+        router.push(`/app/pets/${res.petId}`);
+        router.refresh();
+      }
     });
   }
 

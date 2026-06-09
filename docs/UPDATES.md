@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Smoother note logging + instant scan refresh.** When you log a note, the AI now
+  finishes structuring it before it appears, so you see one clean, finished entry instead of a rough
+  version that changes a moment later (the button shows a brief "structuring…" state). And when a
+  facility scans a check-in QR, the pet and lists refresh automatically — no manual page reload.
+
 - **2026-06-09 — Facility plan matches the shop plan.** Vet clinics / boarding now hold up to **50
   pets in care** (was 20) with extra **care slots at ¥30/month** each (was ¥15) — same structure as
   the Shop plan (¥599/mo or ¥4888/yr). The facility's Plan & billing page now lists what's included

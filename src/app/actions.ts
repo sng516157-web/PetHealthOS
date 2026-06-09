@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { after } from "next/server";
 import { cookies, headers } from "next/headers";
 import { randomBytes } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
@@ -329,24 +328,37 @@ export async function addLogEntry(petId: string, formData: FormData) {
     };
   }
 
-  // Save instantly with a fast local heuristic so the UI never waits on the
-  // model. If an AI key is set, refine the structured fields in the background
-  // (Vercel keeps the function warm via after()), so the entry is enriched a
-  // moment later without blocking the click.
-  const initial = heuristicStructure(text);
-  const entry = await prisma.logEntry.create({
+  // Let the AI finish structuring before we return, so the user only ever sees
+  // the final, AI-structured entry (smoother than showing a rough heuristic that
+  // visibly changes a moment later). Fall back to the local heuristic if there's
+  // no AI key or the model call fails.
+  let structured = heuristicStructure(text);
+  let aiProcessed = false;
+  if (hasAI()) {
+    const aiImage = imageBytes
+      ? { data: new Uint8Array(imageBytes), mediaType: imageMime ?? "image/jpeg" }
+      : undefined;
+    try {
+      structured = await structureLogEntry(text, pet, locale, aiImage);
+      aiProcessed = true;
+    } catch (e) {
+      console.error("log structuring failed, using heuristic", e);
+    }
+  }
+
+  await prisma.logEntry.create({
     data: {
       petId,
       rawText: text,
       occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
       imageUrl,
       imageMime,
-      type: initial.type,
-      severity: initial.severity,
-      title: initial.title,
-      summary: initial.summary,
-      tags: JSON.stringify(initial.tags),
-      aiProcessed: false,
+      type: structured.type,
+      severity: structured.severity,
+      title: structured.title,
+      summary: structured.summary,
+      tags: JSON.stringify(structured.tags),
+      aiProcessed,
       loggedByOrgId,
       loggedByName,
     },
@@ -354,36 +366,10 @@ export async function addLogEntry(petId: string, formData: FormData) {
 
   await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
 
-  if (hasAI()) {
-    const aiImage = imageBytes
-      ? { data: new Uint8Array(imageBytes), mediaType: imageMime ?? "image/jpeg" }
-      : undefined;
-    after(async () => {
-      try {
-        const structured = await structureLogEntry(text, pet, locale, aiImage);
-        await prisma.logEntry.update({
-          where: { id: entry.id },
-          data: {
-            type: structured.type,
-            severity: structured.severity,
-            title: structured.title,
-            summary: structured.summary,
-            tags: JSON.stringify(structured.tags),
-            aiProcessed: true,
-          },
-        });
-        revalidatePath(`/app/pets/${petId}`);
-        revalidatePath(`/me/pets/${petId}`);
-      } catch (e) {
-        console.error("background log structuring failed", e);
-      }
-    });
-  }
-
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/app");
-  return { ok: true, structured: initial, imageUrl };
+  return { ok: true, structured, imageUrl };
 }
 
 export async function deleteLogEntry(petId: string, id: string) {

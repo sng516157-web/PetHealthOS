@@ -214,6 +214,15 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Synchronous log structuring + post-scan refresh.** Why (user request: more
+  flow). `addLogEntry` now **awaits** `structureLogEntry` (when `hasAI()`) and persists the final
+  AI fields in one write — removed the `heuristic-now + after() refine` pattern (and the `after`
+  import), so the user only ever sees the finished, structured entry (`QuickAddLog` already shows a
+  "structuring…" pending state; verified no rough→structured flash). Falls back to the heuristic if
+  AI is unavailable/fails. Trade-off: the save now blocks ~2–6s on the model instead of returning
+  instantly — accepted for the cleaner UX. Also `AdmitScanner` calls `router.refresh()` after a
+  successful admit (the `admitPetByToken` action already `revalidatePath('/app','/app/pets')`), so a
+  scanned-in pet and the dashboard/in-care lists update without a manual reload.
 - **2026-06-09** — **Facility plan aligned to the SHOP plan + benefits listed.** Why (user
   request): keep one coherent pricing structure. `FACILITY_BASE_CAPACITY` 20→**50**,
   `FACILITY_EXTRA_SLOT_PRICE_RMB` 15→**30** (now identical to SHOP `includedPets`/
