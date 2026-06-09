@@ -803,6 +803,10 @@ export const en = {
     noArchivedDesc: "Pets you've cared for appear here after the owner takes them back.",
     statusActive: "In care",
     statusArchived: "Released",
+    planTitle: "Facility plan",
+    planSubtitle: "Pay monthly, or save with yearly. Unlimited pets in your care.",
+    inCareNow: (n: number) => `${n} ${n === 1 ? "pet" : "pets"} currently in your care`,
+    billingUsageNote: "Facilities are billed by plan — no per-pet limit on pets in your care.",
     readonlyNotice:
       "This pet has been taken back by the owner — you're viewing a read-only snapshot from when it left your care. Scan the QR again on the next visit to resume.",
   },

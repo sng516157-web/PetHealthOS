@@ -789,6 +789,10 @@ export const zh: Dictionary = {
     noArchivedDesc: "主人接回宠物后，会显示在这里。",
     statusActive: "照护中",
     statusArchived: "已离店",
+    planTitle: "机构套餐",
+    planSubtitle: "可按月付费，按年更省。照护宠物数量不限。",
+    inCareNow: (n: number) => `当前照护中 ${n} 只宠物`,
+    billingUsageNote: "机构按套餐计费——照护中的宠物数量没有上限。",
     readonlyNotice:
       "该宠物已被主人接回——你正在查看离店时的只读快照。下次到店时再次扫码即可恢复。",
   },

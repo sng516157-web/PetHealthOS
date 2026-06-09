@@ -46,6 +46,16 @@ unlocked because the shop is verified.
 submitting, the shop is `PENDING` and can use `/app` (with a banner) but **cannot
 issue passports** until approved in `/admin`.
 
+### 4. Facility (vet hospital) — `facility.demo@pawsure.test`
+
+- Facility account (`kind = HOSPITAL`), **already approved** (workspace at `/app`).
+- Comes with the owner's pet **Coco already in its care** (an active `PetStay`) plus a
+facility-tagged log, so the dashboard and stay flow are demoable immediately.
+- **Pipelines to test:** facility dashboard (照护中), **scan/paste to admit** an owner's
+check-in token, logging tagged "Logged by …", and the read-only snapshot after the owner
+takes the pet back. Owner side: `owner.demo@pawsure.test` → open **Coco** → check-in QR +
+"currently shared with" + **take back**. Facilities **cannot issue passports**.
+
 ---
 
 ## Admin / review team

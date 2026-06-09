@@ -23,18 +23,23 @@ const EMAILS = {
   owner: "owner.demo@pawsure.test",
   verifiedShop: "shop.verified@pawsure.test",
   unverifiedShop: "shop.unverified@pawsure.test",
+  facility: "facility.demo@pawsure.test",
 };
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86400000);
 
 async function main() {
   console.log("Cleaning up any previous demo accounts…");
-  // Remove demo users and their orgs (pets cascade from org).
+  // Remove demo users, their owned pets, and their orgs (org pets + stays cascade).
   const existing = await prisma.user.findMany({
     where: { email: { in: Object.values(EMAILS) } },
     select: { id: true, orgId: true },
   });
   const orgIds = existing.map((u) => u.orgId).filter(Boolean) as string[];
+  const userIds = existing.map((u) => u.id);
+  if (userIds.length) {
+    await prisma.pet.deleteMany({ where: { ownerUserId: { in: userIds } } });
+  }
   await prisma.user.deleteMany({
     where: { email: { in: Object.values(EMAILS) } },
   });
@@ -44,11 +49,26 @@ async function main() {
 
   const pw = hashPassword(PASSWORD);
 
-  // 1) Owner account — free, 2 pets included, ¥25/mo per extra (cap 10).
-  await prisma.user.create({
+  // 1) Owner account — free (1 pet included, ¥15/mo per extra, cap 10).
+  const owner = await prisma.user.create({
     data: { email: EMAILS.owner, name: "Demo Owner", passwordHash: pw, plan: "FREE" },
   });
-  console.log("✓ Owner account:", EMAILS.owner);
+  // A pet for the owner, with a QR check-in token (used by the facility demo).
+  const ownerPet = await prisma.pet.create({
+    data: {
+      ownerUserId: owner.id,
+      name: "Coco",
+      species: "DOG",
+      breed: "Corgi",
+      sex: "FEMALE",
+      birthDate: daysAgo(400),
+      color: "Tan",
+      weightKg: 9.2,
+      status: "ACTIVE",
+      stayToken: randomBytes(8).toString("hex"),
+    },
+  });
+  console.log("✓ Owner account:", EMAILS.owner, "(pet: Coco)");
 
   // 2) Verified shop — APPROVED, on SHOP plan, with pets ready to issue passports.
   const verifiedOrg = await prisma.organization.create({
@@ -115,6 +135,46 @@ async function main() {
     },
   });
   console.log("✓ Unverified shop:", EMAILS.unverifiedShop);
+
+  // 4) Facility — approved vet hospital that already has Coco in its care, so
+  // the facility dashboard and stay flow are demoable out of the box.
+  const facilityOrg = await prisma.organization.create({
+    data: {
+      name: "Happy Paws Animal Hospital (Demo)",
+      kind: "HOSPITAL",
+      plan: "STARTER",
+      verificationStatus: "APPROVED",
+      verificationDocType: "LICENSE",
+      verificationDocUrl: "local:verification/demo-approved.png",
+      verificationSubmittedAt: daysAgo(6),
+      verificationReviewedAt: daysAgo(5),
+    },
+  });
+  await prisma.user.create({
+    data: {
+      email: EMAILS.facility,
+      name: "Facility Manager",
+      passwordHash: pw,
+      orgId: facilityOrg.id,
+    },
+  });
+  await prisma.petStay.create({
+    data: { petId: ownerPet.id, orgId: facilityOrg.id, status: "ACTIVE" },
+  });
+  await prisma.logEntry.create({
+    data: {
+      petId: ownerPet.id,
+      rawText: "Admitted for boarding. Ate well, bright and active.",
+      type: "OBSERVATION",
+      severity: "NONE",
+      title: "Boarding check-in",
+      tags: JSON.stringify(["boarding", "intake"]),
+      aiProcessed: true,
+      loggedByOrgId: facilityOrg.id,
+      loggedByName: facilityOrg.name,
+    },
+  });
+  console.log("✓ Facility (hospital):", EMAILS.facility, "(Coco in care)");
 
   console.log("\nAll demo accounts ready. Password for all:", PASSWORD);
 }

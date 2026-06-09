@@ -17,6 +17,8 @@ export function ShopBilling({
   discountPct,
   referralCode,
   referralCount,
+  title,
+  subtitle,
 }: {
   currentPlan: string;
   currentInterval: string | null;
@@ -26,6 +28,8 @@ export function ShopBilling({
   discountPct: number;
   referralCode: string;
   referralCount: number;
+  title?: string;
+  subtitle?: string;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -111,7 +115,7 @@ export function ShopBilling({
       <div className="rounded-2xl border border-border bg-surface p-5">
         <div className="flex items-center gap-2">
           <Crown size={16} className="text-brand-600" />
-          <h3 className="text-sm font-semibold text-foreground">{t.shopBilling.title}</h3>
+          <h3 className="text-sm font-semibold text-foreground">{title ?? t.shopBilling.title}</h3>
           {isShop && (
             <span className="ml-auto rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-medium text-brand-700">
               {currentInterval
@@ -120,7 +124,7 @@ export function ShopBilling({
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs text-muted">{t.shopBilling.subtitle}</p>
+        <p className="mt-1 text-xs text-muted">{subtitle ?? t.shopBilling.subtitle}</p>
 
         {/* Interval selector */}
         <div className="mt-4 grid gap-2 sm:grid-cols-2">

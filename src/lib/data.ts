@@ -83,6 +83,11 @@ export async function getFacilityPets(status: "ACTIVE" | "ARCHIVED") {
   return stays.map((s) => ({ stay: s, pet: s.pet }));
 }
 
+export async function getFacilityActiveCount() {
+  const org = await requireActiveOrg();
+  return prisma.petStay.count({ where: { orgId: org.id, status: "ACTIVE" } });
+}
+
 export async function getFacilityStay(petId: string) {
   const org = await requireActiveOrg();
   return prisma.petStay.findUnique({
