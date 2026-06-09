@@ -694,6 +694,7 @@ export const zh: Dictionary = {
       kindLabel: "机构类型",
       kindHospital: "宠物医院 / 诊所",
       kindBoarding: "寄养 / 宠物酒店",
+      pricingLine: "¥599/月 或 ¥4888/年 · 最多照护 50 只 · 额外照护名额每个 ¥30/月",
       loginTitle: "机构登录 / 创建账户",
     },
     backHome: "返回首页",
@@ -791,6 +792,15 @@ export const zh: Dictionary = {
     statusArchived: "已离店",
     planTitle: "机构套餐",
     planSubtitle: "可按月付费，按年更省。",
+    planBenefitsTitle: "本套餐包含",
+    planBenefits: (base: number, slotPrice: number) => [
+      `最多可同时照护 ${base} 只宠物`,
+      `可随时新增照护名额——每个 ¥${slotPrice}/月（持续付费即保留，空置也保留）`,
+      "记录笔记、体重与照片——每条都标注你的机构名称",
+      "AI 助手 + 分诊报告，便于与主人沟通",
+      "为照护中的每只宠物设置提醒与体重追踪",
+      "团队多设备登录",
+    ],
     inCareNow: (n: number) => `当前照护中 ${n} 只宠物`,
     slotsTitle: "照护名额",
     slotsDesc: (base: number, price: number) =>

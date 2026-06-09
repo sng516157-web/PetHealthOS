@@ -42,6 +42,9 @@ export default async function FacilityLandingPage() {
                   </li>
                 ))}
               </ul>
+              <p className="mt-4 rounded-xl bg-brand-50 px-3 py-2 text-xs font-medium text-brand-700">
+                {f.pricingLine}
+              </p>
             </div>
           </div>
 

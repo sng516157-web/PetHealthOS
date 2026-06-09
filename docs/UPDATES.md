@@ -9,10 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
-- **2026-06-09 — Facility care-slot capacity.** Vet clinics / boarding can hold up to **20 pets in
-  care at once**; need more? Each extra **care slot is ¥15/month** and stays yours as long as you
-  keep it, even when empty. Manage it on the facility's Plan & billing page; admitting a pet beyond
-  capacity prompts you to add a slot. (Real Stripe billing wires in later; slots demo-grant for now.)
+- **2026-06-09 — Facility plan matches the shop plan.** Vet clinics / boarding now hold up to **50
+  pets in care** (was 20) with extra **care slots at ¥30/month** each (was ¥15) — same structure as
+  the Shop plan (¥599/mo or ¥4888/yr). The facility's Plan & billing page now lists what's included
+  and exactly how much each extra slot costs, and the facility landing shows the pricing up front.
 
 - **2026-06-09 — New account type: vet clinics & boarding (宠物医院 / 宠物寄养).** Facilities sign
   up, upload a business certificate, and admit a pet by scanning the owner's check-in QR. While the

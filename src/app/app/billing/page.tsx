@@ -10,6 +10,7 @@ import {
   referralDiscountRate,
   FACILITY_EXTRA_SLOT_PRICE_RMB,
 } from "@/lib/plans";
+import { Check } from "lucide-react";
 import { ShopBilling } from "@/components/ShopBilling";
 import { FacilitySlots } from "@/components/FacilitySlots";
 import { getI18n } from "@/lib/i18n/server";
@@ -55,12 +56,29 @@ export default async function OrgBillingPage() {
       </div>
 
       {facility && capacity && (
-        <FacilitySlots
-          base={capacity.base}
-          price={FACILITY_EXTRA_SLOT_PRICE_RMB}
-          inCare={capacity.inCare}
-          limit={capacity.limit}
-        />
+        <>
+          <div className="rounded-2xl border border-border bg-surface p-5">
+            <h3 className="text-sm font-semibold text-foreground">
+              {t.facility.planBenefitsTitle}
+            </h3>
+            <ul className="mt-3 space-y-2">
+              {t.facility
+                .planBenefits(capacity.base, FACILITY_EXTRA_SLOT_PRICE_RMB)
+                .map((b) => (
+                  <li key={b} className="flex items-start gap-2 text-sm text-slate-600">
+                    <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                    {b}
+                  </li>
+                ))}
+            </ul>
+          </div>
+          <FacilitySlots
+            base={capacity.base}
+            price={FACILITY_EXTRA_SLOT_PRICE_RMB}
+            inCare={capacity.inCare}
+            limit={capacity.limit}
+          />
+        </>
       )}
 
       <ShopBilling

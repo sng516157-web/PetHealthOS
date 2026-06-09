@@ -214,6 +214,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Facility plan aligned to the SHOP plan + benefits listed.** Why (user
+  request): keep one coherent pricing structure. `FACILITY_BASE_CAPACITY` 20→**50**,
+  `FACILITY_EXTRA_SLOT_PRICE_RMB` 15→**30** (now identical to SHOP `includedPets`/
+  `extraPetPriceRmb`); subscription already shared (`SHOP_BILLING` ¥599/¥4888). Added a clear
+  "What's included" benefits list (`facility.planBenefits(base, slotPrice)`) on `/app/billing`
+  above the `FacilitySlots` panel (which states the ¥30/mo slot price), and a `pricingLine` on the
+  `/facility` landing. Supersedes the earlier 20/¥15 entry below.
 - **2026-06-09** — **Facility care-slot capacity (20 base + ¥15/mo slots).** Why (user request):
   cap concurrent pets-in-care and monetise overage. `FACILITY_BASE_CAPACITY = 20`,
   `FACILITY_EXTRA_SLOT_PRICE_RMB = 15`, `facilityCapacity(extra) = 20 + extraSlots` (no hard cap;

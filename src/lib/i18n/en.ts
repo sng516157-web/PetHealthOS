@@ -709,6 +709,7 @@ export const en = {
       kindLabel: "Facility type",
       kindHospital: "Vet clinic / hospital",
       kindBoarding: "Boarding / pet hotel",
+      pricingLine: "¥599/mo or ¥4888/yr · up to 50 pets in care · extra care slots ¥30/mo each",
       loginTitle: "Facility sign in / create account",
     },
     backHome: "Back to home",
@@ -805,6 +806,15 @@ export const en = {
     statusArchived: "Released",
     planTitle: "Facility plan",
     planSubtitle: "Pay monthly, or save with yearly.",
+    planBenefitsTitle: "What's included",
+    planBenefits: (base: number, slotPrice: number) => [
+      `Care for up to ${base} pets at the same time`,
+      `Add extra care slots anytime — ¥${slotPrice}/mo each (kept while paid, even when empty)`,
+      "Log notes, weights & photos — each tagged with your facility's name",
+      "AI assistant + triage reports to communicate with owners",
+      "Reminders & weight tracking for every pet in your care",
+      "Multi-device sign-in for your whole team",
+    ],
     inCareNow: (n: number) => `${n} ${n === 1 ? "pet" : "pets"} currently in your care`,
     slotsTitle: "Care slots",
     slotsDesc: (base: number, price: number) =>

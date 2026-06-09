@@ -78,11 +78,12 @@ export function shopPriceRmb(interval: BillingInterval, referralCount = 0): numb
   return SHOP_BILLING.month;
 }
 
-// Facilities (hospital/boarding) care for pets that come and go. They can hold
-// up to FACILITY_BASE_CAPACITY pets in care at once; beyond that, each extra
-// "care slot" is ¥15/mo and stays as long as it's paid for, even when empty.
-export const FACILITY_BASE_CAPACITY = 20;
-export const FACILITY_EXTRA_SLOT_PRICE_RMB = 15;
+// Facilities (hospital/boarding) care for pets that come and go. They mirror
+// the SHOP plan's structure: base capacity of FACILITY_BASE_CAPACITY pets in
+// care, then each extra "care slot" is ¥30/mo (same as the shop's per-pet
+// overage) and stays as long as it's paid for, even when empty.
+export const FACILITY_BASE_CAPACITY = 50;
+export const FACILITY_EXTRA_SLOT_PRICE_RMB = 30;
 
 // Max concurrent pets-in-care = base + purchased extra slots (no hard ceiling).
 export function facilityCapacity(extraSlots: number): number {
