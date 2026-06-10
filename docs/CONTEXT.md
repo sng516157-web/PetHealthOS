@@ -214,6 +214,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-10** — **Stripe fulfillment fix.** Why (user: test card/WeChat paid in Stripe but app
+  didn't upgrade). Root cause: fulfillment only ran on `/billing/success` with no idempotency,
+  no `revalidatePath`, success UI always showed "upgraded" even on failure, no webhook backup.
+  Fix: `fulfillCheckoutSession` (metadata `fulfilled=1` guard), webhook at
+  `/api/stripe/webhook` (`checkout.session.completed` + `async_payment_succeeded`), honest
+  success/pending/error states. **Products/prices:** Checkout uses dynamic `price_data` (no
+  pre-created Stripe Product catalog) — payments appear under Payments/Checkout, not Products.
 - **2026-06-09** — **Documents panel on owner pet page.** Why (user: transferred pets should show
   shop-uploaded docs). `DocumentsPanel` added to `/me/pets/[id]` (data was already loaded via
   `getOwnedPet` → `getPet`); `deleteAttachment` now checks `canAccessPet` + `petId` match.

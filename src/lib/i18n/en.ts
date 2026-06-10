@@ -548,6 +548,14 @@ export const en = {
       `Your current plan allows ${limit} pets. Upgrade to add more.`,
     successTitle: "You're upgraded! 🎉",
     successDesc: "Your new plan is active. Thanks for supporting PawSure.",
+    successPendingTitle: "Payment received — activating…",
+    successPendingDesc:
+      "Stripe confirmed your payment but activation is still catching up. Refresh in a few seconds, or open Billing to check.",
+    successFailedTitle: "Payment received, activation failed",
+    successFailedDesc:
+      "We couldn't apply your purchase automatically. Open Billing — if nothing changed, contact support with your payment receipt.",
+    successMissingDesc: "No checkout session was found. Return to Billing and try again.",
+    successRetry: "Refresh activation",
     cancelledTitle: "Checkout cancelled",
     cancelledDesc: "No charge was made. You can pick a plan whenever you're ready.",
     backToApp: "Back to app",

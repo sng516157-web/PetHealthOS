@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-10 — Reliable Stripe fulfillment.** Checkout payments now activate plans/slots via an
+  idempotent fulfillment step (success page + webhook), with honest success/pending/error UI and
+  billing cache refresh.
+
 - **2026-06-09 — Owner pet documents.** Pet owners now see the same Documents panel as shops on
   `/me/pets/[id]` — pedigree certs, vaccine proofs and other files uploaded before transfer stay
   visible after passport claim.

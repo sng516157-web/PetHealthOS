@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 import {
   getOrgPlan,
@@ -294,44 +295,105 @@ export async function buyFacilitySlot(opts: {
   return { error: "UNKNOWN_PROVIDER" };
 }
 
-// Confirm a returning Stripe Checkout session and apply what it paid for —
-// either a plan upgrade or a single extra pet slot.
-export async function finalizeStripeSession(
-  sessionId: string,
-): Promise<{
+export type FulfillScopeKind = "org" | "user" | "user_slot" | "org_slot";
+
+export type FulfillResult = {
   ok: boolean;
+  error?: "NOT_CONFIGURED" | "NOT_READY" | "INVALID_METADATA";
+  alreadyFulfilled?: boolean;
   planKey?: string;
-  scopeKind?: "org" | "user" | "user_slot" | "org_slot";
-}> {
-  if (!stripeConfigured()) return { ok: false };
-  const { default: Stripe } = await import("stripe");
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  scopeKind?: FulfillScopeKind;
+};
 
-  const paid =
-    session.payment_status === "paid" || session.status === "complete";
-  const md = session.metadata;
-  if (!paid || !md?.scopeKind || !md?.scopeId) return { ok: false };
+type StripeCheckoutSession = {
+  id: string;
+  status: string | null;
+  payment_status: string | null;
+  metadata: Record<string, string> | null;
+};
 
-  if (md.scopeKind === "user_slot") {
+function checkoutSessionReady(session: StripeCheckoutSession): boolean {
+  return (
+    session.payment_status === "paid" ||
+    session.status === "complete"
+  );
+}
+
+function revalidateAfterFulfillment(scopeKind: string) {
+  if (scopeKind === "user" || scopeKind === "user_slot") {
+    revalidatePath("/me/billing");
+    revalidatePath("/me");
+    revalidatePath("/me/pets/new");
+  } else {
+    revalidatePath("/app/billing");
+    revalidatePath("/app");
+    revalidatePath("/app/pets");
+  }
+  revalidatePath("/pricing");
+}
+
+// Apply what a paid Checkout session bought. Idempotent via metadata.fulfilled
+// so the success page and webhook can both call this safely.
+export async function fulfillCheckoutSession(
+  session: StripeCheckoutSession,
+  stripeClient?: { checkout: { sessions: { update: (id: string, params: { metadata: Record<string, string> }) => Promise<unknown> } } },
+): Promise<FulfillResult> {
+  const md = session.metadata ?? {};
+  const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
+
+  if (md.fulfilled === "1" && scopeKind) {
+    return {
+      ok: true,
+      alreadyFulfilled: true,
+      scopeKind,
+      planKey: md.planKey,
+    };
+  }
+
+  if (!checkoutSessionReady(session)) {
+    return { ok: false, error: "NOT_READY" };
+  }
+  if (!scopeKind || !md.scopeId) {
+    return { ok: false, error: "INVALID_METADATA" };
+  }
+
+  if (scopeKind === "user_slot") {
     await prisma.user.update({
       where: { id: md.scopeId },
       data: { extraPetSlots: { increment: 1 } },
     });
-    return { ok: true, scopeKind: "user_slot" };
-  }
-
-  if (md.scopeKind === "org_slot") {
+  } else if (scopeKind === "org_slot") {
     await prisma.organization.update({
       where: { id: md.scopeId },
       data: { extraPetSlots: { increment: 1 } },
     });
-    return { ok: true, scopeKind: "org_slot" };
+  } else if (scopeKind === "org" || scopeKind === "user") {
+    if (!md.planKey) return { ok: false, error: "INVALID_METADATA" };
+    const interval = isBillingInterval(md.interval) ? md.interval : undefined;
+    await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey, interval);
+  } else {
+    return { ok: false, error: "INVALID_METADATA" };
   }
 
-  if (!md.planKey) return { ok: false };
-  const scopeKind = md.scopeKind as "org" | "user";
-  const interval = isBillingInterval(md.interval) ? md.interval : undefined;
-  await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey, interval);
-  return { ok: true, planKey: md.planKey, scopeKind };
+  if (stripeClient) {
+    await stripeClient.checkout.sessions.update(session.id, {
+      metadata: { ...md, fulfilled: "1" },
+    });
+  }
+
+  revalidateAfterFulfillment(scopeKind);
+  return {
+    ok: true,
+    scopeKind,
+    planKey: md.planKey,
+  };
+}
+
+// Confirm a returning Stripe Checkout session (success-page redirect).
+export async function finalizeStripeSession(sessionId: string): Promise<FulfillResult> {
+  if (!stripeConfigured()) return { ok: false, error: "NOT_CONFIGURED" };
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  return fulfillCheckoutSession(session, stripe);
 }

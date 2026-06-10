@@ -541,6 +541,14 @@ export const zh: Dictionary = {
     quotaDesc: (limit: number) => `你当前的套餐允许 ${limit} 只宠物。升级以添加更多。`,
     successTitle: "升级成功！🎉",
     successDesc: "你的新套餐已生效。感谢支持 宠诺。",
+    successPendingTitle: "已收到付款——正在开通…",
+    successPendingDesc:
+      "Stripe 已确认付款，开通可能稍有延迟。请几秒后刷新，或打开「套餐与账单」查看。",
+    successFailedTitle: "付款成功，但开通失败",
+    successFailedDesc:
+      "未能自动开通你的购买。请打开「套餐与账单」——若仍未生效，请凭付款凭证联系支持。",
+    successMissingDesc: "未找到结账会话。请返回「套餐与账单」重试。",
+    successRetry: "重新尝试开通",
     cancelledTitle: "已取消支付",
     cancelledDesc: "未产生任何扣费。你可以随时再选择套餐。",
     backToApp: "返回应用",
