@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-10 — Mainland-friendly payment redirects.** Stripe Checkout now returns to your HK
+  proxy domain (`APP_PUBLIC_URL`) instead of `*.vercel.app`, so post-payment pages load in China
+  without a VPN.
+
 - **2026-06-10 — Reliable Stripe fulfillment.** Checkout payments now activate plans/slots via an
   idempotent fulfillment step (success page + webhook), with honest success/pending/error UI and
   billing cache refresh.

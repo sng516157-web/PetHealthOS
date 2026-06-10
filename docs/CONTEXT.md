@@ -174,11 +174,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 ## 7. Known gotchas
 
-- **China access:** the site currently needs a **VPN** in mainland China. The
-  cause is GFW interference with Vercel's edge/`*.vercel.app` domain — **not** the
-  DB or region. Verified: server render ~0.3s, edge ~7ms when reachable; the spikes
-  are intermittent TCP **SYN packet loss** (1s→3s→7s… retransmit backoff). Moving
-  the Vercel region or DB will **not** fix reachability.
+- **China access:** use **`https://pethealthos.online`** (HK proxy), not
+  `*.vercel.app`, from mainland China without a VPN. The GFW interferes with Vercel's
+  edge domain — **not** the DB or region. **Stripe return URLs** must use the same
+  reachable domain: set `APP_PUBLIC_URL=https://pethealthos.online` on Vercel so
+  Checkout `success_url`/`cancel_url` are not `pet-health-os.vercel.app` (post-payment
+  redirect often hangs/fails on the mainland). Webhook fulfillment still runs if the
+  redirect is missed — refresh billing after a minute or open
+  `https://pethealthos.online/billing/success?session_id=…` from the Stripe receipt.
 - **Hydration warning in the in-IDE browser** is a false positive — the Cursor
   browser injects `data-cursor-ref` attributes. Not a real bug; ignore.
 - **Vercel Blob URLs** (`*.blob.vercel-storage.com`) are also GFW-blocked. Pet
@@ -214,6 +217,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-10** — **Stripe return URLs for mainland China (v2).** Why (user: Checkout stuck on
+  "Processing" after Pay — browser never finishes redirect). Production was still embedding
+  `success_url` on `*.vercel.app` (GFW-blocked); the first fix was not deployed. `checkoutBaseUrl()`
+  now defaults production to `https://pethealthos.online` (overridable via `APP_PUBLIC_URL`).
+  **Requires deploy** + users must browse via the proxy domain, not `pet-health-os.vercel.app`.
 - **2026-06-10** — **Stripe fulfillment fix.** Why (user: test card/WeChat paid in Stripe but app
   didn't upgrade). Root cause: fulfillment only ran on `/billing/success` with no idempotency,
   no `revalidatePath`, success UI always showed "upgraded" even on failure, no webhook backup.

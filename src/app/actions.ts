@@ -43,6 +43,7 @@ import {
   isFacilityKind,
   type GuaranteeType,
 } from "@/lib/constants";
+import { checkoutBaseUrl } from "@/lib/site-url";
 import {
   startCheckout,
   buyOwnerPetSlot,
@@ -1082,15 +1083,6 @@ export async function addOwnedPet(formData: FormData) {
 
 // ---- Billing ----
 
-async function baseUrlFromHeaders(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto =
-    h.get("x-forwarded-proto") ??
-    (process.env.NODE_ENV === "production" ? "https" : "http");
-  return `${proto}://${host}`;
-}
-
 export async function startPlanCheckout(formData: FormData) {
   const scopeKind = String(formData.get("scope") || "");
   const planKey = String(formData.get("plan") || "");
@@ -1110,7 +1102,7 @@ export async function startPlanCheckout(formData: FormData) {
     return { error: "UNKNOWN_SCOPE" };
   }
 
-  const baseUrl = await baseUrlFromHeaders();
+  const baseUrl = await checkoutBaseUrl();
   const result = await startCheckout({ scope, planKey, provider, baseUrl, interval });
 
   if ("error" in result) return { error: result.error };
@@ -1128,7 +1120,7 @@ export async function addOwnerPetSlot(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) return { error: "Please sign in first" };
   const provider = String(formData.get("provider") || "stripe") as Provider;
-  const baseUrl = await baseUrlFromHeaders();
+  const baseUrl = await checkoutBaseUrl();
   const result = await buyOwnerPetSlot({ userId: user.id, baseUrl, provider });
 
   if ("error" in result) return { error: result.error };
@@ -1143,7 +1135,7 @@ export async function addOwnerPetSlot(formData: FormData) {
 export async function addFacilitySlot(formData: FormData) {
   const org = await requireActiveOrg();
   const provider = String(formData.get("provider") || "stripe") as Provider;
-  const baseUrl = await baseUrlFromHeaders();
+  const baseUrl = await checkoutBaseUrl();
   const result = await buyFacilitySlot({ orgId: org.id, baseUrl, provider });
 
   if ("error" in result) return { error: result.error };
