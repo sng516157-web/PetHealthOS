@@ -130,14 +130,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   enforces it for `/app`.
 - **Verification review:** `/verify` (`submitVerification`) → team approves at `/admin`
   (`reviewOrg`) → `APPROVED` unlocks passport issuance.
-- **Billing:** provider-agnostic `startCheckout` / `buyOwnerPetSlot`. **Stripe is the
-  cross-border processor for all three buttons** — card, **Alipay**, and **WeChat Pay** —
-  via `createStripeCheckout` (`lib/billing.ts`): a Hong Kong Stripe account can charge
-  mainland users in the Chinese wallets with no native merchant account. Cards bill as a
-  real monthly *subscription*; Alipay/WeChat Pay are one-time Stripe methods (no recurring
-  support) charged one month at a time (`mode: "payment"`, no auto-renew). Demo mode still
-  activates plans instantly when no provider is configured. Enabling it for real needs only
-  `STRIPE_SECRET_KEY` **plus** turning on Alipay + WeChat Pay in the Stripe Dashboard.
+- **Billing:** `startCheckout` / `buyOwnerPetSlot` / `buyFacilitySlot` via **Stripe card
+  checkout only** (`createStripeCheckout` in `lib/billing.ts`). Shop/facility plans with
+  `interval` month/year and facility extra slots use Stripe **subscriptions**; owner extra
+  pet slots are one-time `payment` for now. **WeChat Pay + Alipay removed** (2026-06-10)
+  until incorporation — full revisit guide in `docs/PAYMENTS_WALLETS_DEFERRED.md`. Demo mode
+  still activates instantly when `STRIPE_SECRET_KEY` is unset. Live: `STRIPE_SECRET_KEY` +
+  `STRIPE_WEBHOOK_SECRET` + `APP_PUBLIC_URL=https://pethealthos.online`.
 
 ---
 
@@ -209,7 +208,8 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   auto-HTTPS turns on; then logins/forms work (secure cookies need HTTPS).
   Latency optimisation (move compute+DB to Singapore) is a later step, after
   validation.
-- Real payment provider keys (Stripe / WeChat Pay / Alipay) when ready.
+- Live Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) when ready. WeChat/Alipay
+  deferred until incorporation — see `docs/PAYMENTS_WALLETS_DEFERRED.md`.
 
 ---
 
@@ -217,6 +217,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-10** — **Remove WeChat Pay + Alipay until incorporation.** Why (user: no recurring
+  on Stripe wallets; native auto-debit needs mainland merchant accounts). Removed wallet buttons
+  from all billing UIs; `Provider` is `"stripe"` only in `lib/billing.ts`; card-only Checkout.
+  Preserved full revisit plan in `docs/PAYMENTS_WALLETS_DEFERRED.md` (Stripe cross-border path
+  + native merchant path post-incorporation).
 - **2026-06-10** — **Stripe return URLs for mainland China (v2).** Why (user: Checkout stuck on
   "Processing" after Pay — browser never finishes redirect). Production was still embedding
   `success_url` on `*.vercel.app` (GFW-blocked); the first fix was not deployed. `checkoutBaseUrl()`

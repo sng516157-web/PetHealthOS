@@ -532,8 +532,6 @@ export const zh: Dictionary = {
     viewPlans: "查看套餐",
     choosePayment: "选择支付方式",
     payStripe: "银行卡支付（Stripe）",
-    payWechat: "微信支付",
-    payAlipay: "支付宝",
     redirecting: "正在跳转到收银台…",
     demoActivated: "套餐已开通（演示模式 —— 尚未配置支付渠道）。",
     providerComingSoon: "该支付方式尚未接入。请换一种方式，或联系我们。",

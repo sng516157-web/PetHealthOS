@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-10 — Card-only billing for now.** WeChat Pay and Alipay buttons are removed until
+  incorporation; checkout is Stripe card only. See `docs/PAYMENTS_WALLETS_DEFERRED.md` to
+  bring wallets back later.
+
 - **2026-06-10 — Mainland-friendly payment redirects.** Stripe Checkout now returns to your HK
   proxy domain (`APP_PUBLIC_URL`) instead of `*.vercel.app`, so post-payment pages load in China
   without a VPN.

@@ -538,8 +538,6 @@ export const en = {
     viewPlans: "View plans",
     choosePayment: "Choose how to pay",
     payStripe: "Pay with card (Stripe)",
-    payWechat: "WeChat Pay",
-    payAlipay: "Alipay",
     redirecting: "Redirecting to checkout…",
     demoActivated: "Plan activated (demo mode — no payment provider configured yet).",
     providerComingSoon: "This payment method isn't connected yet. Try another, or contact us.",

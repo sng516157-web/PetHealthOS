@@ -48,15 +48,15 @@ export function UpgradePanel({
     return code;
   }
 
-  function choose(planKey: string, provider: string) {
+  function choose(planKey: string) {
     setError(null);
     setNotice(null);
-    setBusyKey(`${planKey}:${provider}`);
+    setBusyKey(planKey);
     start(async () => {
       const fd = new FormData();
       fd.set("scope", scope);
       fd.set("plan", planKey);
-      fd.set("provider", provider);
+      fd.set("provider", "stripe");
       const res = await startPlanCheckout(fd);
       setBusyKey(null);
       if (res?.url) {
@@ -145,35 +145,17 @@ export function UpgradePanel({
               {!isCurrent && (
                 <div className="mt-4 space-y-2">
                   {paid ? (
-                    <>
-                      <button
-                        onClick={() => choose(p.key, "stripe")}
-                        disabled={pending}
-                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
-                      >
-                        <CreditCard size={13} />{" "}
-                        {busyKey === `${p.key}:stripe` ? "…" : t.billing.payStripe}
-                      </button>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => choose(p.key, "wechat")}
-                          disabled={pending}
-                          className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700 disabled:opacity-60"
-                        >
-                          {t.billing.payWechat}
-                        </button>
-                        <button
-                          onClick={() => choose(p.key, "alipay")}
-                          disabled={pending}
-                          className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-sky-300 hover:text-sky-700 disabled:opacity-60"
-                        >
-                          {t.billing.payAlipay}
-                        </button>
-                      </div>
-                    </>
+                    <button
+                      onClick={() => choose(p.key)}
+                      disabled={pending}
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+                    >
+                      <CreditCard size={13} />{" "}
+                      {busyKey === p.key ? "…" : t.billing.payStripe}
+                    </button>
                   ) : (
                     <button
-                      onClick={() => choose(p.key, "stripe")}
+                      onClick={() => choose(p.key)}
                       disabled={pending}
                       className="inline-flex w-full items-center justify-center rounded-lg border border-border px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
                     >

@@ -27,7 +27,8 @@ portable, verifiable **health passport** when the pet changes hands.
   new owner to start a free account.
 - **Accounts & billing** — unified auth: owners (free, 2 pets, ¥25/mo per extra,
   single-device) vs shops (`STARTER`/`SHOP`, multi-device, KYC-verified to issue
-  passports). Stripe handles card / Alipay / WeChat Pay.
+  passports). Card checkout via Stripe (WeChat/Alipay deferred — see
+  `docs/PAYMENTS_WALLETS_DEFERRED.md`).
 - **i18n** — full English + 简体中文 (UI and AI).
 
 ## Stack

@@ -73,7 +73,7 @@ const zh: DisclaimerContent = {
     {
       heading: "7. 支付",
       body: [
-        "本平台的付费功能通过第三方支付服务商（如 Stripe 及其支持的支付宝、微信支付等）处理。相关支付受该服务商的条款与政策约束。",
+        "本平台的付费功能通过第三方支付服务商（如 Stripe 银行卡收银）处理。相关支付受该服务商的条款与政策约束。",
         "我们不存储您的完整支付卡信息。退款与计费争议按相应套餐说明及服务商规则处理。",
       ],
     },
@@ -160,7 +160,7 @@ const en: DisclaimerContent = {
     {
       heading: "7. Payments",
       body: [
-        "Paid features are processed by third-party payment providers (e.g. Stripe and the Alipay / WeChat Pay methods it supports). Payments are governed by those providers' terms and policies.",
+        "Paid features are processed by third-party payment providers (e.g. Stripe card checkout). Payments are governed by those providers' terms and policies.",
         "We do not store your full payment-card details. Refunds and billing disputes are handled per the relevant plan description and provider rules.",
       ],
     },

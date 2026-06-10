@@ -39,13 +39,13 @@ export function OwnerExtraSlots({
     return code;
   }
 
-  function buy(provider: string) {
+  function buy() {
     setError(null);
     setNotice(null);
-    setBusy(provider);
+    setBusy("stripe");
     start(async () => {
       const fd = new FormData();
-      fd.set("provider", provider);
+      fd.set("provider", "stripe");
       const res = await addOwnerPetSlot(fd);
       setBusy(null);
       if (res?.url) {
@@ -95,9 +95,9 @@ export function OwnerExtraSlots({
           {t.billing.slotCapReached(petCap)}
         </p>
       ) : (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4">
           <button
-            onClick={() => buy("stripe")}
+            onClick={() => buy()}
             disabled={pending}
             className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
           >
@@ -106,22 +106,6 @@ export function OwnerExtraSlots({
               ? "…"
               : t.billing.addPetSlot(extraPetPriceRmb)}
           </button>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => buy("wechat")}
-              disabled={pending}
-              className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700 disabled:opacity-60"
-            >
-              {t.billing.payWechat}
-            </button>
-            <button
-              onClick={() => buy("alipay")}
-              disabled={pending}
-              className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-sky-300 hover:text-sky-700 disabled:opacity-60"
-            >
-              {t.billing.payAlipay}
-            </button>
-          </div>
         </div>
       )}
     </div>

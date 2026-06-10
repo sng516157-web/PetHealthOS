@@ -16,7 +16,8 @@ export type CheckoutScope =
   | { kind: "org"; id: string }
   | { kind: "user"; id: string };
 
-export type Provider = "stripe" | "wechat" | "alipay";
+/** Card checkout via Stripe HK. WeChat/Alipay deferred — see docs/PAYMENTS_WALLETS_DEFERRED.md */
+export type Provider = "stripe";
 
 export type CheckoutResult =
   | { url: string } // redirect the customer to the provider
@@ -32,17 +33,8 @@ export function stripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
-export function chinaPayConfigured(provider: "wechat" | "alipay"): boolean {
-  if (provider === "wechat") return Boolean(process.env.WECHAT_PAY_MCH_ID);
-  return Boolean(process.env.ALIPAY_APP_ID);
-}
-
 export function anyProviderConfigured(): boolean {
-  return (
-    stripeConfigured() ||
-    chinaPayConfigured("wechat") ||
-    chinaPayConfigured("alipay")
-  );
+  return stripeConfigured();
 }
 
 // Apply a plan to the org/user. Used by free-tier switches, the dev/demo path,
@@ -98,41 +90,22 @@ export async function ensureReferralCode(orgId: string): Promise<string> {
   throw new Error("Could not allocate referral code");
 }
 
-type StripeMethod = "card" | "wechat_pay" | "alipay";
-
-function stripeMethodFor(provider: Provider): StripeMethod {
-  if (provider === "wechat") return "wechat_pay";
-  if (provider === "alipay") return "alipay";
-  return "card";
-}
-
-// Build a Stripe Checkout session for any supported provider. Stripe is our
-// cross-border processor: a Hong Kong Stripe account can charge mainland users
-// via Alipay / WeChat Pay with no native merchant account. Cards bill as a real
-// monthly *subscription*; Alipay & WeChat Pay are one-time methods in Stripe
-// (no recurring support), so they're charged one month at a time and the
-// customer re-pays each period rather than auto-renewing.
+// Build a Stripe Checkout session (card only). Monthly/yearly plans use a real
+// subscription; one-off slot purchases use mode "payment".
 async function createStripeCheckout(opts: {
-  provider: Provider;
   amountRmb: number;
   productName: string;
   metadata: Record<string, string>;
   baseUrl: string;
-  // "month"/"year" bill as a real recurring subscription on card; Alipay/WeChat
-  // payments (which can't recur in Stripe) are a one-time charge.
   interval?: BillingInterval;
 }): Promise<CheckoutResult> {
-  const { provider, amountRmb, productName, metadata, baseUrl, interval } = opts;
+  const { amountRmb, productName, metadata, baseUrl, interval } = opts;
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-  const method = stripeMethodFor(provider);
-  // Cards can auto-renew monthly/yearly. Alipay/WeChat have no recurring
-  // support in Stripe, so they're always one-time.
-  const recurring =
-    method === "card" && (interval === "month" || interval === "year");
+  const recurring = interval === "month" || interval === "year";
   const session = await stripe.checkout.sessions.create({
     mode: recurring ? "subscription" : "payment",
-    payment_method_types: [method],
+    payment_method_types: ["card"],
     line_items: [
       {
         quantity: 1,
@@ -146,9 +119,6 @@ async function createStripeCheckout(opts: {
         },
       },
     ],
-    ...(method === "wechat_pay"
-      ? { payment_method_options: { wechat_pay: { client: "web" as const } } }
-      : {}),
     success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/billing/cancelled`,
     metadata,
@@ -164,7 +134,7 @@ export async function startCheckout(opts: {
   baseUrl: string;
   interval?: BillingInterval;
 }): Promise<CheckoutResult> {
-  const { scope, planKey, provider, baseUrl } = opts;
+  const { scope, planKey, baseUrl } = opts;
   const plan = planFor(scope, planKey);
   if (!plan) return { error: "UNKNOWN_PLAN" };
 
@@ -185,40 +155,29 @@ export async function startCheckout(opts: {
     amountRmb = shopPriceRmb(interval, referralCount);
   }
 
-  // No provider configured anywhere → demo mode: activate immediately so the
-  // upgrade flow is fully demoable before real credentials are added.
+  // No provider configured → demo mode: activate immediately.
   if (!anyProviderConfigured()) {
     await activatePlan(scope, planKey, interval);
     return { activated: true, demo: true };
   }
 
-  if (provider === "stripe" || provider === "wechat" || provider === "alipay") {
-    if (stripeConfigured()) {
-      return createStripeCheckout({
-        provider,
-        amountRmb,
-        productName: `Pet Health OS — ${plan.key}`,
-        metadata: {
-          scopeKind: scope.kind,
-          scopeId: scope.id,
-          planKey,
-          ...(interval ? { interval } : {}),
-        },
-        baseUrl,
-        interval,
-      });
-    }
-    if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
-    // Stripe is the intended route for the Chinese wallets too; a native
-    // WeChat/Alipay merchant integration isn't implemented.
-    if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
-    return { error: "PROVIDER_NOT_IMPLEMENTED" };
-  }
+  if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
 
-  return { error: "UNKNOWN_PROVIDER" };
+  return createStripeCheckout({
+    amountRmb,
+    productName: `Pet Health OS — ${plan.key}`,
+    metadata: {
+      scopeKind: scope.kind,
+      scopeId: scope.id,
+      planKey,
+      ...(interval ? { interval } : {}),
+    },
+    baseUrl,
+    interval,
+  });
 }
 
-// Buy one extra pet slot for an owner (¥25/mo). Demo-increments the slot count
+// Buy one extra pet slot for an owner (¥15/mo). Demo-increments the slot count
 // when no provider is configured; otherwise routes through Stripe and the slot
 // is granted on return (see finalizeStripeSession). Hard-capped by the plan.
 export async function buyOwnerPetSlot(opts: {
@@ -226,14 +185,13 @@ export async function buyOwnerPetSlot(opts: {
   baseUrl: string;
   provider: Provider;
 }): Promise<CheckoutResult> {
-  const { userId, baseUrl, provider } = opts;
+  const { userId, baseUrl } = opts;
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { error: "NO_USER" };
   const plan = getUserPlan(user.plan);
   if (plan.extraPetPriceRmb <= 0) return { error: "NO_OVERAGE" };
   if (user.extraPetSlots >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
 
-  // No provider configured → demo mode: grant the slot immediately.
   if (!anyProviderConfigured()) {
     await prisma.user.update({
       where: { id: userId },
@@ -242,24 +200,17 @@ export async function buyOwnerPetSlot(opts: {
     return { activated: true, demo: true };
   }
 
-  if (provider === "stripe" || provider === "wechat" || provider === "alipay") {
-    if (stripeConfigured()) {
-      return createStripeCheckout({
-        provider,
-        amountRmb: plan.extraPetPriceRmb,
-        productName: "PawSure — extra pet slot",
-        metadata: { scopeKind: "user_slot", scopeId: userId },
-        baseUrl,
-      });
-    }
-    if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
-    if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
-    return { error: "PROVIDER_NOT_IMPLEMENTED" };
-  }
-  return { error: "UNKNOWN_PROVIDER" };
+  if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
+
+  return createStripeCheckout({
+    amountRmb: plan.extraPetPriceRmb,
+    productName: "PawSure — extra pet slot",
+    metadata: { scopeKind: "user_slot", scopeId: userId },
+    baseUrl,
+  });
 }
 
-// Buy one extra facility "care slot" (¥15/mo). Demo-grants the slot when no
+// Buy one extra facility "care slot" (¥30/mo). Demo-grants the slot when no
 // provider is configured; otherwise routes through Stripe and the slot is
 // granted on return. The slot persists (org.extraPetSlots) until cancelled.
 export async function buyFacilitySlot(opts: {
@@ -267,7 +218,7 @@ export async function buyFacilitySlot(opts: {
   baseUrl: string;
   provider: Provider;
 }): Promise<CheckoutResult> {
-  const { orgId, baseUrl, provider } = opts;
+  const { orgId, baseUrl } = opts;
 
   if (!anyProviderConfigured()) {
     await prisma.organization.update({
@@ -277,22 +228,15 @@ export async function buyFacilitySlot(opts: {
     return { activated: true, demo: true };
   }
 
-  if (provider === "stripe" || provider === "wechat" || provider === "alipay") {
-    if (stripeConfigured()) {
-      return createStripeCheckout({
-        provider,
-        amountRmb: FACILITY_EXTRA_SLOT_PRICE_RMB,
-        productName: "PawSure — facility care slot",
-        metadata: { scopeKind: "org_slot", scopeId: orgId },
-        baseUrl,
-        interval: "month",
-      });
-    }
-    if (provider === "stripe") return { error: "STRIPE_NOT_CONFIGURED" };
-    if (!chinaPayConfigured(provider)) return { error: "PROVIDER_NOT_CONFIGURED" };
-    return { error: "PROVIDER_NOT_IMPLEMENTED" };
-  }
-  return { error: "UNKNOWN_PROVIDER" };
+  if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
+
+  return createStripeCheckout({
+    amountRmb: FACILITY_EXTRA_SLOT_PRICE_RMB,
+    productName: "PawSure — facility care slot",
+    metadata: { scopeKind: "org_slot", scopeId: orgId },
+    baseUrl,
+    interval: "month",
+  });
 }
 
 export type FulfillScopeKind = "org" | "user" | "user_slot" | "org_slot";
