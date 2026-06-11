@@ -4,6 +4,8 @@ import { resolveStripeCustomerId, syncOrgBillingFromStripe } from "@/lib/billing
 import { requireActiveOrg, isFacilityOrg } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 import { ManageSubscription } from "@/components/ManageSubscription";
+import { DeleteAccountPanel } from "@/components/DeleteAccountPanel";
+import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OrgAccountPage() {
@@ -11,9 +13,10 @@ export default async function OrgAccountPage() {
   await syncOrgBillingFromStripe(org.id);
   const current =
     (await prisma.organization.findUnique({ where: { id: org.id } })) ?? org;
-  const [{ t }, stripeCustomerId] = await Promise.all([
+  const [{ t }, stripeCustomerId, user] = await Promise.all([
     getI18n(),
     resolveStripeCustomerId({ kind: "org", id: org.id }),
+    getCurrentUser(),
   ]);
   const facility = isFacilityOrg(current);
   const planName = (t.plans as Record<string, string>)[current.plan] ?? current.plan;
@@ -84,6 +87,11 @@ export default async function OrgAccountPage() {
         {t.account.billingLink}
         <ChevronRight size={16} className="text-muted" />
       </Link>
+
+      <DeleteAccountPanel
+        scope="org"
+        hasPassword={Boolean(user?.passwordHash)}
+      />
     </div>
   );
 }

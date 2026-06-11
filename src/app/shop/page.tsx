@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Store } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
+import { SHOP_BILLING, USER_PLANS } from "@/lib/plans";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
 
@@ -12,7 +13,16 @@ export default async function ShopLandingPage() {
   const { t } = await getI18n();
   const sh = t.landing.shop;
 
-  const rows = [sh.diffPets, sh.diffPassport, sh.diffLineage, sh.diffPrice];
+  const rows = [
+    sh.diffPets,
+    sh.diffPassport,
+    sh.diffLineage,
+    {
+      label: sh.diffPrice.label,
+      owner: sh.diffPrice.owner(USER_PLANS.FREE.extraPetPriceUsd),
+      shop: sh.diffPrice.shop(SHOP_BILLING.month, SHOP_BILLING.year),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-paper">

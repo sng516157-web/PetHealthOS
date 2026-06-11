@@ -37,10 +37,10 @@ export default async function UserBillingPage() {
         )}
       </div>
 
-      {plan.extraPetPriceRmb > 0 && plan.petCap != null && (
+      {plan.extraPetPriceUsd > 0 && plan.petCap != null && (
         <OwnerExtraSlots
           includedPets={plan.includedPets}
-          extraPetPriceRmb={plan.extraPetPriceRmb}
+          extraPetPriceUsd={plan.extraPetPriceUsd}
           petCap={plan.petCap}
           extraSlots={usage.user.extraPetSlots}
         />

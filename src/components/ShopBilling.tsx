@@ -38,11 +38,11 @@ export function ShopBilling({
     i === "month" ? t.shopBilling.monthly : i === "year" ? t.shopBilling.yearly : i;
 
   const options: { id: Interval; label: string; price: string; sub?: string }[] = [
-    { id: "month", label: t.shopBilling.monthly, price: t.pricing.rmb(priceMonth), sub: t.pricing.perMonth.trim() },
+    { id: "month", label: t.shopBilling.monthly, price: t.pricing.usd(priceMonth), sub: t.pricing.perMonth.trim() },
     {
       id: "year",
       label: t.shopBilling.yearly,
-      price: t.pricing.rmb(priceYear),
+      price: t.pricing.usd(priceYear),
       sub: t.shopBilling.perYear,
     },
   ];

@@ -20,12 +20,13 @@ import {
   getOrgPlan,
   getUserPlan,
   maxExtraSlots,
-  shopPriceRmb,
+  shopPriceUsd,
   isBillingInterval,
-  FACILITY_EXTRA_SLOT_PRICE_RMB,
+  FACILITY_EXTRA_SLOT_PRICE_USD,
   type BillingInterval,
   type Plan,
 } from "./plans";
+import { toStripeCents } from "./money";
 
 export type CheckoutScope =
   | { kind: "org"; id: string }
@@ -48,6 +49,30 @@ function planFor(scope: CheckoutScope, planKey: string): Plan | null {
 
 export function stripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
+}
+
+/** Cancel every active/trialing/past_due Stripe subscription for a customer. */
+export async function cancelAllStripeSubscriptionsForCustomer(
+  customerId: string,
+): Promise<void> {
+  if (!stripeConfigured()) return;
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  let startingAfter: string | undefined;
+  for (;;) {
+    const page = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 100,
+      ...(startingAfter ? { starting_after: startingAfter } : {}),
+    });
+    for (const sub of page.data) {
+      if (sub.status === "canceled" || sub.status === "incomplete_expired") continue;
+      await stripe.subscriptions.cancel(sub.id);
+    }
+    if (!page.has_more) break;
+    startingAfter = page.data.at(-1)?.id;
+  }
 }
 
 export function anyProviderConfigured(): boolean {
@@ -165,14 +190,14 @@ export async function activatePlan(
 // Build a Stripe Checkout session (card only). Monthly/yearly plans use a real
 // subscription; one-off slot purchases use mode "payment".
 async function createStripeCheckout(opts: {
-  amountRmb: number;
+  amountUsd: number;
   productName: string;
   metadata: Record<string, string>;
   baseUrl: string;
   interval?: BillingInterval;
   stripeCustomerId?: string | null;
 }): Promise<CheckoutResult> {
-  const { amountRmb, productName, metadata, baseUrl, interval, stripeCustomerId } =
+  const { amountUsd, productName, metadata, baseUrl, interval, stripeCustomerId } =
     opts;
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -185,8 +210,8 @@ async function createStripeCheckout(opts: {
       {
         quantity: 1,
         price_data: {
-          currency: "cny",
-          unit_amount: amountRmb * 100,
+          currency: "usd",
+          unit_amount: toStripeCents(amountUsd),
           ...(recurring
             ? { recurring: { interval: interval as "month" | "year" } }
             : {}),
@@ -215,18 +240,16 @@ export async function startCheckout(opts: {
   if (!plan) return { error: "UNKNOWN_PLAN" };
 
   // Free plans need no payment — just switch.
-  if (plan.priceRmb === 0) {
+  if (plan.priceUsd === 0) {
     await activatePlan(scope, planKey);
     return { activated: true };
   }
 
-  // Resolve price. The paid SHOP plan is interval-based; the yearly option
-  // applies the referrer's stacking discount. Other (user) plans use priceRmb.
   let interval: BillingInterval | undefined;
-  let amountRmb = plan.priceRmb;
+  let amountUsd = plan.priceUsd;
   if (scope.kind === "org" && planKey === "SHOP") {
     interval = isBillingInterval(opts.interval) ? opts.interval : "month";
-    amountRmb = shopPriceRmb(interval);
+    amountUsd = shopPriceUsd(interval);
   }
 
   // No provider configured → demo mode: activate immediately.
@@ -240,7 +263,7 @@ export async function startCheckout(opts: {
   const stripeCustomerId = await getStripeCustomerId(scope);
 
   return createStripeCheckout({
-    amountRmb,
+    amountUsd,
     productName: `Pet Health OS — ${plan.key}`,
     metadata: {
       scopeKind: scope.kind,
@@ -266,7 +289,7 @@ export async function buyOwnerPetSlot(opts: {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { error: "NO_USER" };
   const plan = getUserPlan(user.plan);
-  if (plan.extraPetPriceRmb <= 0) return { error: "NO_OVERAGE" };
+  if (plan.extraPetPriceUsd <= 0) return { error: "NO_OVERAGE" };
   await expireStalePendingSlots({ kind: "user", id: userId });
   const purchased = await countActiveOwnerSlots(userId);
   if (purchased >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
@@ -282,7 +305,7 @@ export async function buyOwnerPetSlot(opts: {
   const stripeCustomerId = await getStripeCustomerId({ kind: "user", id: userId });
 
   return createStripeCheckout({
-    amountRmb: plan.extraPetPriceRmb,
+    amountUsd: plan.extraPetPriceUsd,
     productName: "PawSure — extra pet slot",
     metadata: { scopeKind: "user_slot", scopeId: userId, slotId },
     baseUrl,
@@ -313,7 +336,7 @@ export async function buyFacilitySlot(opts: {
   const stripeCustomerId = await getStripeCustomerId({ kind: "org", id: orgId });
 
   return createStripeCheckout({
-    amountRmb: FACILITY_EXTRA_SLOT_PRICE_RMB,
+    amountUsd: FACILITY_EXTRA_SLOT_PRICE_USD,
     productName: "PawSure — facility care slot",
     metadata: { scopeKind: "org_slot", scopeId: orgId, slotId },
     baseUrl,

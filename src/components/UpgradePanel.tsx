@@ -10,9 +10,9 @@ import { OWNER_EXTRA_PET_CAP } from "@/lib/plans";
 
 export type PlanOption = {
   key: string;
-  priceRmb: number;
+  priceUsd: number;
   includedPets: number;
-  extraPetPriceRmb: number;
+  extraPetPriceUsd: number;
   petCap?: number | null;
   issuePassports: boolean;
   multiSeat: boolean;
@@ -89,7 +89,7 @@ export function UpgradePanel({
       <div className="grid gap-4 sm:grid-cols-2">
         {plans.map((p) => {
           const isCurrent = p.key === currentPlan;
-          const paid = p.priceRmb > 0;
+          const paid = p.priceUsd > 0;
           return (
             <div
               key={p.key}
@@ -108,7 +108,7 @@ export function UpgradePanel({
                 )}
               </div>
               <div className="mt-2 text-2xl font-bold text-foreground">
-                {paid ? t.pricing.rmb(p.priceRmb) : t.pricing.free}
+                {paid ? t.pricing.usd(p.priceUsd) : t.pricing.free}
                 {paid && (
                   <span className="text-sm font-normal text-muted">
                     {t.pricing.perMonth}
@@ -120,11 +120,11 @@ export function UpgradePanel({
                   <Check size={13} className="text-emerald-500" />
                   {t.pricing.includedPets(p.includedPets)}
                 </li>
-                {p.extraPetPriceRmb > 0 && (
+                {p.extraPetPriceUsd > 0 && (
                   <li className="flex items-center gap-1.5">
                     <Check size={13} className="text-emerald-500" />
                     {t.pricing.extraPet(
-                      p.extraPetPriceRmb,
+                      p.extraPetPriceUsd,
                       p.petCap ?? (scope === "user" ? OWNER_EXTRA_PET_CAP : p.includedPets),
                     )}
                   </li>

@@ -14,12 +14,12 @@ export function GenerateTriageButton({
   hasExisting: boolean;
 }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, startTransition] = useTransition();
 
   function run() {
     startTransition(async () => {
-      await generateTriageReport(petId);
+      await generateTriageReport(petId, locale);
       router.refresh();
     });
   }

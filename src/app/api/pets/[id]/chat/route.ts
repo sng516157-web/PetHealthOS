@@ -17,6 +17,7 @@ import {
   loadVisionAttachments,
 } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
+import { isLocale } from "@/lib/i18n/config";
 import { getTimezone } from "@/lib/timezone/server";
 
 type ClientMessage = { role: "user" | "assistant"; content: string };
@@ -35,8 +36,11 @@ export async function POST(
     return new Response("Subscription required for this pet", { status: 403 });
   }
 
-  const { messages } = (await req.json()) as { messages: ClientMessage[] };
-  const locale = await getLocale();
+  const { messages, locale } = (await req.json()) as {
+    messages: ClientMessage[];
+    locale?: string;
+  };
+  const resolvedLocale = isLocale(locale) ? locale : await getLocale();
   const timeZone = await getTimezone();
 
   const pet = await getPetForAI(id);
@@ -51,7 +55,7 @@ export async function POST(
     : "You support a breeder/cattery/kennel.";
   const context = buildPetContext(pet, pet.logs, pet.attachments, {
     timeZone,
-    locale,
+    locale: resolvedLocale,
   });
   const system = `You are the AI health assistant for ${pet.name}. ${audience}
 
@@ -65,12 +69,12 @@ Rules:
 - You are NOT a veterinarian and must not give a definitive diagnosis. Explain possibilities, suggest what to monitor, flag urgency.
 - For anything concerning, recommend contacting a veterinarian.
 - Be warm, concise, and practical. Use short paragraphs or bullets.
-- ${languageInstruction(locale)}
+- ${languageInstruction(resolvedLocale)}
 
 ${context}`;
 
   if (!hasAI()) {
-    return mockStream(pet, messages, locale, timeZone);
+    return mockStream(pet, messages, resolvedLocale, timeZone);
   }
 
   const vision = await loadVisionAttachments(pet.attachments);
@@ -85,7 +89,7 @@ ${context}`;
       {
         type: "text",
         text:
-          locale === "zh"
+          resolvedLocale === "zh"
             ? "以下是该宠物的参考文件（疫苗证明、化验单等），请结合健康记录作答："
             : "Reference documents on file for this pet (vaccine certs, lab results, etc.). Use alongside the health log:",
       },
@@ -107,7 +111,7 @@ ${context}`;
       {
         role: "assistant",
         content:
-          locale === "zh"
+          resolvedLocale === "zh"
             ? "已查阅档案中的参考文件与健康记录。"
             : "I've reviewed the reference documents and health log on file.",
       },

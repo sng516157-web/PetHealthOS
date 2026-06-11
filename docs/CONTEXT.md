@@ -50,8 +50,9 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
 - **Uploads:** Vercel Blob in prod, local filesystem fallback in dev (`saveUpload`).
 - **i18n:** `en`/`zh` dictionaries in `src/lib/i18n/` (`en.ts` is the source of
   truth; `zh.ts` must mirror its shape — enforced by the `Dictionary` type).
-  Default locale is **zh** (`DEFAULT_LOCALE` in `src/lib/i18n/config.ts`); users
-  who pick English get a `locale` cookie that persists.
+  **Language:** stored in **localStorage** (`pawsure-locale`); client mirrors to a
+  short-lived cookie for SSR. **Default by geo:** CN/HK/MO → `zh`, elsewhere → `en`
+  (`src/lib/i18n/geo.ts`, `/api/geo`). Toggle via `LocaleToggle` → `I18nProvider.setLocale`.
 - **Auth:** **unified** — one `User` account system (scrypt email+password and/or
   phone OTP, signed cookies; `src/lib/auth.ts`). A `User` with `orgId` set is a
   **shop** account (manages an `Organization`); a `User` without `orgId` is an
@@ -85,7 +86,7 @@ Defined in `src/lib/plans.ts`. Quotas are **hard-enforced** on pet creation.
 
 **Organisations (breeders/shops)** — `ORG_PLANS`, **can issue passports** (once verified):
 - `STARTER` — free, 5 pets.
-- `SHOP` — ¥2000/mo, 50 pets (+¥30/mo per extra), multi-seat.
+- `SHOP` — **$29.99/mo or $299/yr** (`SHOP_BILLING`), 50 pets (+**$4.99/mo** per extra slot), multi-seat.
 
 **Owners (consumers)** — `USER_PLANS`, **cannot issue passports**:
 - `FREE` = the **"Owner's Account"** (zh: 主人账户) — the only owner tier. Free,
@@ -228,6 +229,16 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **USD pricing + geo locale + localStorage language.** Why (user: global
+  defaults). All Stripe charges in **USD** (`SHOP_BILLING` $29.99/mo · $299/yr; extra slots
+  $4.99/mo; owner extra pet $2.99/mo). Language stored in **localStorage** (`pawsure-locale`)
+  with client→cookie mirror for SSR; geo (CN/HK/MO → zh, else en) via `x-vercel-ip-country` /
+  `/api/geo`. Removed `setLocale` server action.
+- **2026-06-09** — **Account deletion with Stripe cancel.** Why (user: delete account option).
+  `/me/account` and `/app/account` danger zone → `deleteAccount` action. Cancels all Stripe
+  subs for the account (`cancelAllStripeSubscriptionsForCustomer`), revokes slots, then removes
+  data: owner self-added pets deleted; claimed pets detached (`ownerUserId`/`orgId` nulled);
+  shop/facility org deleted after detaching owner-claimed pets. Password + type `DELETE` confirm.
 - **2026-06-09** — **AI sees reference documents + local timezone for dates.** Why (user:
   AI couldn't read vaccine/lab/pedigree files; log times showed UTC). `buildPetContext`
   lists attachments; chat/triage load image/PDF bytes for vision (max 4 × 8MB). Browser

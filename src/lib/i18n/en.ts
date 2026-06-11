@@ -1,6 +1,11 @@
 // English dictionary — source of truth for the i18n shape.
 // zh.ts must mirror this exact structure (enforced via `Dictionary` type).
 
+// English dictionary — source of truth for the i18n shape.
+// zh.ts must mirror this exact structure (enforced via `Dictionary` type).
+
+import { formatUsd } from "@/lib/money";
+
 export const en = {
   common: {
     appName: "PawSure",
@@ -382,7 +387,7 @@ export const en = {
     limitTitle: (limit: number) =>
       limit === 1 ? "Your free plan includes 1 pet" : `Your plan includes ${limit} pets`,
     limitDesc: (price: number) =>
-      `You've used your free pet. Add more for ¥${price}/mo each — or scan a passport to inherit an extra pet.`,
+      `You've used your free pet. Add more for ${formatUsd(price)}/mo each — or scan a passport to inherit an extra pet.`,
     limitUpgrade: "Add a pet slot",
     checkinTitle: "Boarding / vet check-in",
     checkinDesc: "Show this QR to a hospital or boarding facility — they scan it to access this pet's records while it's in their care.",
@@ -504,12 +509,14 @@ export const en = {
     forOwners: "For pet owners",
     perMonth: "/mo",
     free: "Free",
-    rmb: (n: number) => `¥${n}`,
+    usd: (n: number) => formatUsd(n),
+    /** @deprecated use usd */
+    rmb: (n: number) => formatUsd(n),
     includedPets: (n: number) => `${n} pet included — free forever`,
     extraPet: (price: number, cap: number) =>
-      `Then ¥${price}/mo per extra pet (up to ${cap} total)`,
+      `Then ${formatUsd(price)}/mo per extra pet (up to ${cap} total)`,
     shopIncluded: (n: number) => `${n} pets included`,
-    shopExtraPet: (price: number) => `Beyond that: ¥${price}/mo per extra pet`,
+    shopExtraPet: (price: number) => `Beyond that: ${formatUsd(price)}/mo per extra pet`,
     issuePassports: "Issue health passports (once verified)",
     multiSeat: "Multiple staff seats",
     aiAssistant: "AI assistant & triage",
@@ -550,6 +557,30 @@ export const en = {
     portalError: "Couldn't open subscription management. Try again in a moment.",
     petReadOnly:
       "This pet is on a view-only plan — you can still read its history, but new logs and AI are paused until you renew an extra pet slot.",
+    deleteTitle: "Delete account",
+    deleteOwnerDesc:
+      "Permanently delete your owner account. This cannot be undone.",
+    deleteOrgDesc:
+      "Permanently delete your workspace and organization. This cannot be undone.",
+    deleteBullets: [
+      "All active Stripe subscriptions are cancelled immediately",
+      "Your login and profile are removed",
+      "Self-added pets and their health records are deleted",
+      "Pets you claimed from a breeder stay with them — you lose access",
+    ],
+    deleteOrgBullets: [
+      "All active Stripe subscriptions are cancelled immediately",
+      "Your workspace, team login, and organization profile are removed",
+      "Unclaimed pets and shop records in your workspace are deleted",
+      "Pets already claimed by owners stay with them — you lose access",
+    ],
+    deleteOpen: "Delete my account…",
+    deleteConfirmHint: 'Type DELETE below to confirm.',
+    deletePasswordPlaceholder: "Your password",
+    deleteSubmit: "Permanently delete account",
+    deleteConfirmMismatch: 'Type DELETE exactly to confirm.',
+    deleteWrongPassword: "Incorrect password.",
+    deleteFailed: "Couldn't delete the account. Try again or contact support.",
   },
   billing: {
     title: "Plan & billing",
@@ -585,9 +616,9 @@ export const en = {
     backToBilling: "Back to billing",
     extraPetsTitle: "Extra pets",
     extraPetsDesc: (included: number, price: number, cap: number) =>
-      `Your Owner's Account includes ${included} pets. Add more at ¥${price}/mo each, up to ${cap} pets total.`,
+      `Your Owner's Account includes ${included} pets. Add more at ${formatUsd(price)}/mo each, up to ${cap} pets total.`,
     slotsOwned: (count: number, cap: number) => `${count} of ${cap} pet slots`,
-    addPetSlot: (price: number) => `Add a pet (¥${price}/mo)`,
+    addPetSlot: (price: number) => `Add a pet (${formatUsd(price)}/mo)`,
     slotAdded: "Extra pet slot added (demo mode — no payment provider configured yet).",
     slotCapReached: (cap: number) =>
       `You've reached the ${cap}-pet limit for owner accounts. For more, use a Shop account.`,
@@ -722,7 +753,12 @@ export const en = {
     diffPets: { label: "Pets", owner: "1 free, up to 10", shop: "Many — plan based" },
     diffPassport: { label: "Issue passports", owner: "No", shop: "Yes (once verified)" },
     diffLineage: { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
-    diffPrice: { label: "Price", owner: "Free + ¥15/mo per extra pet", shop: "¥599/mo · ¥4888/yr" },
+    diffPrice: {
+      label: "Price",
+      owner: (extra: number) => `Free + ${formatUsd(extra)}/mo per extra pet`,
+      shop: (month: number, year: number) =>
+        `${formatUsd(month)}/mo · ${formatUsd(year)}/yr`,
+    },
       seePricing: "See shop pricing",
       loginTitle: "Shop sign in / create account",
     },
@@ -741,7 +777,8 @@ export const en = {
       kindLabel: "Facility type",
       kindHospital: "Vet clinic / hospital",
       kindBoarding: "Boarding / pet hotel",
-      pricingLine: "¥599/mo or ¥4888/yr · up to 50 pets in care · extra care slots ¥30/mo each",
+      pricingLine: (month: number, year: number, slotPrice: number) =>
+        `${formatUsd(month)}/mo or ${formatUsd(year)}/yr · up to 50 pets in care · extra care slots ${formatUsd(slotPrice)}/mo each`,
       loginTitle: "Facility sign in / create account",
     },
     backHome: "Back to home",
@@ -841,7 +878,7 @@ export const en = {
     planBenefitsTitle: "What's included",
     planBenefits: (base: number, slotPrice: number) => [
       `Care for up to ${base} pets at the same time`,
-      `Add extra care slots anytime — ¥${slotPrice}/mo each (kept while paid, even when empty)`,
+      `Add extra care slots anytime — ${formatUsd(slotPrice)}/mo each (kept while paid, even when empty)`,
       "Log notes, weights & photos — each tagged with your facility's name",
       "AI assistant + triage reports to communicate with owners",
       "Reminders & weight tracking for every pet in your care",
@@ -850,13 +887,13 @@ export const en = {
     inCareNow: (n: number) => `${n} ${n === 1 ? "pet" : "pets"} currently in your care`,
     slotsTitle: "Care slots",
     slotsDesc: (base: number, price: number) =>
-      `Care for up to ${base} pets at once. Each extra slot is ¥${price}/mo and stays yours as long as you keep it — even when it's empty.`,
+      `Care for up to ${base} pets at once. Each extra slot is ${formatUsd(price)}/mo and stays yours as long as you keep it — even when it's empty.`,
     slotsPurchased: (extra: number) =>
       extra === 0
         ? "No extra care slots purchased"
         : `${extra} extra care slot${extra === 1 ? "" : "s"} purchased`,
     slotsStatus: (inCare: number, limit: number) => `${inCare} of ${limit} in care`,
-    addSlot: (price: number) => `Add a care slot (¥${price}/mo)`,
+    addSlot: (price: number) => `Add a care slot (${formatUsd(price)}/mo)`,
     slotAdded: "Care slot added (demo mode — no payment provider configured yet).",
     capacityReached: "You've reached your care capacity. Add a care slot in Plan & billing to admit more pets.",
     readonlyNotice:

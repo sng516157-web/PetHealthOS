@@ -1,7 +1,7 @@
 # Shop referral programme — deferred
 
 The referral system (share link → 5% off yearly per referred shop, 50% cap) was **removed
-from the product** on 2026-06-11. Pricing is now flat: **¥599/mo** or **¥4888/yr**
+from the product** on 2026-06-11. Pricing is now flat: **¥199/mo** or **¥2188/yr**
 (`SHOP_BILLING` in `src/lib/plans.ts`) with no discounts.
 
 ## What was removed

@@ -5,7 +5,7 @@ import {
 } from "@/lib/data";
 import {
   SHOP_BILLING,
-  FACILITY_EXTRA_SLOT_PRICE_RMB,
+  FACILITY_EXTRA_SLOT_PRICE_USD,
 } from "@/lib/plans";
 import { Check } from "lucide-react";
 import { ShopBilling } from "@/components/ShopBilling";
@@ -50,7 +50,7 @@ export default async function OrgBillingPage() {
             </h3>
             <ul className="mt-3 space-y-2">
               {t.facility
-                .planBenefits(capacity.base, FACILITY_EXTRA_SLOT_PRICE_RMB)
+                .planBenefits(capacity.base, FACILITY_EXTRA_SLOT_PRICE_USD)
                 .map((b) => (
                   <li key={b} className="flex items-start gap-2 text-sm text-slate-600">
                     <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" />
@@ -61,7 +61,7 @@ export default async function OrgBillingPage() {
           </div>
           <FacilitySlots
             base={capacity.base}
-            price={FACILITY_EXTRA_SLOT_PRICE_RMB}
+            price={FACILITY_EXTRA_SLOT_PRICE_USD}
             inCare={capacity.inCare}
             limit={capacity.limit}
             extraSlots={capacity.extra}

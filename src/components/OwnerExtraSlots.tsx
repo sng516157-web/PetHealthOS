@@ -9,12 +9,12 @@ import { useI18n } from "@/lib/i18n/client";
 
 export function OwnerExtraSlots({
   includedPets,
-  extraPetPriceRmb,
+  extraPetPriceUsd,
   petCap,
   extraSlots,
 }: {
   includedPets: number;
-  extraPetPriceRmb: number;
+  extraPetPriceUsd: number;
   petCap: number;
   extraSlots: number;
 }) {
@@ -74,7 +74,7 @@ export function OwnerExtraSlots({
         </h3>
       </div>
       <p className="mt-1 text-xs text-muted">
-        {t.billing.extraPetsDesc(includedPets, extraPetPriceRmb, petCap)}
+        {t.billing.extraPetsDesc(includedPets, extraPetPriceUsd, petCap)}
       </p>
       <p className="mt-3 text-sm text-foreground">
         {t.billing.slotsOwned(purchased, petCap)}
@@ -105,7 +105,7 @@ export function OwnerExtraSlots({
             <Plus size={13} />
             {busy === "stripe"
               ? "…"
-              : t.billing.addPetSlot(extraPetPriceRmb)}
+              : t.billing.addPetSlot(extraPetPriceUsd)}
           </button>
           <BillingWalletNote />
         </div>

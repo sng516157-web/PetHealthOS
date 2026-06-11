@@ -6,7 +6,7 @@ import {
   USER_PLANS,
   SHOP_BILLING,
   FACILITY_BASE_CAPACITY,
-  FACILITY_EXTRA_SLOT_PRICE_RMB,
+  FACILITY_EXTRA_SLOT_PRICE_USD,
   OWNER_EXTRA_PET_CAP,
   type Plan,
 } from "@/lib/plans";
@@ -19,7 +19,7 @@ export default async function PricingPage() {
   const shop = ORG_PLANS.SHOP;
   const facilityFeatures = t.facility.planBenefits(
     FACILITY_BASE_CAPACITY,
-    FACILITY_EXTRA_SLOT_PRICE_RMB,
+    FACILITY_EXTRA_SLOT_PRICE_USD,
   );
 
   return (
@@ -75,11 +75,11 @@ export default async function PricingPage() {
             <OrgBillingCard
               t={t}
               name={t.shopBilling.monthly}
-              price={t.pricing.rmb(SHOP_BILLING.month)}
+              price={t.pricing.usd(SHOP_BILLING.month)}
               cadence={t.pricing.perMonth.trim()}
               features={[
                 t.pricing.shopIncluded(shop.includedPets),
-                t.pricing.shopExtraPet(shop.extraPetPriceRmb),
+                t.pricing.shopExtraPet(shop.extraPetPriceUsd),
                 t.pricing.issuePassports,
                 t.pricing.multiSeat,
                 t.pricing.aiAssistant,
@@ -89,11 +89,11 @@ export default async function PricingPage() {
             <OrgBillingCard
               t={t}
               name={t.shopBilling.yearly}
-              price={t.pricing.rmb(SHOP_BILLING.year)}
+              price={t.pricing.usd(SHOP_BILLING.year)}
               cadence={t.shopBilling.perYear}
               features={[
                 t.pricing.shopIncluded(shop.includedPets),
-                t.pricing.shopExtraPet(shop.extraPetPriceRmb),
+                t.pricing.shopExtraPet(shop.extraPetPriceUsd),
                 t.pricing.issuePassports,
                 t.pricing.multiSeat,
                 t.pricing.aiAssistant,
@@ -115,7 +115,7 @@ export default async function PricingPage() {
             <OrgBillingCard
               t={t}
               name={t.shopBilling.monthly}
-              price={t.pricing.rmb(SHOP_BILLING.month)}
+              price={t.pricing.usd(SHOP_BILLING.month)}
               cadence={t.pricing.perMonth.trim()}
               features={facilityFeatures}
               href="/facility"
@@ -123,7 +123,7 @@ export default async function PricingPage() {
             <OrgBillingCard
               t={t}
               name={t.shopBilling.yearly}
-              price={t.pricing.rmb(SHOP_BILLING.year)}
+              price={t.pricing.usd(SHOP_BILLING.year)}
               cadence={t.shopBilling.perYear}
               features={facilityFeatures}
               href="/facility"
@@ -219,10 +219,10 @@ function PlanCard({ plan, t }: { plan: Plan; t: Dictionary }) {
           <Check size={15} className="text-emerald-500" />
           {t.pricing.includedPets(plan.includedPets)}
         </li>
-        {plan.extraPetPriceRmb > 0 && (
+        {plan.extraPetPriceUsd > 0 && (
           <li className="flex items-center gap-2">
             <Check size={15} className="text-emerald-500" />
-            {t.pricing.extraPet(plan.extraPetPriceRmb, cap)}
+            {t.pricing.extraPet(plan.extraPetPriceUsd, cap)}
           </li>
         )}
         <li className="flex items-center gap-2">

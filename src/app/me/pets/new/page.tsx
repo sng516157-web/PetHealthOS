@@ -41,7 +41,7 @@ export default async function NewOwnedPetPage() {
             {t.me.limitTitle(usage?.limit ?? 1)}
           </h2>
           <p className="mx-auto mt-1 max-w-sm text-sm text-ink/70">
-            {t.me.limitDesc(usage?.plan.extraPetPriceRmb ?? 15)}
+            {t.me.limitDesc(usage?.plan.extraPetPriceUsd ?? 2.99)}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             <Link

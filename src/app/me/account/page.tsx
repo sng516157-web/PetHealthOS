@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { resolveStripeCustomerId } from "@/lib/billing";
 import { getUserUsage } from "@/lib/data";
 import { ManageSubscription } from "@/components/ManageSubscription";
+import { DeleteAccountPanel } from "@/components/DeleteAccountPanel";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OwnerAccountPage() {
@@ -73,6 +74,8 @@ export default async function OwnerAccountPage() {
         {t.account.billingLink}
         <ChevronRight size={16} className="text-muted" />
       </Link>
+
+      <DeleteAccountPanel scope="owner" hasPassword={Boolean(user.passwordHash)} />
     </div>
   );
 }

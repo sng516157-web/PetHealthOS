@@ -25,7 +25,7 @@ import {
   hasAI,
 } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
-import { LOCALE_COOKIE, isLocale } from "@/lib/i18n/config";
+import { isLocale, type Locale } from "@/lib/i18n/config";
 import {
   hashPassword,
   verifyPassword,
@@ -155,15 +155,9 @@ function readPetFields(formData: FormData): { error: string } | { data: PetField
   };
 }
 
-export async function setLocale(locale: string) {
-  if (!isLocale(locale)) return { error: "Unsupported locale" };
-  const store = await cookies();
-  store.set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-  });
-  return { ok: true };
+async function resolveLocale(preferred: string | null | undefined): Promise<Locale> {
+  if (isLocale(preferred)) return preferred;
+  return getLocale();
 }
 
 export async function setTimezone(timeZone: string) {
@@ -324,7 +318,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
     }
   }
 
-  const locale = await getLocale();
+  const locale = await resolveLocale(String(formData.get("locale") || ""));
 
   // Photo-only entry: log it as-is with NO AI. Vision without a written note can
   // hallucinate misleading tags/observations, so we just record "Photo log".
@@ -459,14 +453,14 @@ export async function toggleReminder(id: string) {
   return { ok: true };
 }
 
-export async function generateTriageReport(petId: string) {
+export async function generateTriageReport(petId: string, localeHint?: string) {
   if (!(await canAccessPet(petId))) return { error: "Forbidden" };
   const ent = await getPetEntitlements(petId);
   if (ent && !ent.canUseAI) return { error: "SLOT_READONLY" };
   const pet = await getPetForAI(petId);
   if (!pet) return { error: "Pet not found" };
 
-  const locale = await getLocale();
+  const locale = await resolveLocale(localeHint);
   const { getTimezone } = await import("@/lib/timezone/server");
   const timeZone = await getTimezone();
   const result = await generateTriage(pet, pet.logs, locale, pet.attachments, {
@@ -784,6 +778,42 @@ export async function signIn(formData: FormData) {
 export async function signOut() {
   const user = await getCurrentUser();
   if (user && !user.orgId) await clearUserSession(user.id);
+  await clearSession();
+  redirect("/");
+}
+
+const DELETE_CONFIRM = "DELETE";
+
+export async function deleteAccount(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "NOT_SIGNED_IN" };
+
+  const confirm = String(formData.get("confirm") || "").trim();
+  if (confirm !== DELETE_CONFIRM) return { error: "CONFIRM_MISMATCH" };
+
+  const password = String(formData.get("password") || "");
+  if (user.passwordHash) {
+    if (!password || !verifyPassword(password, user.passwordHash)) {
+      return { error: "WRONG_PASSWORD" };
+    }
+  }
+
+  const { deleteOwnerAccount, deleteOrgAccount } = await import(
+    "@/lib/account-delete"
+  );
+
+  try {
+    if (user.orgId) {
+      await deleteOrgAccount(user.id, user.orgId);
+    } else {
+      await clearUserSession(user.id);
+      await deleteOwnerAccount(user.id);
+    }
+  } catch (e) {
+    console.error("deleteAccount failed", user.id, e);
+    return { error: "DELETE_FAILED" };
+  }
+
   await clearSession();
   redirect("/");
 }

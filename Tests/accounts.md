@@ -60,7 +60,7 @@ Verify UI copy matches these numbers when testing billing/pricing:
 | Owner | 1 pet | ¥15/mo per extra | 10 pets total |
 | Shop STARTER | 5 pets | — | — |
 | Shop SHOP | 50 pets | ¥30/mo per extra pet slot | — |
-| Shop SHOP plan price | — | ¥599/mo or ¥4888/yr | — |
+| Shop SHOP plan price | — | $29.99/mo or $299/yr | — |
 | Facility in-care | 50 slots | ¥30/mo per care slot | no hard cap |
 
 ---

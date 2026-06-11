@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, Check, Hospital } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
+import {
+  FACILITY_EXTRA_SLOT_PRICE_USD,
+  SHOP_BILLING,
+} from "@/lib/plans";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
 
@@ -43,7 +47,11 @@ export default async function FacilityLandingPage() {
                 ))}
               </ul>
               <p className="mt-4 rounded-xl bg-brand-50 px-3 py-2 text-xs font-medium text-brand-700">
-                {f.pricingLine}
+                {f.pricingLine(
+                  SHOP_BILLING.month,
+                  SHOP_BILLING.year,
+                  FACILITY_EXTRA_SLOT_PRICE_USD,
+                )}
               </p>
             </div>
           </div>

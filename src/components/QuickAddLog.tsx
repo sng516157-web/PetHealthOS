@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n/client";
 
 export function QuickAddLog({ petId }: { petId: string }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -43,6 +43,7 @@ export function QuickAddLog({ petId }: { petId: string }) {
     fd.set("occurredAt", new Date().toISOString());
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz) fd.set("timeZone", tz);
+    fd.set("locale", locale);
     if (file) fd.set("photo", file);
     startTransition(async () => {
       const res = await addLogEntry(petId, fd);

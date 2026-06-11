@@ -1,4 +1,5 @@
 import type { Dictionary } from "./en";
+import { formatUsd } from "@/lib/money";
 
 // 简体中文 dictionary. Must mirror en.ts exactly (enforced by the Dictionary type).
 export const zh: Dictionary = {
@@ -380,7 +381,7 @@ export const zh: Dictionary = {
     limitTitle: (limit: number) =>
       limit === 1 ? "免费套餐包含 1 只宠物" : `你的套餐包含 ${limit} 只宠物`,
     limitDesc: (price: number) =>
-      `你已用完免费名额。每多一只 ¥${price}/月——或扫描护照以继承额外的宠物。`,
+      `你已用完免费名额。每多一只 ${formatUsd(price)}/月——或扫描护照以继承额外的宠物。`,
     limitUpgrade: "添加宠物名额",
     checkinTitle: "寄养 / 就诊登记",
     checkinDesc: "向宠物医院或寄养机构出示此二维码——他们扫码后，可在照护期间查看这只宠物的记录。",
@@ -499,12 +500,13 @@ export const zh: Dictionary = {
     forOwners: "面向宠物主人",
     perMonth: "/月",
     free: "免费",
-    rmb: (n: number) => `¥${n}`,
+    usd: (n: number) => formatUsd(n),
+    rmb: (n: number) => formatUsd(n),
     includedPets: (n: number) => `含 ${n} 只宠物——永久免费`,
     extraPet: (price: number, cap: number) =>
-      `之后每多一只 ¥${price}/月（最多共 ${cap} 只）`,
+      `之后每多一只 ${formatUsd(price)}/月（最多共 ${cap} 只）`,
     shopIncluded: (n: number) => `含 ${n} 只在管宠物`,
-    shopExtraPet: (price: number) => `超出后每只 ¥${price}/月`,
+    shopExtraPet: (price: number) => `超出后每只 ${formatUsd(price)}/月`,
     issuePassports: "签发健康护照（审核通过后）",
     multiSeat: "多员工席位",
     aiAssistant: "AI 助手与分诊",
@@ -544,6 +546,28 @@ export const zh: Dictionary = {
     portalError: "无法打开订阅管理，请稍后再试。",
     petReadOnly:
       "该宠物为仅查看模式——仍可阅读历史记录，但新增日志与 AI 已暂停，续费额外宠物名额后可恢复。",
+    deleteTitle: "删除账户",
+    deleteOwnerDesc: "永久删除你的主人账户，此操作无法撤销。",
+    deleteOrgDesc: "永久删除你的工作区与机构账户，此操作无法撤销。",
+    deleteBullets: [
+      "所有有效的 Stripe 订阅将立即取消",
+      "你的登录信息与个人资料将被移除",
+      "自行添加的宠物及其健康记录将被删除",
+      "从繁育者处认领的宠物将保留在对方名下——你将失去访问权限",
+    ],
+    deleteOrgBullets: [
+      "所有有效的 Stripe 订阅将立即取消",
+      "你的工作区、登录账户与机构资料将被移除",
+      "工作区内未认领的宠物与店铺记录将被删除",
+      "已被主人认领的宠物将保留在对方名下——你将失去访问权限",
+    ],
+    deleteOpen: "删除我的账户…",
+    deleteConfirmHint: "请在下方输入 DELETE 以确认。",
+    deletePasswordPlaceholder: "你的密码",
+    deleteSubmit: "永久删除账户",
+    deleteConfirmMismatch: "请准确输入 DELETE 以确认。",
+    deleteWrongPassword: "密码不正确。",
+    deleteFailed: "无法删除账户，请重试或联系支持。",
   },
   billing: {
     title: "套餐与账单",
@@ -578,9 +602,9 @@ export const zh: Dictionary = {
     backToBilling: "返回账单",
     extraPetsTitle: "额外宠物",
     extraPetsDesc: (included: number, price: number, cap: number) =>
-      `主人账户包含 ${included} 只宠物。每多一只 ¥${price}/月，最多共 ${cap} 只。`,
+      `主人账户包含 ${included} 只宠物。每多一只 ${formatUsd(price)}/月，最多共 ${cap} 只。`,
     slotsOwned: (count: number, cap: number) => `已用 ${count} / ${cap} 个名额`,
-    addPetSlot: (price: number) => `新增一只宠物（¥${price}/月）`,
+    addPetSlot: (price: number) => `新增一只宠物（${formatUsd(price)}/月）`,
     slotAdded: "已新增一只宠物名额（演示模式——尚未配置支付渠道）。",
     slotCapReached: (cap: number) =>
       `主人账户最多 ${cap} 只宠物。如需更多，请使用商家账户。`,
@@ -705,7 +729,12 @@ export const zh: Dictionary = {
       diffPets: { label: "宠物数量", owner: "1 只免费，最多 10 只", shop: "众多——按套餐" },
       diffPassport: { label: "签发护照", owner: "不可", shop: "可以（审核通过后）" },
       diffLineage: { label: "血统与窝", owner: "基础", shop: "支持" },
-      diffPrice: { label: "价格", owner: "免费 + 每多一只 ¥15/月", shop: "¥599/月 · ¥4888/年" },
+      diffPrice: {
+        label: "价格",
+        owner: (extra: number) => `免费 + 每多一只 ${formatUsd(extra)}/月`,
+        shop: (month: number, year: number) =>
+          `${formatUsd(month)}/月 · ${formatUsd(year)}/年`,
+      },
       seePricing: "查看商家价格",
       loginTitle: "商家登录 / 创建账户",
     },
@@ -724,7 +753,8 @@ export const zh: Dictionary = {
       kindLabel: "机构类型",
       kindHospital: "宠物医院 / 诊所",
       kindBoarding: "寄养 / 宠物酒店",
-      pricingLine: "¥599/月 或 ¥4888/年 · 最多照护 50 只 · 额外照护名额每个 ¥30/月",
+      pricingLine: (month: number, year: number, slotPrice: number) =>
+        `${formatUsd(month)}/月 或 ${formatUsd(year)}/年 · 最多照护 50 只 · 额外照护名额每个 ${formatUsd(slotPrice)}/月`,
       loginTitle: "机构登录 / 创建账户",
     },
     backHome: "返回首页",
@@ -825,7 +855,7 @@ export const zh: Dictionary = {
     planBenefitsTitle: "本套餐包含",
     planBenefits: (base: number, slotPrice: number) => [
       `最多可同时照护 ${base} 只宠物`,
-      `可随时新增照护名额——每个 ¥${slotPrice}/月（持续付费即保留，空置也保留）`,
+      `可随时新增照护名额——每个 ${formatUsd(slotPrice)}/月（持续付费即保留，空置也保留）`,
       "记录笔记、体重与照片——每条都标注你的机构名称",
       "AI 助手 + 分诊报告，便于与主人沟通",
       "为照护中的每只宠物设置提醒与体重追踪",
@@ -834,11 +864,11 @@ export const zh: Dictionary = {
     inCareNow: (n: number) => `当前照护中 ${n} 只宠物`,
     slotsTitle: "照护名额",
     slotsDesc: (base: number, price: number) =>
-      `最多可同时照护 ${base} 只宠物。每增加一个名额 ¥${price}/月，只要持续付费名额就一直保留——即使暂时空置。`,
+      `最多可同时照护 ${base} 只宠物。每增加一个名额 ${formatUsd(price)}/月，只要持续付费名额就一直保留——即使暂时空置。`,
     slotsPurchased: (extra: number) =>
       extra === 0 ? "尚未购买额外照护名额" : `已购买 ${extra} 个额外照护名额`,
     slotsStatus: (inCare: number, limit: number) => `照护中 ${inCare} / ${limit}`,
-    addSlot: (price: number) => `新增照护名额（¥${price}/月）`,
+    addSlot: (price: number) => `新增照护名额（${formatUsd(price)}/月）`,
     slotAdded: "已新增照护名额（演示模式——尚未配置支付渠道）。",
     capacityReached: "已达照护上限。请在「套餐与账单」中新增照护名额以接收更多宠物。",
     readonlyNotice:

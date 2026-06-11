@@ -16,7 +16,7 @@ export function ChatPanel({
   petName: string;
   aiEnabled: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const STARTERS = t.chat.starters;
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -38,7 +38,7 @@ export function ChatPanel({
       const res = await fetch(`/api/pets/${petId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, locale }),
       });
       if (!res.body) throw new Error("No response body");
 

@@ -9,6 +9,15 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Pricing in USD.** All plans and Stripe checkout now use US dollars
+  ($29.99/mo or $299/yr shop plan; $4.99/mo extra slots; $2.99/mo owner extra pets).
+
+- **2026-06-09 — Language from localStorage + geo default.** Your language choice is saved
+  in the browser; first-time visitors in China (incl. HK/Macao) see Chinese, others English.
+
+- **2026-06-09 — Delete your account.** Account settings now let owners and shops permanently
+  delete their account; active Stripe subscriptions are cancelled and personal data is removed.
+
 - **2026-06-09 — AI can read your pet's documents.** Chat and triage now include vaccine
   certs, lab results, and other uploaded files (images and PDFs) in the AI's context.
 
