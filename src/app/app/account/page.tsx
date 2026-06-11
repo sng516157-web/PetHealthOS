@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { resolveStripeCustomerId, syncBillingFromStripe } from "@/lib/billing";
+import { resolveStripeCustomerId, syncOrgBillingFromStripe } from "@/lib/billing";
 import { requireActiveOrg, isFacilityOrg } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 import { ManageSubscription } from "@/components/ManageSubscription";
@@ -8,7 +8,7 @@ import { getI18n } from "@/lib/i18n/server";
 
 export default async function OrgAccountPage() {
   const org = await requireActiveOrg();
-  await syncBillingFromStripe({ kind: "org", id: org.id });
+  await syncOrgBillingFromStripe(org.id);
   const current =
     (await prisma.organization.findUnique({ where: { id: org.id } })) ?? org;
   const [{ t }, stripeCustomerId] = await Promise.all([

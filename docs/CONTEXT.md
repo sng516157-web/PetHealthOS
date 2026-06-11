@@ -218,6 +218,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **Billing page server error fix.** Why: `syncBillingFromStripe` called
+  `fulfillCheckoutSession` → `revalidatePath` during RSC render (Next.js throws). Sync repair
+  now passes `revalidate: false`; sync wrapped in try/catch; split `syncOrgBillingFromStripe` /
+  `syncUserBillingFromStripe` for proper `cache()` keys.
 - **2026-06-11** — **Billing hardening (all accounts / subscription types).** Why (user:
   watertight payment/refund/cancel). Central `applyFulfillmentFromMetadata` /
   `applyReversalFromMetadata`; refunds resolve metadata via Checkout session **or** invoice →

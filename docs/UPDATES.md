@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-11 — Billing and account pages load again.** Fixed a server error caused by Stripe
+  sync calling cache revalidation during page render.
+
 - **2026-06-11 — Billing sync hardened across all subscription types.** Payments, refunds,
   and cancellations now reconcile reliably for shop plans, owner pet slots, and facility care
   slots — billing pages self-heal from Stripe if a webhook or redirect was missed.

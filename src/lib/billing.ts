@@ -505,18 +505,30 @@ async function repairUnfulfilledCheckoutSessions(scope: CheckoutScope): Promise<
       continue;
     }
     if (!checkoutSessionReady(session)) continue;
-    await fulfillCheckoutSession(session, stripe);
+    // Never revalidate during page render — sync runs on billing/account load.
+    await fulfillCheckoutSession(session, stripe, { revalidate: false });
   }
 }
 
-/**
- * Full billing reconcile for one account — cached per request.
- * Runs on billing page load to heal missed webhooks / success redirects.
- */
-export const syncBillingFromStripe = cache(async (scope: CheckoutScope): Promise<void> => {
-  await expireStalePendingSlots(scope);
-  await syncSubscriptionsFromStripe(scope);
-  await repairUnfulfilledCheckoutSessions(scope);
+/** Internal sync — must not throw or call revalidatePath (runs during RSC render). */
+async function syncBillingFromStripeInner(scope: CheckoutScope): Promise<void> {
+  try {
+    await expireStalePendingSlots(scope);
+    await syncSubscriptionsFromStripe(scope);
+    await repairUnfulfilledCheckoutSessions(scope);
+  } catch (e) {
+    console.error("syncBillingFromStripe failed", scope.kind, scope.id, e);
+  }
+}
+
+/** Org billing reconcile — cached per request by org id. */
+export const syncOrgBillingFromStripe = cache(async (orgId: string): Promise<void> => {
+  await syncBillingFromStripeInner({ kind: "org", id: orgId });
+});
+
+/** Owner billing reconcile — cached per request by user id. */
+export const syncUserBillingFromStripe = cache(async (userId: string): Promise<void> => {
+  await syncBillingFromStripeInner({ kind: "user", id: userId });
 });
 
 /** Activate subscriptions on invoice payment (backup to checkout webhook). */
@@ -607,13 +619,15 @@ function revalidateAfterFulfillment(scopeKind: string) {
 export async function fulfillCheckoutSession(
   session: StripeCheckoutSession,
   stripeClient?: { checkout: { sessions: { update: (id: string, params: { metadata: Record<string, string> }) => Promise<unknown> } } },
+  opts?: { revalidate?: boolean },
 ): Promise<FulfillResult> {
+  const shouldRevalidate = opts?.revalidate !== false;
   const md = session.metadata ?? {};
   const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
 
   if (md.fulfilled === "1" && scopeKind) {
     await repairFromMetadata(md);
-    revalidateAfterFulfillment(scopeKind);
+    if (shouldRevalidate) revalidateAfterFulfillment(scopeKind);
     return {
       ok: true,
       alreadyFulfilled: true,
@@ -648,7 +662,7 @@ export async function fulfillCheckoutSession(
     });
   }
 
-  revalidateAfterFulfillment(scopeKind);
+  if (shouldRevalidate) revalidateAfterFulfillment(scopeKind);
   return {
     ok: true,
     scopeKind,

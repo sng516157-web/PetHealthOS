@@ -13,7 +13,8 @@ import {
 import {
   ensureReferralCode,
   getReferralCount,
-  syncBillingFromStripe,
+  syncOrgBillingFromStripe,
+  syncUserBillingFromStripe,
 } from "./billing";
 import {
   getOwnerPetEntitlements,
@@ -110,7 +111,7 @@ export async function getFacilityActiveCount() {
 // Care capacity: base + purchased extra slots, and how many are in use now.
 export async function getFacilityCapacity() {
   const org = await requireActiveOrg();
-  await syncBillingFromStripe({ kind: "org", id: org.id });
+  await syncOrgBillingFromStripe(org.id);
   const inCare = await prisma.petStay.count({
     where: { orgId: org.id, status: "ACTIVE" },
   });
@@ -335,7 +336,7 @@ export async function getUserNotifications(userId: string) {
 
 export async function getOrgUsage() {
   const org = await requireActiveOrg();
-  await syncBillingFromStripe({ kind: "org", id: org.id });
+  await syncOrgBillingFromStripe(org.id);
   const fresh = await prisma.organization.findUnique({ where: { id: org.id } });
   const current = fresh ?? org;
   const plan = getOrgPlan(current.plan);
@@ -344,7 +345,7 @@ export async function getOrgUsage() {
 }
 
 export async function getUserUsage(userId: string) {
-  await syncBillingFromStripe({ kind: "user", id: userId });
+  await syncUserBillingFromStripe(userId);
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
   const plan = getUserPlan(user.plan);
