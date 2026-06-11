@@ -454,6 +454,33 @@ export async function expireStalePendingSlots(scope: CheckoutScope): Promise<voi
   }
 }
 
+/** Slot ids with an active Stripe subscription for this account. */
+async function activeStripeSlotIds(
+  stripe: import("stripe").default,
+  customerId: string,
+  scope: CheckoutScope,
+  slotKind: "org_slot" | "user_slot",
+): Promise<Set<string>> {
+  const ids = new Set<string>();
+  let startingAfter: string | undefined;
+  for (;;) {
+    const page = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 100,
+      ...(startingAfter ? { starting_after: startingAfter } : {}),
+    });
+    for (const sub of page.data) {
+      const md = sub.metadata ?? {};
+      if (md.scopeId !== scope.id || md.scopeKind !== slotKind || !md.slotId) continue;
+      ids.add(md.slotId);
+    }
+    if (!page.has_more) break;
+    startingAfter = page.data.at(-1)?.id;
+  }
+  return ids;
+}
+
 /** Reconcile DB with active Stripe slot + plan subscriptions. */
 async function syncSubscriptionsFromStripe(scope: CheckoutScope): Promise<void> {
   if (!stripeConfigured()) return;
@@ -478,6 +505,36 @@ async function syncSubscriptionsFromStripe(scope: CheckoutScope): Promise<void> 
     }
     if (!page.has_more) break;
     startingAfter = page.data.at(-1)?.id;
+  }
+}
+
+/** Revoke paid slots that no longer have an active Stripe subscription. */
+async function syncSlotRevocationsFromStripe(scope: CheckoutScope): Promise<void> {
+  if (!stripeConfigured()) return;
+  const customerId = await resolveStripeCustomerId(scope);
+  if (!customerId) return;
+
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
+  if (scope.kind === "org") {
+    const active = await activeStripeSlotIds(stripe, customerId, scope, "org_slot");
+    const rows = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "OrgSlot"
+      WHERE "orgId" = ${scope.id} AND kind = 'care' AND status = 'ACTIVE'
+    `;
+    for (const row of rows) {
+      if (!active.has(row.id)) await revokeOrgSlot(row.id);
+    }
+  } else {
+    const active = await activeStripeSlotIds(stripe, customerId, scope, "user_slot");
+    const rows = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "OwnerPetSlot"
+      WHERE "userId" = ${scope.id} AND status = 'ACTIVE'
+    `;
+    for (const row of rows) {
+      if (!active.has(row.id)) await revokeOwnerPetSlot(row.id);
+    }
   }
 }
 
@@ -514,6 +571,7 @@ async function repairUnfulfilledCheckoutSessions(scope: CheckoutScope): Promise<
 async function syncBillingFromStripeInner(scope: CheckoutScope): Promise<void> {
   try {
     await expireStalePendingSlots(scope);
+    await syncSlotRevocationsFromStripe(scope);
     await syncSubscriptionsFromStripe(scope);
     await repairUnfulfilledCheckoutSessions(scope);
   } catch (e) {

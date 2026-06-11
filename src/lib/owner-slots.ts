@@ -90,11 +90,9 @@ export async function ensureOwnerPetSlotActive(
   `;
   const row = rows[0];
   if (row) {
-    if (row.status !== "ACTIVE") {
+    if (row.status === "PENDING") {
       await prisma.$executeRaw`
-        UPDATE "OwnerPetSlot"
-        SET status = 'ACTIVE', "revokedAt" = NULL
-        WHERE id = ${slotId}
+        UPDATE "OwnerPetSlot" SET status = 'ACTIVE' WHERE id = ${slotId}
       `;
     }
   } else {

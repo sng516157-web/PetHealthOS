@@ -218,6 +218,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **Refunded slots stay revoked on billing sync.** Why (user: Happy Paws
+  still showed 2 slots after Stripe refunds). `ensureOrgSlotActive` was re-activating REVOKED
+  rows when old paid Checkout sessions re-synced; added `syncSlotRevocationsFromStripe` (revoke
+  ACTIVE slots with no matching active subscription) and skip repair for cancelled subs.
 - **2026-06-11** — **Billing page server error fix.** Why: `syncBillingFromStripe` called
   `fulfillCheckoutSession` → `revalidatePath` during RSC render (Next.js throws). Sync repair
   now passes `revalidate: false`; sync wrapped in try/catch; split `syncOrgBillingFromStripe` /

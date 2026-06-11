@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-11 — Refunded care slots drop off billing.** Refreshing Plan & billing now revokes
+  slots whose Stripe subscriptions are cancelled or refunded (no longer stuck at old counts).
+
 - **2026-06-11 — Billing and account pages load again.** Fixed a server error caused by Stripe
   sync calling cache revalidation during page render.
 

@@ -69,11 +69,10 @@ export async function ensureOrgSlotActive(
   `;
   const row = rows[0];
   if (row) {
-    if (row.status !== "ACTIVE") {
+    // Only promote PENDING → ACTIVE. Never un-revoke (refund/cancel stays revoked).
+    if (row.status === "PENDING") {
       await prisma.$executeRaw`
-        UPDATE "OrgSlot"
-        SET status = 'ACTIVE', "revokedAt" = NULL
-        WHERE id = ${slotId}
+        UPDATE "OrgSlot" SET status = 'ACTIVE' WHERE id = ${slotId}
       `;
     }
   } else {
