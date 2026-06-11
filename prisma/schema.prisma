@@ -190,6 +190,7 @@ model Pet {
   notifications Notification[]
   stays         PetStay[]
   ownerSlot     OwnerPetSlot?
+  orgSlot       OrgSlot?
 
   @@index([orgId])
   @@index([ownerUserId])

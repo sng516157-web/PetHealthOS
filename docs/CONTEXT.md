@@ -217,6 +217,8 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **`Pet.orgSlot` back-relation.** Why: Prisma P1012 blocked Vercel deploy —
+  `OrgSlot.pet` required the opposite field on `Pet` (`orgSlot OrgSlot?`).
 - **2026-06-10** — **Org/facility slot IDs + live Stripe guide.** Why (user: same
   read-only downgrade for shop/facility). `OrgSlot` (`care` | `shop_pet`) with `slotId`
   in Stripe metadata for facility `org_slot`; shop pets use plan included count (STARTER 5 /
