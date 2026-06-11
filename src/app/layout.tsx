@@ -3,6 +3,8 @@ import { Nunito, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getLocale } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/client";
+import { getTimezone } from "@/lib/timezone/server";
+import { TimezoneProvider, TimezoneSync } from "@/lib/timezone/client";
 
 // Nunito gives the warm, rounded, trustworthy feel of the PawSure brand. CJK
 // text falls back to the system stack (PingFang/YaHei) to avoid shipping a
@@ -32,13 +34,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const timeZone = await getTimezone();
   return (
     <html
       lang={locale === "zh" ? "zh-CN" : "en"}
       className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <I18nProvider locale={locale}>{children}</I18nProvider>
+        <I18nProvider locale={locale}>
+          <TimezoneProvider timeZone={timeZone}>
+            <TimezoneSync serverTimeZone={timeZone} />
+            {children}
+          </TimezoneProvider>
+        </I18nProvider>
       </body>
     </html>
   );

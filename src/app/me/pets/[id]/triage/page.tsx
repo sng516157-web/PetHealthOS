@@ -9,6 +9,7 @@ import { GenerateTriageButton } from "@/components/GenerateTriageButton";
 import { TriageReport } from "@/components/TriageReport";
 import type { TriageResult } from "@/lib/ai";
 import { getI18n } from "@/lib/i18n/server";
+import { getTimezone } from "@/lib/timezone/server";
 
 export default async function MePetTriagePage({
   params,
@@ -20,7 +21,9 @@ export default async function MePetTriagePage({
   if (!user) notFound();
   const pet = await getOwnedPet(user.id, id);
   if (!pet) notFound();
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
 
   const reports = await prisma.triageReport.findMany({
     where: { petId: pet.id },
@@ -53,7 +56,7 @@ export default async function MePetTriagePage({
           description={t.triage.noneDesc(pet.name)}
         />
       ) : (
-        <TriageReport t={t} report={report} createdAt={latest.createdAt} />
+        <TriageReport t={t} report={report} createdAt={latest.createdAt} fmt={fmt} />
       )}
     </div>
   );

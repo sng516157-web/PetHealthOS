@@ -9,6 +9,12 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — AI can read your pet's documents.** Chat and triage now include vaccine
+  certs, lab results, and other uploaded files (images and PDFs) in the AI's context.
+
+- **2026-06-09 — Log times match your local timezone.** The app detects your browser
+  timezone automatically so health log dates and times display correctly wherever you are.
+
 - **2026-06-11 — Referral programme removed.** Shop yearly price is now a flat ¥4888 with no
   referral links or discounts; the idea is parked for a future version.
 

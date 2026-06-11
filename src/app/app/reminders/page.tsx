@@ -6,9 +6,12 @@ import { ReminderToggle } from "@/components/ReminderToggle";
 import { REMINDER_CATEGORY_META, ReminderCategory } from "@/lib/constants";
 import { formatDate, relativeTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
+import { getTimezone } from "@/lib/timezone/server";
 
 export default async function RemindersPage() {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
   const org = await requireActiveOrg();
   const reminders = await prisma.reminder.findMany({
     where: { pet: { orgId: org.id } },
@@ -69,7 +72,7 @@ export default async function RemindersPage() {
                             href={`/app/pets/${r.petId}`}
                             className="text-xs text-muted hover:text-brand-600"
                           >
-                            {r.pet.name} · {formatDate(r.dueAt)}
+                            {r.pet.name} · {formatDate(r.dueAt, fmt)}
                           </Link>
                         </div>
                         <Badge tone={(overdue ? "rose" : "slate") as Tone}>

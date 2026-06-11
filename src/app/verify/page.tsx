@@ -4,6 +4,7 @@ import { ShieldCheck, Clock, CheckCircle2, XCircle, LogOut } from "lucide-react"
 import { getActiveOrg } from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
 import { formatDate } from "@/lib/format";
+import { getTimezone } from "@/lib/timezone/server";
 import { LandingHeader } from "@/components/LandingHeader";
 import { VerifyForm } from "@/components/VerifyForm";
 import { signOut } from "@/app/actions";
@@ -13,7 +14,9 @@ export default async function VerifyPage() {
   // Only shop accounts have a verification flow. Owners / logged-out users go
   // to the shop landing.
   if (!org) redirect("/shop");
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
 
   const status = org.verificationStatus;
 
@@ -60,7 +63,7 @@ export default async function VerifyPage() {
             <p className="mt-1 text-sm text-slate-600">{t.verify.pendingDesc}</p>
             {org.verificationSubmittedAt && (
               <p className="mt-2 text-xs text-muted">
-                {t.verify.pendingSince(formatDate(org.verificationSubmittedAt))}
+                {t.verify.pendingSince(formatDate(org.verificationSubmittedAt, fmt))}
               </p>
             )}
             <Link

@@ -12,6 +12,7 @@ import {
 } from "@/lib/constants";
 import { formatDate, relativeTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
+import { useTimezone } from "@/lib/timezone/client";
 import { FieldError } from "@/components/FieldError";
 import {
   validateRequiredName,
@@ -40,7 +41,9 @@ export function RemindersPanel({
   reminders: SerializedReminder[];
 }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const timeZone = useTimezone();
+  const fmt = { timeZone, locale };
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +158,7 @@ export function RemindersPanel({
               <span className="text-base">{meta?.emoji}</span>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-foreground">{r.title}</div>
-                <div className="text-xs text-muted">{formatDate(r.dueAt)}</div>
+                <div className="text-xs text-muted">{formatDate(r.dueAt, fmt)}</div>
               </div>
               <Badge tone={(overdue ? "rose" : "slate") as Tone}>{relativeTime(r.dueAt)}</Badge>
             </div>

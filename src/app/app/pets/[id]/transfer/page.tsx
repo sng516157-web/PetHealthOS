@@ -5,6 +5,7 @@ import { Card, Badge } from "@/components/ui";
 import { TransferForm } from "@/components/TransferForm";
 import { formatDate } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
+import { getTimezone } from "@/lib/timezone/server";
 
 export default async function TransferPage({
   params,
@@ -12,7 +13,9 @@ export default async function TransferPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
   const pet = await prisma.pet.findUnique({
     where: { id },
     include: { transfers: { orderBy: { createdAt: "desc" } } },
@@ -43,7 +46,7 @@ export default async function TransferPage({
             <p className="mt-0.5 text-emerald-800">
               {t.transferPage.alreadyClaimedDesc(
                 claimedTransfer.claimedByName || t.transferPage.unnamedOwner,
-                formatDate(claimedTransfer.claimedAt as Date),
+                formatDate(claimedTransfer.claimedAt as Date, fmt),
               )}
             </p>
           </div>
@@ -98,7 +101,7 @@ export default async function TransferPage({
               </div>
               <Badge tone={transfer.claimedAt ? "emerald" : "amber"}>
                 {transfer.claimedAt ? t.transferPage.claimed : t.transferPage.issuedBadge} ·{" "}
-                {formatDate(transfer.createdAt)}
+                {formatDate(transfer.createdAt, fmt)}
               </Badge>
             </div>
           </Card>

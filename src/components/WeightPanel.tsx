@@ -7,6 +7,7 @@ import { addWeight, deleteWeight } from "@/app/actions";
 import { Card } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
+import { useTimezone } from "@/lib/timezone/client";
 import { FieldError } from "@/components/FieldError";
 import {
   validateWeightKg,
@@ -34,7 +35,9 @@ export function WeightPanel({
   weights: SerializedWeight[];
 }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const timeZone = useTimezone();
+  const fmt = { timeZone, locale };
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -175,7 +178,7 @@ export function WeightPanel({
                 return (
                   <div
                     key={w.id}
-                    title={`${w.weightKg} kg · ${formatDate(w.measuredAt)}`}
+                    title={`${w.weightKg} kg · ${formatDate(w.measuredAt, fmt)}`}
                     className="flex-1 rounded-t bg-brand-200"
                     style={{ height: `${h}%` }}
                   />
@@ -193,7 +196,7 @@ export function WeightPanel({
                   {w.weightKg} kg
                 </span>
                 <span className="text-xs text-muted">
-                  {formatDate(w.measuredAt)}
+                  {formatDate(w.measuredAt, fmt)}
                 </span>
                 {w.note && (
                   <span className="truncate text-xs text-slate-400">

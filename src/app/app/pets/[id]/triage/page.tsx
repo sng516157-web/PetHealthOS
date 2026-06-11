@@ -7,6 +7,7 @@ import { GenerateTriageButton } from "@/components/GenerateTriageButton";
 import { TriageReport } from "@/components/TriageReport";
 import type { TriageResult } from "@/lib/ai";
 import { getI18n } from "@/lib/i18n/server";
+import { getTimezone } from "@/lib/timezone/server";
 
 export default async function TriagePage({
   params,
@@ -14,7 +15,9 @@ export default async function TriagePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
   const pet = await prisma.pet.findUnique({
     where: { id },
     include: { reports: { orderBy: { createdAt: "desc" }, take: 5 } },
@@ -49,7 +52,7 @@ export default async function TriagePage({
           description={t.triage.noneDesc(pet.name)}
         />
       ) : (
-        <TriageReport t={t} report={report} createdAt={latest.createdAt} />
+        <TriageReport t={t} report={report} createdAt={latest.createdAt} fmt={fmt} />
       )}
     </div>
   );

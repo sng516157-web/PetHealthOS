@@ -37,8 +37,16 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
   in `src/lib/prisma.ts`. Migrations use the **unpooled** URL (see
   `prisma.config.ts`); runtime uses the **pooled** URL.
 - **AI:** Google Gemini via the Vercel AI SDK (`@ai-sdk/google`); logic in
-  `src/lib/ai.ts`. Locale-aware. Log enrichment runs in the background via
-  `after()` so saves feel instant.
+  `src/lib/ai.ts`. Locale-aware. Context = health log **plus** reference documents
+  (`Attachment` metadata in `buildPetContext`; up to 4 image/PDF files loaded for
+  vision via `loadVisionAttachments` / `fetchStoredFileBytes`). Chat and triage both
+  pass multimodal parts when documents exist. Log enrichment runs in the background
+  via `after()` so saves feel instant.
+- **Timezone:** Browser IANA timezone auto-detected on first visit (`TimezoneSync` →
+  `setTimezone` cookie `tz`). `formatDate` / `formatDateTime` (`src/lib/format.ts`)
+  use `Intl` with that timezone + UI locale. New log entries send client `occurredAt`
+  (ISO) from `QuickAddLog` so stored timestamps match the user's "now". No GPS /
+  schema migration — cookie only.
 - **Uploads:** Vercel Blob in prod, local filesystem fallback in dev (`saveUpload`).
 - **i18n:** `en`/`zh` dictionaries in `src/lib/i18n/` (`en.ts` is the source of
   truth; `zh.ts` must mirror its shape — enforced by the `Dictionary` type).
@@ -190,6 +198,8 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   so they load through the reachable proxy domain. Disable with
   `NEXT_PUBLIC_IMG_PROXY=0` if a CDN later fronts the blob store.
 - `zh.ts` must mirror `en.ts` exactly (type-enforced). Update both together.
+- **Dates before timezone cookie:** first paint may use `UTC` until `TimezoneSync`
+  detects the browser zone and `router.refresh()` — one brief flash possible on cold load.
 
 ---
 
@@ -218,6 +228,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **AI sees reference documents + local timezone for dates.** Why (user:
+  AI couldn't read vaccine/lab/pedigree files; log times showed UTC). `buildPetContext`
+  lists attachments; chat/triage load image/PDF bytes for vision (max 4 × 8MB). Browser
+  IANA timezone stored in `tz` cookie; all `formatDate`/`formatDateTime` call sites pass
+  timezone + locale; `QuickAddLog` sends client `occurredAt` on save.
 - **2026-06-11** — **Demo seed resets Stripe subscriptions.** Why (user: broken subs after test
   deploys). `seed-demo.ts` now cancels active Stripe subs for demo emails before DB recreate; loads
   `.env.local`; added `prisma/regression-prep.ts` for KYC steps in manual E2E.

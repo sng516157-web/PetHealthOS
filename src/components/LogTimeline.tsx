@@ -14,6 +14,7 @@ import {
 } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
+import { useTimezone } from "@/lib/timezone/client";
 
 export type SerializedLog = {
   id: string;
@@ -39,7 +40,8 @@ export function LogTimeline({
   canDelete?: boolean;
 }) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const timeZone = useTimezone();
   const [filter, setFilter] = useState<string>("ALL");
   const [, startTransition] = useTransition();
 
@@ -150,7 +152,7 @@ export function LogTimeline({
                   )}
                 </div>
                 <div className="mt-2 text-[11px] text-slate-400">
-                  {formatDateTime(l.occurredAt)}
+                  {formatDateTime(l.occurredAt, { timeZone, locale })}
                 </div>
               </div>
             </li>

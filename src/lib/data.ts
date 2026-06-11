@@ -208,7 +208,10 @@ export async function getCandidateParents(species?: string, excludeId?: string) 
 export async function getPetForAI(id: string) {
   return prisma.pet.findUnique({
     where: { id },
-    include: { logs: { orderBy: { occurredAt: "desc" } } },
+    include: {
+      logs: { orderBy: { occurredAt: "desc" } },
+      attachments: { orderBy: { createdAt: "desc" } },
+    },
   });
 }
 

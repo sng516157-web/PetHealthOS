@@ -166,6 +166,18 @@ export async function setLocale(locale: string) {
   return { ok: true };
 }
 
+export async function setTimezone(timeZone: string) {
+  const { isValidTimezone, TIMEZONE_COOKIE } = await import("@/lib/timezone/config");
+  if (!isValidTimezone(timeZone)) return { error: "Unsupported timezone" };
+  const store = await cookies();
+  store.set(TIMEZONE_COOKIE, timeZone, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  return { ok: true };
+}
+
 // Persist an uploaded file and return its public URL.
 // In production (Vercel) the filesystem is read-only, so use Vercel Blob when a
 // token is present; otherwise fall back to public/uploads for local dev.
@@ -256,10 +268,12 @@ export async function addPet(formData: FormData) {
 export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
   if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
-  const occurredAt = String(formData.get("occurredAt") || "") || undefined;
-  if (occurredAt) {
-    const dErr = validateDate(occurredAt, false);
-    if (dErr) return { error: dErr };
+  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
+  let occurredAt: Date | undefined;
+  if (occurredAtRaw) {
+    const parsed = new Date(occurredAtRaw);
+    if (Number.isNaN(parsed.getTime())) return { error: VErr.DATE_INVALID };
+    occurredAt = parsed;
   }
   const hasText = Boolean(text);
 
@@ -320,7 +334,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
       data: {
         petId,
         rawText: locale === "zh" ? "📷 照片记录" : "📷 Photo log",
-        occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
+        occurredAt: occurredAt ?? new Date(),
         imageUrl,
         imageMime,
         type: "OBSERVATION",
@@ -366,7 +380,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
     data: {
       petId,
       rawText: text,
-      occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
+      occurredAt: occurredAt ?? new Date(),
       imageUrl,
       imageMime,
       type: structured.type,
@@ -453,7 +467,12 @@ export async function generateTriageReport(petId: string) {
   if (!pet) return { error: "Pet not found" };
 
   const locale = await getLocale();
-  const result = await generateTriage(pet, pet.logs, locale);
+  const { getTimezone } = await import("@/lib/timezone/server");
+  const timeZone = await getTimezone();
+  const result = await generateTriage(pet, pet.logs, locale, pet.attachments, {
+    timeZone,
+    locale,
+  });
   const report = await prisma.triageReport.create({
     data: {
       petId,

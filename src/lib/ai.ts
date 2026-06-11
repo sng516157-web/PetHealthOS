@@ -1,8 +1,15 @@
 import { generateObject, generateText, type LanguageModel } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
-import { LOG_TYPES, SEVERITY, URGENCY } from "./constants";
-import { petAge } from "./format";
+import {
+  ATTACHMENT_KIND_META,
+  LOG_TYPES,
+  SEVERITY,
+  URGENCY,
+  type AttachmentKind,
+} from "./constants";
+import { formatDateTime, petAge } from "./format";
+import { fetchStoredFileBytes, isVisionMime } from "./uploads";
 import { DEFAULT_LOCALE, type Locale } from "./i18n/config";
 
 // Instruction appended to every AI prompt so the model replies in the user's UI language.
@@ -52,6 +59,19 @@ type LogLike = {
   tags: string;
 };
 
+export type AttachmentLike = {
+  kind: string;
+  label: string;
+  url: string;
+  mimeType: string | null;
+  createdAt: Date;
+};
+
+type BuildContextOpts = {
+  timeZone?: string;
+  locale?: Locale;
+};
+
 export function petSummaryLine(pet: PetLike): string {
   const bits = [
     pet.species === "DOG" ? "Dog" : "Cat",
@@ -63,20 +83,61 @@ export function petSummaryLine(pet: PetLike): string {
   return `${pet.name} — ${bits.join(", ")}`;
 }
 
-export function buildPetContext(pet: PetLike, logs: LogLike[]): string {
+function attachmentKindLabel(kind: string): string {
+  const meta = ATTACHMENT_KIND_META[kind as AttachmentKind];
+  return meta ? `${meta.emoji} ${meta.label}` : kind;
+}
+
+export function buildPetContext(
+  pet: PetLike,
+  logs: LogLike[],
+  attachments: AttachmentLike[] = [],
+  opts: BuildContextOpts = {},
+): string {
   const header = petSummaryLine(pet);
   const notes = pet.notes ? `\nGeneral notes: ${pet.notes}` : "";
+  const fmtOpts = { timeZone: opts.timeZone, locale: opts.locale };
   const logLines = logs
     .slice()
     .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
     .map((l) => {
-      const date = l.occurredAt.toISOString().slice(0, 10);
+      const date = formatDateTime(l.occurredAt, fmtOpts);
       const tags = safeTags(l.tags);
       const tagStr = tags.length ? ` [${tags.join(", ")}]` : "";
-      return `- ${date} · ${l.type} · severity:${l.severity}${tagStr}\n    ${l.rawText.replace(/\n/g, " ")}`;
+      const title = l.title ? ` · ${l.title}` : "";
+      return `- ${date} · ${l.type} · severity:${l.severity}${title}${tagStr}\n    ${l.rawText.replace(/\n/g, " ")}`;
     })
     .join("\n");
-  return `PET PROFILE\n${header}${notes}\n\nHEALTH LOG (most recent first):\n${logLines || "(no entries yet)"}`;
+  const docLines = attachments
+    .slice()
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map((a) => {
+      const uploaded = formatDateTime(a.createdAt, fmtOpts);
+      const mime = a.mimeType ? ` (${a.mimeType})` : "";
+      return `- ${uploaded} · ${attachmentKindLabel(a.kind)} · "${a.label}"${mime}`;
+    })
+    .join("\n");
+  const docsBlock = docLines
+    ? `\n\nREFERENCE DOCUMENTS (vaccine certs, lab results, pedigree, etc. — metadata; image/PDF files may also be attached for vision):\n${docLines}`
+    : "";
+  return `PET PROFILE\n${header}${notes}\n\nHEALTH LOG (most recent first):\n${logLines || "(no entries yet)"}${docsBlock}`;
+}
+
+const MAX_VISION_ATTACHMENTS = 4;
+
+/** Load image/PDF bytes for multimodal AI (documents panel). */
+export async function loadVisionAttachments(
+  attachments: AttachmentLike[],
+): Promise<{ data: Uint8Array; mediaType: string; label: string }[]> {
+  const out: { data: Uint8Array; mediaType: string; label: string }[] = [];
+  for (const a of attachments) {
+    if (out.length >= MAX_VISION_ATTACHMENTS) break;
+    if (!isVisionMime(a.mimeType)) continue;
+    const file = await fetchStoredFileBytes(a.url);
+    if (!file || file.data.byteLength > 8 * 1024 * 1024) continue;
+    out.push({ ...file, label: `${attachmentKindLabel(a.kind)}: ${a.label}` });
+  }
+  return out;
 }
 
 export function safeTags(tags: string): string[] {
@@ -207,7 +268,7 @@ export async function summarizeHealthWatch(opts: {
       system:
         "You are a calm, supportive pet-health guardian. Based ONLY on the provided signals and recent log, write ONE short sentence (max 30 words) telling the caretaker what to keep an eye on and to consider a vet if it persists or worsens. Do not diagnose, do not invent data, no preamble or greeting. " +
         languageInstruction(locale),
-      prompt: `${buildPetContext(pet, recentLogs)}\n\nDetected signals: ${signals.join("; ")}\n\nWrite the one-sentence watch note.`,
+      prompt: `${buildPetContext(pet, recentLogs, [], { locale })}\n\nDetected signals: ${signals.join("; ")}\n\nWrite the one-sentence watch note.`,
     });
     return text.trim() || null;
   } catch (e) {
@@ -243,16 +304,43 @@ export async function generateTriage(
   pet: PetLike,
   logs: LogLike[],
   locale: Locale = DEFAULT_LOCALE,
+  attachments: AttachmentLike[] = [],
+  opts: BuildContextOpts = {},
 ): Promise<TriageResult> {
   if (!hasAI()) return heuristicTriage(pet, logs, locale);
+  const context = buildPetContext(pet, logs, attachments, { ...opts, locale });
+  const system =
+    "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log and reference documents. Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the log or documents. " +
+    languageInstruction(locale);
+  const prompt = `${context}\n\nProduce a triage assessment for communicating with a veterinarian.`;
   try {
+    const vision = await loadVisionAttachments(attachments);
+    if (vision.length > 0) {
+      const { object } = await generateObject({
+        model: getModel(),
+        schema: TriageSchema,
+        system,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              ...vision.map((v) => ({
+                type: "file" as const,
+                data: v.data,
+                mediaType: v.mediaType,
+              })),
+            ],
+          },
+        ],
+      });
+      return object;
+    }
     const { object } = await generateObject({
       model: getModel(),
       schema: TriageSchema,
-      system:
-        "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log. Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the log. " +
-        languageInstruction(locale),
-      prompt: `${buildPetContext(pet, logs)}\n\nProduce a triage assessment for communicating with a veterinarian.`,
+      system,
+      prompt,
     });
     return object;
   } catch (e) {

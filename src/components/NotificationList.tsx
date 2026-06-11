@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bell, CheckCheck, Clock, ShieldAlert } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { formatDate } from "@/lib/format";
+import { useTimezone } from "@/lib/timezone/client";
 import { EmptyState } from "@/components/ui";
 import {
   markNotificationRead,
@@ -29,7 +30,9 @@ export function NotificationList({
   notifications: Notif[];
   basePetHref: string;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const timeZone = useTimezone();
+  const fmt = { timeZone, locale };
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -113,7 +116,7 @@ export function NotificationList({
                     <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted">
                       <Clock size={11} />
                       {t.notifications.due}{" "}
-                      {formatDate(n.dueAt)}
+                      {formatDate(n.dueAt, fmt)}
                     </span>
                   )}
                 </span>

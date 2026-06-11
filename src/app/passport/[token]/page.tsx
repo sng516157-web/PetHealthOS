@@ -16,7 +16,8 @@ import {
   Severity,
   ReminderCategory,
 } from "@/lib/constants";
-import { petAge, formatDate, relativeTime } from "@/lib/format";
+import { petAge, formatDate, formatDateTime, relativeTime } from "@/lib/format";
+import { getTimezone } from "@/lib/timezone/server";
 import { safeTags } from "@/lib/ai";
 import { ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
 import { ClaimPassport } from "@/components/ClaimPassport";
@@ -33,7 +34,9 @@ export default async function PassportPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
   const transfer = await prisma.transfer.findUnique({
     where: { token },
     include: {
@@ -128,7 +131,7 @@ export default async function PassportPage({
         );
         guaranteeOk = true;
       } else {
-        guaranteeStatus = t.passport.guaranteeExpired(formatDate(expiry));
+        guaranteeStatus = t.passport.guaranteeExpired(formatDate(expiry, fmt));
         guaranteeOk = false;
       }
     } else {
@@ -180,7 +183,7 @@ export default async function PassportPage({
           </div>
           <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
             <CertField label={t.passport.certIssuedBy} value={orgName} />
-            <CertField label={t.passport.certIssuedOn} value={formatDate(transfer.createdAt)} />
+            <CertField label={t.passport.certIssuedOn} value={formatDate(transfer.createdAt, fmt)} />
             <CertField label={t.passport.certNo} value={certNo} mono />
             <CertField label={t.passport.recordSeal} value={seal} mono />
           </div>
@@ -245,7 +248,7 @@ export default async function PassportPage({
                       <p className="font-medium text-foreground">
                         {t.passport.vetCheckedTitle} ·{" "}
                         <span className="font-normal text-muted">
-                          {t.passport.vetCheckedOn(formatDate(transfer.vetCheckedAt))}
+                          {t.passport.vetCheckedOn(formatDate(transfer.vetCheckedAt, fmt))}
                         </span>
                       </p>
                       {transfer.vetCheckNote && (
@@ -280,7 +283,7 @@ export default async function PassportPage({
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
               <CheckCircle2 size={16} />
               {t.passport.claimedBy(transfer.claimedByName ?? t.transferPage.unnamedOwner)} ·{" "}
-              {formatDate(transfer.claimedAt)}
+              {formatDate(transfer.claimedAt, fmt)}
             </div>
           ) : transfer.claimable ? (
             isSignedInOwner ? (
@@ -310,7 +313,7 @@ export default async function PassportPage({
             <Field label={t.passport.microchip} value={pet.microchip || "—"} />
             <Field
               label={t.passport.intakeDate}
-              value={pet.intakeAt ? formatDate(pet.intakeAt) : "—"}
+              value={pet.intakeAt ? formatDate(pet.intakeAt, fmt) : "—"}
             />
             <Field label={t.passport.from} value={orgName} />
             {(pet.sire || pet.dam) && (
@@ -376,7 +379,7 @@ export default async function PassportPage({
                   <div key={r.id} className="flex items-center gap-3 p-3.5">
                     <span className="text-lg">{m?.emoji}</span>
                     <span className="flex-1 text-sm font-medium text-foreground">{r.title}</span>
-                    <span className="text-xs text-muted">{formatDate(r.dueAt)}</span>
+                    <span className="text-xs text-muted">{formatDate(r.dueAt, fmt)}</span>
                   </div>
                 );
               })}
@@ -412,7 +415,7 @@ export default async function PassportPage({
                           <Badge tone={sm.color as Tone}>{t.severity[l.severity as Severity]}</Badge>
                         )}
                         <span className="ml-auto text-[11px] text-slate-400">
-                          {formatDate(l.occurredAt)}
+                          {formatDateTime(l.occurredAt, fmt)}
                         </span>
                       </div>
                       <p className="mt-1.5 text-sm text-slate-600">{l.rawText}</p>

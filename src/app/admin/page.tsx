@@ -5,6 +5,7 @@ import { adminEmails } from "@/lib/email";
 import { adminLogout } from "@/app/actions";
 import { getI18n } from "@/lib/i18n/server";
 import { formatDate } from "@/lib/format";
+import { getTimezone } from "@/lib/timezone/server";
 import { LandingHeader } from "@/components/LandingHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminReviewItem, type AdminOrg } from "@/components/AdminReviewItem";
@@ -14,7 +15,9 @@ import { readAllDocs } from "@/lib/docs";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const fmt = { timeZone, locale };
   const admin = await isAdmin();
 
   if (!admin) {
@@ -59,7 +62,7 @@ export default async function AdminPage() {
     note: o.verificationNote,
     reviewNote: o.reviewNote,
     submittedAt: o.verificationSubmittedAt
-      ? formatDate(o.verificationSubmittedAt)
+      ? formatDate(o.verificationSubmittedAt, fmt)
       : null,
     hasDoc: Boolean(o.verificationDocUrl),
   });

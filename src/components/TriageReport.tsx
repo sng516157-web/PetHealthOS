@@ -9,7 +9,7 @@ import {
 import { Card, Badge, Tone } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
 import { URGENCY_META, SEVERITY_META, Urgency, Severity } from "@/lib/constants";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, type FormatOpts } from "@/lib/format";
 import type { TriageResult } from "@/lib/ai";
 import type { Dictionary } from "@/lib/i18n/en";
 
@@ -19,10 +19,12 @@ export function TriageReport({
   t,
   report,
   createdAt,
+  fmt,
 }: {
   t: Dictionary;
   report: TriageResult;
   createdAt: Date;
+  fmt?: FormatOpts;
 }) {
   return (
     <div className="space-y-5">
@@ -88,7 +90,7 @@ export function TriageReport({
       )}
 
       <p className="text-center text-xs text-muted">
-        {t.triage.generatedAt} {formatDateTime(createdAt)} · {t.triage.disclaimer}{" "}
+        {t.triage.generatedAt} {formatDateTime(createdAt, fmt)} · {t.triage.disclaimer}{" "}
         <Link href="/disclaimer" className="underline hover:text-forest">
           {t.landing.disclaimer}
         </Link>

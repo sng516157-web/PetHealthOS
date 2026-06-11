@@ -40,6 +40,9 @@ export function QuickAddLog({ petId }: { petId: string }) {
     if (!text.trim() && !file) return;
     const fd = new FormData();
     fd.set("rawText", text);
+    fd.set("occurredAt", new Date().toISOString());
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) fd.set("timeZone", tz);
     if (file) fd.set("photo", file);
     startTransition(async () => {
       const res = await addLogEntry(petId, fd);

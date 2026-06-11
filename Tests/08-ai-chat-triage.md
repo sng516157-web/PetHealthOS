@@ -1,6 +1,6 @@
 # 08 — AI chat & triage
 
-**Code:** `src/lib/ai.ts`, `/api/pets/[id]/chat`, `generateTriageReport`, `canAccessPet`.
+**Code:** `src/lib/ai.ts`, `src/lib/uploads.ts`, `/api/pets/[id]/chat`, `generateTriageReport`, `canAccessPet`.
 
 **Requires:** `GOOGLE_GENERATIVE_AI_API_KEY` for live AI; without it expect graceful errors.
 
@@ -45,7 +45,8 @@
 | 1 | Owner triage tab → generate | `TriageReport` renders sections |
 | 2 | Shop triage tab | Same component; data scoped to pet |
 | 3 | Re-run triage | Updates report |
-| 4 | zh locale | Chinese output when locale zh |
+| 4 | Pet with vaccine cert / lab PDF uploaded | Triage may reference document findings |
+| 5 | zh locale | Chinese output when locale zh |
 
 ---
 

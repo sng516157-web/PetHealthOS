@@ -1,3 +1,5 @@
+import type { Locale } from "./i18n/config";
+
 export function petAge(birthDate?: Date | string | null): string | null {
   if (!birthDate) return null;
   const d = typeof birthDate === "string" ? new Date(birthDate) : birthDate;
@@ -14,27 +16,41 @@ export function petAge(birthDate?: Date | string | null): string | null {
   return `${years} yr ${rem} mo`;
 }
 
-const MONTHS_SHORT = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
+export type FormatOpts = {
+  /** IANA timezone from browser cookie (e.g. Asia/Shanghai). */
+  timeZone?: string;
+  locale?: Locale;
+};
 
-// Deterministic, locale/timezone-independent date format (e.g. "Jun 2, 2026").
-// Avoids toLocaleDateString, which renders differently on the server vs. the
-// client and causes React hydration mismatches.
-export function formatDate(d: Date | string): string {
-  const date = typeof d === "string" ? new Date(d) : d;
-  return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+function intlLocale(locale?: Locale): string {
+  return locale === "zh" ? "zh-CN" : "en-US";
 }
 
-// Deterministic date + time (UTC) to keep server/client output identical.
-export function formatDateTime(d: Date | string): string {
+/** Locale- and timezone-aware calendar date. */
+export function formatDate(d: Date | string, opts: FormatOpts = {}): string {
   const date = typeof d === "string" ? new Date(d) : d;
-  const h24 = date.getUTCHours();
-  const period = h24 >= 12 ? "PM" : "AM";
-  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-  const min = String(date.getUTCMinutes()).padStart(2, "0");
-  return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}, ${h12}:${min} ${period}`;
+  const timeZone = opts.timeZone ?? "UTC";
+  return new Intl.DateTimeFormat(intlLocale(opts.locale), {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+/** Locale- and timezone-aware date + time. */
+export function formatDateTime(d: Date | string, opts: FormatOpts = {}): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  const timeZone = opts.timeZone ?? "UTC";
+  return new Intl.DateTimeFormat(intlLocale(opts.locale), {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: opts.locale !== "zh",
+  }).format(date);
 }
 
 export function relativeTime(d: Date | string): string {
