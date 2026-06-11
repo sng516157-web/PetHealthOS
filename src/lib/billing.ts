@@ -449,15 +449,10 @@ export async function handleSubscriptionEnded(subscription: {
   if (scopeKind === "org") {
     await activatePlan({ kind: "org", id: scopeId }, "STARTER");
   } else if (scopeKind === "org_slot") {
-    const org = await prisma.organization.findUnique({
-      where: { id: scopeId },
-      select: { extraPetSlots: true },
-    });
-    if (org && org.extraPetSlots > 0) {
-      await prisma.organization.update({
-        where: { id: scopeId },
-        data: { extraPetSlots: { decrement: 1 } },
-      });
+    if (md.slotId) {
+      await revokeOrgSlot(md.slotId);
+    } else {
+      await syncOrgCareSlotCount(scopeId);
     }
   }
 

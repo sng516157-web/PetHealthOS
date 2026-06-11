@@ -217,6 +217,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **Facility slot cancel webhook fix.** Why (user: cancelled care-slot
+  sub but capacity stayed at 51). `handleSubscriptionEnded` for `org_slot` only decremented
+  `extraPetSlots` and never called `revokeOrgSlot` — `OrgSlot` stayed ACTIVE. Now mirrors
+  `user_slot` (`revokeOrgSlot(md.slotId)`). `getFacilityCapacity` + `admitPetByToken` read
+  ACTIVE `OrgSlot` count (self-heals drift on billing page load).
 - **2026-06-11** — **`Pet.orgSlot` back-relation.** Why: Prisma P1012 blocked Vercel deploy —
   `OrgSlot.pet` required the opposite field on `Pet` (`orgSlot OrgSlot?`).
 - **2026-06-10** — **Org/facility slot IDs + live Stripe guide.** Why (user: same

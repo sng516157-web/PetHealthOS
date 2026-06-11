@@ -21,6 +21,15 @@ export async function countPurchasedOrgCareSlots(orgId: string): Promise<number>
   return Number(rows[0]?.c ?? 0);
 }
 
+/** ACTIVE care slots only — source of truth for facility capacity limit. */
+export async function countActiveOrgCareSlots(orgId: string): Promise<number> {
+  const rows = await prisma.$queryRaw<{ c: bigint }[]>`
+    SELECT COUNT(*)::bigint AS c FROM "OrgSlot"
+    WHERE "orgId" = ${orgId} AND kind = 'care' AND status = 'ACTIVE'
+  `;
+  return Number(rows[0]?.c ?? 0);
+}
+
 /** Sync Organization.extraPetSlots from ACTIVE care slots (facility billing UI). */
 export async function syncOrgCareSlotCount(orgId: string): Promise<void> {
   const rows = await prisma.$queryRaw<{ c: bigint }[]>`

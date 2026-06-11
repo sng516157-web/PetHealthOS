@@ -49,6 +49,7 @@ import {
   assignCareSlotToStay,
   assignShopPetSlot,
   clearCareSlotForStay,
+  countActiveOrgCareSlots,
 } from "@/lib/org-slots";
 import { checkoutBaseUrl } from "@/lib/site-url";
 import {
@@ -956,7 +957,8 @@ export async function admitPetByToken(token: string) {
     const activeCount = await prisma.petStay.count({
       where: { orgId: user.orgId, status: "ACTIVE" },
     });
-    if (activeCount >= facilityCapacity(org?.extraPetSlots ?? 0)) {
+    const extraSlots = await countActiveOrgCareSlots(user.orgId);
+    if (activeCount >= facilityCapacity(extraSlots)) {
       return { error: "CAPACITY_REACHED" };
     }
   }

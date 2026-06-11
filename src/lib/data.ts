@@ -16,6 +16,7 @@ import {
   type OwnerPetEntitlements,
 } from "./owner-slots";
 import {
+  countActiveOrgCareSlots,
   getFacilityStayEntitlements,
   getShopPetEntitlements,
 } from "./org-slots";
@@ -108,13 +109,19 @@ export async function getFacilityCapacity() {
   const inCare = await prisma.petStay.count({
     where: { orgId: org.id, status: "ACTIVE" },
   });
-  const extra = Math.max(0, org.extraPetSlots);
+  const extra = await countActiveOrgCareSlots(org.id);
+  if (extra !== org.extraPetSlots) {
+    await prisma.organization.update({
+      where: { id: org.id },
+      data: { extraPetSlots: extra },
+    });
+  }
   return {
     org,
     inCare,
     base: FACILITY_BASE_CAPACITY,
     extra,
-    limit: facilityCapacity(org.extraPetSlots),
+    limit: facilityCapacity(extra),
   };
 }
 

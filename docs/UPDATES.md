@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-11 — Facility care-slot cancel sync.** Cancelling a paid facility care slot now
+  properly revokes the slot and drops capacity back to the base 50 (billing page self-heals if
+  it was out of sync).
+
 - **2026-06-10 — Shop & facility slot downgrade.** Cancelling SHOP, facility care slots, or
   refunding now keeps pet dashboards readable but pauses new logs and AI on affected pets.
 
