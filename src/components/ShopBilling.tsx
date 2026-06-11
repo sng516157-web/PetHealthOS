@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Check, CreditCard, Copy, Gift, Crown } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
+import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
 
 type Interval = "month" | "year";
@@ -167,6 +168,7 @@ export function ShopBilling({
           >
             <CreditCard size={14} /> {busy === "stripe" ? "…" : t.billing.payStripe}
           </button>
+          <BillingWalletNote />
         </div>
       </div>
 

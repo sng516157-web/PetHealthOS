@@ -11,6 +11,14 @@ import {
   FACILITY_BASE_CAPACITY,
 } from "./plans";
 import { ensureReferralCode, getReferralCount } from "./billing";
+import {
+  getOwnerPetEntitlements,
+  type OwnerPetEntitlements,
+} from "./owner-slots";
+import {
+  getFacilityStayEntitlements,
+  getShopPetEntitlements,
+} from "./org-slots";
 import { isFacilityKind } from "./constants";
 
 export function isFacilityOrg(org: { kind: string }): boolean {
@@ -243,6 +251,34 @@ export async function canAccessPet(petId: string): Promise<boolean> {
     if (stay?.status === "ACTIVE") return true;
   }
   return false;
+}
+
+export async function getPetEntitlements(
+  petId: string,
+): Promise<OwnerPetEntitlements | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { ownerUserId: true, orgId: true },
+  });
+  if (!pet) return null;
+  if (pet.ownerUserId === user.id) {
+    return getOwnerPetEntitlements(user.id, petId);
+  }
+  if (!user.orgId || !(await canAccessPet(petId))) return null;
+
+  const org = await prisma.organization.findUnique({
+    where: { id: user.orgId },
+    select: { kind: true },
+  });
+  if (org && isFacilityKind(org.kind)) {
+    return getFacilityStayEntitlements(user.orgId, petId);
+  }
+  if (pet.orgId === user.orgId) {
+    return getShopPetEntitlements(user.orgId, petId);
+  }
+  return { tier: "readonly", canView: true, canLog: false, canUseAI: false };
 }
 
 // Is the current actor a facility (hospital/boarding) account? Used to keep

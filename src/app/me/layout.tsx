@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, UserCircle } from "lucide-react";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { getCurrentUser } from "@/lib/auth";
 import { signOut } from "@/app/actions";
@@ -34,6 +34,12 @@ export default async function MeLayout({
           </Link>
           <div className="ml-auto flex shrink-0 items-center gap-2">
             <LocaleToggle compact />
+            <Link
+              href="/me/account"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
+            >
+              <UserCircle size={13} /> {t.account.nav}
+            </Link>
             <form action={signOut}>
               <button
                 type="submit"

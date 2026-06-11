@@ -1,4 +1,8 @@
-import { fulfillCheckoutSession } from "@/lib/billing";
+import {
+  fulfillCheckoutSession,
+  handleChargeRefunded,
+  handleSubscriptionEnded,
+} from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +35,16 @@ export async function POST(req: Request) {
   ) {
     const session = event.data.object;
     await fulfillCheckoutSession(session, stripe);
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object;
+    await handleSubscriptionEnded(subscription);
+  }
+
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object;
+    await handleChargeRefunded(charge);
   }
 
   return Response.json({ received: true });

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getOwnedPet, getPetActiveStays } from "@/lib/data";
+import { getOwnedPet, getPetActiveStays, getPetEntitlements } from "@/lib/data";
 import { QuickAddLog } from "@/components/QuickAddLog";
 import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -19,6 +19,8 @@ export default async function MePetPage({
   if (!user) notFound();
   const pet = await getOwnedPet(user.id, id);
   if (!pet) notFound();
+  const ent = await getPetEntitlements(id);
+  const canLog = ent?.canLog ?? true;
   const activeStays = (await getPetActiveStays(id)).map((s) => ({
     id: s.id,
     orgName: s.org.name,
@@ -50,7 +52,9 @@ export default async function MePetPage({
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-5 lg:col-span-2">
-        <QuickAddLog petId={pet.id} />
+        {canLog ? (
+          <QuickAddLog petId={pet.id} />
+        ) : null}
         <LogTimeline petId={pet.id} logs={logs} />
       </div>
       <div className="space-y-5">

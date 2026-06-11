@@ -19,6 +19,7 @@ export const zh: Dictionary = {
     reminders: "提醒",
     notifications: "通知",
     billing: "套餐与账单",
+    account: "账户",
     tagline: "让每一次托付，都更安心。",
     organization: "机构",
   },
@@ -522,6 +523,29 @@ export const zh: Dictionary = {
     freeTagline: "把宠物一生的健康集中在一处。",
     plusTagline: "适合养了较多宠物的主人。",
   },
+  account: {
+    nav: "账户",
+    title: "账户",
+    subtitle: "个人资料与订阅管理。",
+    accountType: "账户类型",
+    displayName: "名称",
+    currentPlan: "当前套餐",
+    typeOwner: "宠物主人",
+    typeShop: "商家 / 繁育者 / 收容所",
+    typeFacility: "宠物医院 / 寄养机构",
+    subscriptionTitle: "订阅",
+    subscriptionNone:
+      "尚无银行卡订阅记录。请先在「套餐与账单」升级或购买名额，之后可在此管理续费。",
+    subscriptionManageDesc:
+      "更新银行卡、查看账单或取消自动续费。生效时间以 Stripe 计费规则为准。",
+    manageSubscription: "管理订阅",
+    billingLink: "套餐与账单 — 升级与用量",
+    portalUnavailable:
+      "订阅管理暂不可用。请在 Stripe 控制台启用 Customer Portal，或联系支持。",
+    portalError: "无法打开订阅管理，请稍后再试。",
+    petReadOnly:
+      "该宠物为仅查看模式——仍可阅读历史记录，但新增日志与 AI 已暂停，续费额外宠物名额后可恢复。",
+  },
   billing: {
     title: "套餐与账单",
     subtitle: "管理你的套餐，查看配额使用情况。",
@@ -532,6 +556,8 @@ export const zh: Dictionary = {
     viewPlans: "查看套餐",
     choosePayment: "选择支付方式",
     payStripe: "银行卡支付（Stripe）",
+    walletsComingSoon:
+      "微信支付与支付宝即将上线，我们正在完善每月自动续费。目前银行卡可正常使用，感谢耐心等待！",
     redirecting: "正在跳转到收银台…",
     demoActivated: "套餐已开通（演示模式 —— 尚未配置支付渠道）。",
     providerComingSoon: "该支付方式尚未接入。请换一种方式，或联系我们。",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PawPrint, Plus, CreditCard } from "lucide-react";
+import { PawPrint, Plus, UserCircle } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnedPets, getUserNotifications } from "@/lib/data";
 import { Card, Badge, EmptyState, PetAvatar, Tone } from "@/components/ui";
@@ -35,10 +35,10 @@ export default async function MeHome() {
           <p className="mt-1 text-sm text-muted">{t.me.subtitle}</p>
         </div>
         <Link
-          href="/me/billing"
+          href="/me/account"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
         >
-          <CreditCard size={13} /> {t.me.billing}
+          <UserCircle size={13} /> {t.account.nav}
         </Link>
       </div>
 

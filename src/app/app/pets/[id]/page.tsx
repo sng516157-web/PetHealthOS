@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, Stethoscope, Lock } from "lucide-react";
-import { getPet, getActiveOrg, isFacilityOrg, getFacilityPetView } from "@/lib/data";
+import {
+  getPet,
+  getActiveOrg,
+  isFacilityOrg,
+  getFacilityPetView,
+  getPetEntitlements,
+} from "@/lib/data";
 import { QuickAddLog } from "@/components/QuickAddLog";
 import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -54,10 +60,12 @@ export default async function PetOverview({
         </div>
       );
     }
+    const ent = await getPetEntitlements(view.pet.id);
+    const canLog = ent?.canLog ?? true;
     return (
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
-          <QuickAddLog petId={view.pet.id} />
+          {canLog ? <QuickAddLog petId={view.pet.id} /> : null}
           <LogTimeline petId={view.pet.id} logs={fLogs} canDelete={false} />
         </div>
         <div className="space-y-5">
@@ -129,11 +137,14 @@ export default async function PetOverview({
       now - l.occurredAt.getTime() < 1000 * 60 * 60 * 24 * 14 &&
       SEVERITY_META[l.severity as Severity].rank >= 3,
   );
+  const ent = await getPetEntitlements(pet.id);
+  const canLog = ent?.canLog ?? true;
+  const canUseAI = ent?.canUseAI ?? true;
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-5 lg:col-span-2">
-        {flagged.length > 0 && (
+        {flagged.length > 0 && canUseAI && (
           <Link
             href={`/app/pets/${pet.id}/triage`}
             className="flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 transition hover:bg-orange-100/70"
@@ -153,7 +164,7 @@ export default async function PetOverview({
           </Link>
         )}
 
-        <QuickAddLog petId={pet.id} />
+        {canLog ? <QuickAddLog petId={pet.id} /> : null}
         <LogTimeline petId={pet.id} logs={logs} />
       </div>
 

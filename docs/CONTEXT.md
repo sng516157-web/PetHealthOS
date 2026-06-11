@@ -217,6 +217,28 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-10** — **Org/facility slot IDs + live Stripe guide.** Why (user: same
+  read-only downgrade for shop/facility). `OrgSlot` (`care` | `shop_pet`) with `slotId`
+  in Stripe metadata for facility `org_slot`; shop pets use plan included count (STARTER 5 /
+  SHOP 50) + slot-linked pets; facility base 50 + care slots on `PetStay`. Refund/cancel
+  via `charge.refunded` + `customer.subscription.deleted`. `docs/LIVE_STRIPE.md` for going live.
+- **2026-06-10** — **Owner pet slot IDs + read-only downgrade.** Why (user: refund/cancel
+  should not delete pets; revoke AI + logging only). `OwnerPetSlot` links paid capacity to
+  pets; `REVOKED` on `customer.subscription.deleted` or `charge.refunded` (when `slotId` in
+  checkout metadata). Included (free) pet keeps full access; extra pets without an ACTIVE slot
+  are view-only. Owner extra slots now bill as monthly subscriptions with `slotId` in metadata.
+  **Not automatic today:** refunds without `slotId` metadata (legacy checkouts) need manual
+  slot revoke in admin/DB.
+- **2026-06-10** — **Account page + Stripe subscription cancel.** Why (user: manage/cancel
+  subscriptions). `/me/account` + `/app/account`: account type, display name, current plan,
+  **Manage subscription** → Stripe Customer Portal (`stripeCustomerId` on User/Organization,
+  saved on checkout fulfill). Webhook `customer.subscription.deleted` downgrades org to
+  STARTER or decrements facility extra slot. Billing pages keep quota/upgrades only; sidebar
+  org-name box removed (duplicate). **Stripe Dashboard:** enable Customer Portal + add
+  `customer.subscription.deleted` to webhook.
+- **2026-06-10** — **Billing wallet note (user-facing).** Why (user: explain missing WeChat/Alipay
+  without mentioning incorporation). `BillingWalletNote` under every paid checkout button; i18n
+  `billing.walletsComingSoon` (EN/ZH) — frames as "coming soon" + monthly auto-renewal in progress.
 - **2026-06-10** — **Remove WeChat Pay + Alipay until incorporation.** Why (user: no recurring
   on Stripe wallets; native auto-debit needs mainland merchant accounts). Removed wallet buttons
   from all billing UIs; `Provider` is `"stripe"` only in `lib/billing.ts`; card-only Checkout.

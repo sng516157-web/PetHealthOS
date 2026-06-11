@@ -10,15 +10,17 @@ export function PetTabs({
   base = `/app/pets/${petId}`,
   includeTransfer = true,
   onlyHealthLog = false,
+  readOnly = false,
 }: {
   petId: string;
   base?: string;
   includeTransfer?: boolean;
   onlyHealthLog?: boolean;
+  readOnly?: boolean;
 }) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const tabs = onlyHealthLog
+  const tabs = onlyHealthLog || readOnly
     ? [{ href: base, label: t.tabs.healthLog, exact: true }]
     : [
         { href: base, label: t.tabs.healthLog, exact: true },

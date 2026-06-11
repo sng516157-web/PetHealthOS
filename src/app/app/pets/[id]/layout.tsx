@@ -6,7 +6,12 @@ import { Badge, PetAvatar, Tone } from "@/components/ui";
 import { PetTabs } from "@/components/PetTabs";
 import { PetPhotoUpload } from "@/components/PetPhotoUpload";
 import { petAge } from "@/lib/format";
-import { getActiveOrg, isFacilityOrg, getFacilityStay } from "@/lib/data";
+import {
+  getActiveOrg,
+  isFacilityOrg,
+  getFacilityStay,
+  getPetEntitlements,
+} from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
 import type { PetStatus, Sex } from "@/lib/constants";
 
@@ -41,6 +46,9 @@ export default async function PetLayout({
   const stay = facility ? await getFacilityStay(id) : null;
   if (facility && !stay) notFound();
   const facilityActive = stay?.status === "ACTIVE";
+  const ent = await getPetEntitlements(id);
+  const slotReadOnly = ent?.tier === "readonly";
+  const readOnly = (facility && !facilityActive) || slotReadOnly;
 
   const meta = [
     pet.breed,
@@ -111,11 +119,18 @@ export default async function PetLayout({
         </div>
       </div>
 
+      {slotReadOnly && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {t.account.petReadOnly}
+        </div>
+      )}
+
       <div className="mt-6">
         <PetTabs
           petId={pet.id}
-          includeTransfer={!facility}
-          onlyHealthLog={facility && !facilityActive}
+          includeTransfer={!facility && !readOnly}
+          onlyHealthLog={readOnly}
+          readOnly={readOnly}
         />
       </div>
 

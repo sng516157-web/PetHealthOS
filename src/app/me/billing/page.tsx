@@ -12,7 +12,6 @@ export default async function UserBillingPage() {
   if (!usage) redirect("/login");
 
   const { plan, count, limit } = usage;
-  const planName = (t.plans as Record<string, string>)[plan.key] ?? plan.key;
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
   const atLimit = count >= limit;
 
@@ -26,11 +25,7 @@ export default async function UserBillingPage() {
       </div>
 
       <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted">{t.billing.currentPlan}</span>
-          <span className="text-sm font-semibold text-foreground">{planName}</span>
-        </div>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
           <div
             className={`h-full rounded-full ${atLimit ? "bg-amber-500" : "bg-brand-500"}`}
             style={{ width: `${pct}%` }}

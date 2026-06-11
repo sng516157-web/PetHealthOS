@@ -28,6 +28,8 @@ model Organization {
   // free STARTER tier). planActivatedAt is when it was last (re)activated.
   planInterval    String?
   planActivatedAt DateTime?
+  // Stripe Customer for card subscriptions (portal cancel / renew).
+  stripeCustomerId String?
 
   // Referral programme. Each shop gets a unique referral code to share; shops
   // that register through it set referredById to the referrer. The referrer
@@ -52,6 +54,24 @@ model Organization {
   members       User[] @relation("OrgMembers")
   notifications Notification[]
   stays         PetStay[] @relation("FacilityStays")
+  orgSlots      OrgSlot[]
+}
+
+// Purchased org capacity — shop extra pets (shop_pet) or facility care slots (care).
+model OrgSlot {
+  id         String    @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  kind       String    // care | shop_pet
+  petId      String?   @unique
+  pet        Pet?      @relation(fields: [petId], references: [id], onDelete: SetNull)
+  petStayId  String?   @unique
+  petStay    PetStay?  @relation(fields: [petStayId], references: [id], onDelete: SetNull)
+  status     String    @default("ACTIVE") // ACTIVE | PENDING | REVOKED
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@index([orgId, kind, status])
 }
 
 // Consumer account — created when a buyer claims a passport or self-registers.
@@ -66,6 +86,7 @@ model User {
 
   plan          String @default("FREE") // FREE (Owner's Account)
   extraPetSlots Int    @default(0)
+  stripeCustomerId String?
 
   // Single-device enforcement for owner accounts: the active session id (also
   // embedded in the signed cookie) + its expiry. When a newer login replaces
@@ -80,10 +101,28 @@ model User {
   org   Organization? @relation("OrgMembers", fields: [orgId], references: [id], onDelete: SetNull)
 
   pets          Pet[]          @relation("OwnerUser")
+  ownerPetSlots OwnerPetSlot[]
   claims        Transfer[]
   notifications Notification[]
 
   @@index([orgId])
+}
+
+// A purchased extra-pet capacity slot for an owner. Linked to a pet once used;
+// REVOKED when the Stripe subscription ends or a refund is issued — the pet
+// stays viewable but loses AI + new logging.
+model OwnerPetSlot {
+  id                   String    @id @default(cuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  petId                String?   @unique
+  pet                  Pet?      @relation(fields: [petId], references: [id], onDelete: SetNull)
+  status               String    @default("ACTIVE") // ACTIVE | REVOKED
+  stripeSubscriptionId String?
+  createdAt            DateTime  @default(now())
+  revokedAt            DateTime?
+
+  @@index([userId, status])
 }
 
 // Short-lived phone verification codes for SMS OTP sign-in / registration.
@@ -150,6 +189,7 @@ model Pet {
   weights       WeightEntry[]
   notifications Notification[]
   stays         PetStay[]
+  ownerSlot     OwnerPetSlot?
 
   @@index([orgId])
   @@index([ownerUserId])
@@ -172,6 +212,8 @@ model PetStay {
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  orgSlot    OrgSlot?
 
   @@unique([petId, orgId])
   @@index([orgId])

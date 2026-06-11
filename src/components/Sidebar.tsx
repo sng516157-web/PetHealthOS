@@ -8,6 +8,7 @@ import {
   BellRing,
   Bell,
   CreditCard,
+  UserCircle,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -22,9 +23,10 @@ const NAV = [
   { href: "/app/reminders", key: "reminders" as const, icon: BellRing },
   { href: "/app/notifications", key: "notifications" as const, icon: Bell },
   { href: "/app/billing", key: "billing" as const, icon: CreditCard },
+  { href: "/app/account", key: "account" as const, icon: UserCircle },
 ];
 
-export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: number }) {
+export function Sidebar({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
   const { t } = useI18n();
   return (
@@ -71,14 +73,6 @@ export function Sidebar({ orgName, unread = 0 }: { orgName: string; unread?: num
 
       <div className="mt-auto space-y-3">
         <LocaleToggle />
-        <div className="rounded-xl border border-border bg-background p-3">
-          <div className="text-[11px] font-medium uppercase tracking-wide text-muted">
-            {t.nav.organization}
-          </div>
-          <div className="mt-1 truncate text-sm font-semibold text-foreground">
-            {orgName}
-          </div>
-        </div>
         <form action={signOut}>
           <button
             type="submit"

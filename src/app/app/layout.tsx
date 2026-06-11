@@ -32,11 +32,11 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar orgName={org.name} unread={unread} />
+      <Sidebar unread={unread} />
       <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
         {/* Mobile-only top bar: the sidebar (with sign-out) is hidden on mobile. */}
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-surface/95 px-5 py-3 backdrop-blur md:hidden">
-          <Link href="/app" className="flex min-w-0 items-center gap-2">
+          <Link href="/app/account" className="flex min-w-0 items-center gap-2">
             <PawSureMarkTile className="h-8 w-8 shrink-0" />
             <span className="truncate text-sm font-extrabold text-forest">
               {org.name}

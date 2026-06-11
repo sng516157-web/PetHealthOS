@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PawPrint, Plus } from "lucide-react";
 import { addOwnerPetSlot } from "@/app/actions";
+import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
 
 export function OwnerExtraSlots({
@@ -106,6 +107,7 @@ export function OwnerExtraSlots({
               ? "…"
               : t.billing.addPetSlot(extraPetPriceRmb)}
           </button>
+          <BillingWalletNote />
         </div>
       )}
     </div>

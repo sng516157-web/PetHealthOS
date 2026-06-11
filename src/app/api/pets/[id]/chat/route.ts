@@ -1,5 +1,5 @@
 import { streamText } from "ai";
-import { getPetForAI, canAccessPet } from "@/lib/data";
+import { getPetForAI, canAccessPet, getPetEntitlements } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { hasAI, getModel, buildPetContext, petSummaryLine, safeTags, languageInstruction } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
@@ -15,6 +15,10 @@ export async function POST(
   // Only the pet's owner or a member of its org may chat about it.
   if (!(await canAccessPet(id))) {
     return new Response("Forbidden", { status: 403 });
+  }
+  const ent = await getPetEntitlements(id);
+  if (ent && !ent.canUseAI) {
+    return new Response("Subscription required for this pet", { status: 403 });
   }
 
   const { messages } = (await req.json()) as { messages: ClientMessage[] };

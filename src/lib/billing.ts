@@ -1,5 +1,19 @@
 import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
+import {
+  activateOwnerPetSlot,
+  countPurchasedOwnerSlots,
+  createOwnerPetSlot,
+  revokeOwnerPetSlot,
+  syncOwnerSlotCount,
+} from "./owner-slots";
+import {
+  activateOrgSlot,
+  countPurchasedOrgCareSlots,
+  createOrgSlot,
+  revokeOrgSlot,
+  syncOrgCareSlotCount,
+} from "./org-slots";
 import { prisma } from "./prisma";
 import {
   getOrgPlan,
@@ -15,6 +29,8 @@ import {
 export type CheckoutScope =
   | { kind: "org"; id: string }
   | { kind: "user"; id: string };
+
+export type FulfillScopeKind = "org" | "user" | "user_slot" | "org_slot";
 
 /** Card checkout via Stripe HK. WeChat/Alipay deferred — see docs/PAYMENTS_WALLETS_DEFERRED.md */
 export type Provider = "stripe";
@@ -35,6 +51,44 @@ export function stripeConfigured(): boolean {
 
 export function anyProviderConfigured(): boolean {
   return stripeConfigured();
+}
+
+export async function getStripeCustomerId(scope: CheckoutScope): Promise<string | null> {
+  if (scope.kind === "org") {
+    const rows = await prisma.$queryRaw<{ stripeCustomerId: string | null }[]>`
+      SELECT "stripeCustomerId" FROM "Organization" WHERE id = ${scope.id} LIMIT 1
+    `;
+    return rows[0]?.stripeCustomerId ?? null;
+  }
+  const rows = await prisma.$queryRaw<{ stripeCustomerId: string | null }[]>`
+    SELECT "stripeCustomerId" FROM "User" WHERE id = ${scope.id} LIMIT 1
+  `;
+  return rows[0]?.stripeCustomerId ?? null;
+}
+
+function stripeCustomerIdFromSession(
+  customer: string | { id: string } | null | undefined,
+): string | null {
+  if (!customer) return null;
+  return typeof customer === "string" ? customer : customer.id;
+}
+
+async function persistStripeCustomer(
+  scopeKind: FulfillScopeKind,
+  scopeId: string,
+  customerId: string,
+): Promise<void> {
+  if (scopeKind === "user" || scopeKind === "user_slot") {
+    await prisma.$executeRaw`
+      UPDATE "User" SET "stripeCustomerId" = ${customerId}
+      WHERE id = ${scopeId} AND "stripeCustomerId" IS NULL
+    `;
+  } else if (scopeKind === "org" || scopeKind === "org_slot") {
+    await prisma.$executeRaw`
+      UPDATE "Organization" SET "stripeCustomerId" = ${customerId}
+      WHERE id = ${scopeId} AND "stripeCustomerId" IS NULL
+    `;
+  }
 }
 
 // Apply a plan to the org/user. Used by free-tier switches, the dev/demo path,
@@ -98,14 +152,17 @@ async function createStripeCheckout(opts: {
   metadata: Record<string, string>;
   baseUrl: string;
   interval?: BillingInterval;
+  stripeCustomerId?: string | null;
 }): Promise<CheckoutResult> {
-  const { amountRmb, productName, metadata, baseUrl, interval } = opts;
+  const { amountRmb, productName, metadata, baseUrl, interval, stripeCustomerId } =
+    opts;
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const recurring = interval === "month" || interval === "year";
   const session = await stripe.checkout.sessions.create({
     mode: recurring ? "subscription" : "payment",
     payment_method_types: ["card"],
+    ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
     line_items: [
       {
         quantity: 1,
@@ -122,6 +179,7 @@ async function createStripeCheckout(opts: {
     success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/billing/cancelled`,
     metadata,
+    ...(recurring ? { subscription_data: { metadata } } : {}),
   });
   if (!session.url) return { error: "STRIPE_NO_URL" };
   return { url: session.url };
@@ -163,6 +221,8 @@ export async function startCheckout(opts: {
 
   if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
 
+  const stripeCustomerId = await getStripeCustomerId(scope);
+
   return createStripeCheckout({
     amountRmb,
     productName: `Pet Health OS — ${plan.key}`,
@@ -174,6 +234,7 @@ export async function startCheckout(opts: {
     },
     baseUrl,
     interval,
+    stripeCustomerId,
   });
 }
 
@@ -190,23 +251,26 @@ export async function buyOwnerPetSlot(opts: {
   if (!user) return { error: "NO_USER" };
   const plan = getUserPlan(user.plan);
   if (plan.extraPetPriceRmb <= 0) return { error: "NO_OVERAGE" };
-  if (user.extraPetSlots >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
+  const purchased = await countPurchasedOwnerSlots(userId);
+  if (purchased >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
 
   if (!anyProviderConfigured()) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { extraPetSlots: { increment: 1 } },
-    });
+    await createOwnerPetSlot(userId);
     return { activated: true, demo: true };
   }
 
   if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
 
+  const slotId = await createOwnerPetSlot(userId, { pending: true });
+  const stripeCustomerId = await getStripeCustomerId({ kind: "user", id: userId });
+
   return createStripeCheckout({
     amountRmb: plan.extraPetPriceRmb,
     productName: "PawSure — extra pet slot",
-    metadata: { scopeKind: "user_slot", scopeId: userId },
+    metadata: { scopeKind: "user_slot", scopeId: userId, slotId },
     baseUrl,
+    interval: "month",
+    stripeCustomerId,
   });
 }
 
@@ -221,25 +285,24 @@ export async function buyFacilitySlot(opts: {
   const { orgId, baseUrl } = opts;
 
   if (!anyProviderConfigured()) {
-    await prisma.organization.update({
-      where: { id: orgId },
-      data: { extraPetSlots: { increment: 1 } },
-    });
+    await createOrgSlot(orgId, "care");
     return { activated: true, demo: true };
   }
 
   if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
 
+  const slotId = await createOrgSlot(orgId, "care", { pending: true });
+  const stripeCustomerId = await getStripeCustomerId({ kind: "org", id: orgId });
+
   return createStripeCheckout({
     amountRmb: FACILITY_EXTRA_SLOT_PRICE_RMB,
     productName: "PawSure — facility care slot",
-    metadata: { scopeKind: "org_slot", scopeId: orgId },
+    metadata: { scopeKind: "org_slot", scopeId: orgId, slotId },
     baseUrl,
     interval: "month",
+    stripeCustomerId,
   });
 }
-
-export type FulfillScopeKind = "org" | "user" | "user_slot" | "org_slot";
 
 export type FulfillResult = {
   ok: boolean;
@@ -254,6 +317,7 @@ type StripeCheckoutSession = {
   status: string | null;
   payment_status: string | null;
   metadata: Record<string, string> | null;
+  customer?: string | { id: string } | null;
 };
 
 function checkoutSessionReady(session: StripeCheckoutSession): boolean {
@@ -266,10 +330,12 @@ function checkoutSessionReady(session: StripeCheckoutSession): boolean {
 function revalidateAfterFulfillment(scopeKind: string) {
   if (scopeKind === "user" || scopeKind === "user_slot") {
     revalidatePath("/me/billing");
+    revalidatePath("/me/account");
     revalidatePath("/me");
     revalidatePath("/me/pets/new");
   } else {
     revalidatePath("/app/billing");
+    revalidatePath("/app/account");
     revalidatePath("/app");
     revalidatePath("/app/pets");
   }
@@ -302,21 +368,28 @@ export async function fulfillCheckoutSession(
   }
 
   if (scopeKind === "user_slot") {
-    await prisma.user.update({
-      where: { id: md.scopeId },
-      data: { extraPetSlots: { increment: 1 } },
-    });
+    if (md.slotId) {
+      await activateOwnerPetSlot(md.slotId);
+    } else {
+      await createOwnerPetSlot(md.scopeId);
+    }
   } else if (scopeKind === "org_slot") {
-    await prisma.organization.update({
-      where: { id: md.scopeId },
-      data: { extraPetSlots: { increment: 1 } },
-    });
+    if (md.slotId) {
+      await activateOrgSlot(md.slotId);
+    } else {
+      await createOrgSlot(md.scopeId, "care");
+    }
   } else if (scopeKind === "org" || scopeKind === "user") {
     if (!md.planKey) return { ok: false, error: "INVALID_METADATA" };
     const interval = isBillingInterval(md.interval) ? md.interval : undefined;
     await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey, interval);
   } else {
     return { ok: false, error: "INVALID_METADATA" };
+  }
+
+  const customerId = stripeCustomerIdFromSession(session.customer);
+  if (customerId) {
+    await persistStripeCustomer(scopeKind, md.scopeId, customerId);
   }
 
   if (stripeClient) {
@@ -331,6 +404,92 @@ export async function fulfillCheckoutSession(
     scopeKind,
     planKey: md.planKey,
   };
+}
+
+// Stripe Customer Portal — cancel subscriptions, update payment method, view invoices.
+export async function createBillingPortalSession(opts: {
+  stripeCustomerId: string;
+  returnUrl: string;
+}): Promise<CheckoutResult> {
+  if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: opts.stripeCustomerId,
+      return_url: opts.returnUrl,
+    });
+    if (!session.url) return { error: "STRIPE_NO_URL" };
+    return { url: session.url };
+  } catch {
+    return { error: "PORTAL_NOT_AVAILABLE" };
+  }
+}
+
+// Downgrade or adjust quotas when a Stripe subscription ends.
+export async function handleSubscriptionEnded(subscription: {
+  id?: string;
+  metadata: Record<string, string> | null;
+}): Promise<void> {
+  const md = subscription.metadata ?? {};
+  const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
+  const scopeId = md.scopeId;
+  if (!scopeKind || !scopeId) return;
+
+  if (scopeKind === "user_slot") {
+    if (md.slotId) {
+      await revokeOwnerPetSlot(md.slotId);
+    } else {
+      await syncOwnerSlotCount(scopeId);
+    }
+    revalidateAfterFulfillment(scopeKind);
+    return;
+  }
+
+  if (scopeKind === "org") {
+    await activatePlan({ kind: "org", id: scopeId }, "STARTER");
+  } else if (scopeKind === "org_slot") {
+    const org = await prisma.organization.findUnique({
+      where: { id: scopeId },
+      select: { extraPetSlots: true },
+    });
+    if (org && org.extraPetSlots > 0) {
+      await prisma.organization.update({
+        where: { id: scopeId },
+        data: { extraPetSlots: { decrement: 1 } },
+      });
+    }
+  }
+
+  revalidateAfterFulfillment(scopeKind);
+}
+
+// Manual refund in Stripe — revoke a tagged owner slot when the charge is refunded.
+export async function handleChargeRefunded(charge: {
+  payment_intent?: string | { id: string } | null;
+}): Promise<void> {
+  if (!stripeConfigured()) return;
+  const pi = charge.payment_intent;
+  const paymentIntentId = typeof pi === "string" ? pi : pi?.id;
+  if (!paymentIntentId) return;
+
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  const sessions = await stripe.checkout.sessions.list({
+    payment_intent: paymentIntentId,
+    limit: 1,
+  });
+  const session = sessions.data[0];
+  const slotId = session?.metadata?.slotId;
+  const scopeKind = session?.metadata?.scopeKind;
+  if (!slotId) return;
+  if (scopeKind === "user_slot") {
+    await revokeOwnerPetSlot(slotId);
+    revalidateAfterFulfillment("user_slot");
+  } else if (scopeKind === "org_slot") {
+    await revokeOrgSlot(slotId);
+    revalidateAfterFulfillment("org_slot");
+  }
 }
 
 // Confirm a returning Stripe Checkout session (success-page redirect).

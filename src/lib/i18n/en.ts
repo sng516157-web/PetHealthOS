@@ -19,6 +19,7 @@ export const en = {
     reminders: "Reminders",
     notifications: "Notifications",
     billing: "Plan & billing",
+    account: "Account",
     tagline: "Every pet comes with confidence.",
     organization: "Organization",
   },
@@ -528,6 +529,29 @@ export const en = {
     freeTagline: "Keep your pet's lifelong health in one calm place.",
     plusTagline: "For owners with a larger household.",
   },
+  account: {
+    nav: "Account",
+    title: "Account",
+    subtitle: "Your profile and subscription settings.",
+    accountType: "Account type",
+    displayName: "Name",
+    currentPlan: "Current plan",
+    typeOwner: "Pet owner",
+    typeShop: "Shop / breeder / shelter",
+    typeFacility: "Hospital / boarding facility",
+    subscriptionTitle: "Subscription",
+    subscriptionNone:
+      "No card subscription on file yet. Upgrade or add slots from Plan & billing — then you can manage renewals here.",
+    subscriptionManageDesc:
+      "Update your card, view invoices, or cancel auto-renewal. Changes take effect per Stripe's billing rules.",
+    manageSubscription: "Manage subscription",
+    billingLink: "Plan & billing — upgrades & usage",
+    portalUnavailable:
+      "Subscription management isn't available yet. Enable the Stripe Customer Portal in your Stripe Dashboard, or contact support.",
+    portalError: "Couldn't open subscription management. Try again in a moment.",
+    petReadOnly:
+      "This pet is on a view-only plan — you can still read its history, but new logs and AI are paused until you renew an extra pet slot.",
+  },
   billing: {
     title: "Plan & billing",
     subtitle: "Manage your plan and see how much of your quota you're using.",
@@ -538,6 +562,8 @@ export const en = {
     viewPlans: "View plans",
     choosePayment: "Choose how to pay",
     payStripe: "Pay with card (Stripe)",
+    walletsComingSoon:
+      "WeChat Pay and Alipay are on the way — we're finishing monthly auto-renewal for China. Card checkout works fully today; thanks for bearing with us!",
     redirecting: "Redirecting to checkout…",
     demoActivated: "Plan activated (demo mode — no payment provider configured yet).",
     providerComingSoon: "This payment method isn't connected yet. Try another, or contact us.",

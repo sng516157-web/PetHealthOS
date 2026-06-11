@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, CreditCard } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
+import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
 import { OWNER_EXTRA_PET_CAP } from "@/lib/plans";
 
@@ -145,14 +146,17 @@ export function UpgradePanel({
               {!isCurrent && (
                 <div className="mt-4 space-y-2">
                   {paid ? (
-                    <button
-                      onClick={() => choose(p.key)}
-                      disabled={pending}
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
-                    >
-                      <CreditCard size={13} />{" "}
-                      {busyKey === p.key ? "…" : t.billing.payStripe}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => choose(p.key)}
+                        disabled={pending}
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+                      >
+                        <CreditCard size={13} />{" "}
+                        {busyKey === p.key ? "…" : t.billing.payStripe}
+                      </button>
+                      <BillingWalletNote />
+                    </>
                   ) : (
                     <button
                       onClick={() => choose(p.key)}

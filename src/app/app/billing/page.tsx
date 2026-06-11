@@ -19,7 +19,6 @@ export default async function OrgBillingPage() {
   const { t } = await getI18n();
   const { org, plan, count, limit } = await getOrgUsage();
   const { code, referralCount } = await getOrgReferral();
-  const planName = (t.plans as Record<string, string>)[plan.key] ?? plan.key;
   const discountPct = Math.round(referralDiscountRate(referralCount) * 100);
   const facility = isFacilityOrg(org);
   // Facilities don't own pets — show care-slot capacity instead of a pet quota.
@@ -28,32 +27,26 @@ export default async function OrgBillingPage() {
   const atLimit = count >= limit;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-5 py-8 md:px-8">
       <div>
         <h2 className="text-lg font-semibold text-foreground">{t.billing.title}</h2>
         <p className="mt-1 text-sm text-muted">{t.billing.subtitle}</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted">{t.billing.currentPlan}</span>
-          <span className="text-sm font-semibold text-foreground">{planName}</span>
+      {!facility && (
+        <div className="rounded-2xl border border-border bg-surface p-5">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full ${atLimit ? "bg-amber-500" : "bg-brand-500"}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted">{t.billing.usage(count, limit)}</p>
+          {atLimit && (
+            <p className="mt-1 text-xs font-medium text-amber-700">{t.billing.atLimit}</p>
+          )}
         </div>
-        {!facility && (
-          <>
-            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div
-                className={`h-full rounded-full ${atLimit ? "bg-amber-500" : "bg-brand-500"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="mt-2 text-xs text-muted">{t.billing.usage(count, limit)}</p>
-            {atLimit && (
-              <p className="mt-1 text-xs font-medium text-amber-700">{t.billing.atLimit}</p>
-            )}
-          </>
-        )}
-      </div>
+      )}
 
       {facility && capacity && (
         <>

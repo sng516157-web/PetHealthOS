@@ -13,6 +13,7 @@ import {
   getOrgUsage,
   getUserUsage,
   canAccessPet,
+  getPetEntitlements,
   currentActorIsFacility,
 } from "@/lib/data";
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
@@ -43,6 +44,12 @@ import {
   isFacilityKind,
   type GuaranteeType,
 } from "@/lib/constants";
+import { assignOwnerPetSlot } from "@/lib/owner-slots";
+import {
+  assignCareSlotToStay,
+  assignShopPetSlot,
+  clearCareSlotForStay,
+} from "@/lib/org-slots";
 import { checkoutBaseUrl } from "@/lib/site-url";
 import {
   startCheckout,
@@ -51,6 +58,8 @@ import {
   ensureReferralCode,
   type CheckoutScope,
   type Provider,
+  createBillingPortalSession,
+  getStripeCustomerId,
 } from "@/lib/billing";
 import {
   normalizeEmail,
@@ -236,6 +245,9 @@ export async function addPet(formData: FormData) {
       damId: String(formData.get("damId") || "") || null,
     },
   });
+  if (!isFacilityKind(org.kind)) {
+    await assignShopPetSlot(org.id, pet.id);
+  }
   revalidatePath("/app");
   revalidatePath("/app/pets");
   return { id: pet.id };
@@ -272,6 +284,9 @@ export async function addLogEntry(petId: string, formData: FormData) {
 
   const pet = await prisma.pet.findUnique({ where: { id: petId } });
   if (!pet) return { error: "Pet not found" };
+
+  const ent = await getPetEntitlements(petId);
+  if (ent && !ent.canLog) return { error: "SLOT_READONLY" };
 
   // Facility (hospital/boarding) attribution: when a facility logs during a
   // stay, require an ACTIVE stay and tag the entry with the facility's name so
@@ -432,6 +447,8 @@ export async function toggleReminder(id: string) {
 
 export async function generateTriageReport(petId: string) {
   if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const ent = await getPetEntitlements(petId);
+  if (ent && !ent.canUseAI) return { error: "SLOT_READONLY" };
   const pet = await getPetForAI(petId);
   if (!pet) return { error: "Pet not found" };
 
@@ -944,11 +961,12 @@ export async function admitPetByToken(token: string) {
     }
   }
 
-  await prisma.petStay.upsert({
+  const stay = await prisma.petStay.upsert({
     where: { petId_orgId: { petId: pet.id, orgId: user.orgId } },
     create: { petId: pet.id, orgId: user.orgId, status: "ACTIVE" },
     update: { status: "ACTIVE", admittedAt: new Date(), releasedAt: null },
   });
+  await assignCareSlotToStay(user.orgId, stay.id);
   revalidatePath("/app");
   revalidatePath("/app/pets");
   return { ok: true, petId: pet.id, petName: pet.name };
@@ -971,10 +989,17 @@ export async function releasePet(petId: string) {
     select: { orgId: true },
   });
   const now = new Date();
+  const toArchive = await prisma.petStay.findMany({
+    where: { petId, status: "ACTIVE" },
+    select: { id: true },
+  });
   await prisma.petStay.updateMany({
     where: { petId, status: "ACTIVE" },
     data: { status: "ARCHIVED", releasedAt: now },
   });
+  for (const s of toArchive) {
+    await clearCareSlotForStay(s.id);
+  }
   // Rotate the token so previously-shared QRs stop working.
   for (let i = 0; i < 5; i++) {
     try {
@@ -1077,6 +1102,7 @@ export async function addOwnedPet(formData: FormData) {
       photoUrl,
     },
   });
+  await assignOwnerPetSlot(user.id, pet.id);
   revalidatePath("/me");
   return { id: pet.id };
 }
@@ -1144,6 +1170,35 @@ export async function addFacilitySlot(formData: FormData) {
   revalidatePath("/app/billing");
   revalidatePath("/app");
   return { ok: true, demo: result.demo ?? false };
+}
+
+export async function openBillingPortal(scope: "user" | "org") {
+  const baseUrl = await checkoutBaseUrl();
+
+  let stripeCustomerId: string | null = null;
+  let returnPath: string;
+
+  if (scope === "org") {
+    const org = await requireActiveOrg();
+    stripeCustomerId = await getStripeCustomerId({ kind: "org", id: org.id });
+    returnPath = "/app/account";
+  } else {
+    const user = await getCurrentUser();
+    if (!user) return { error: "Please sign in first" };
+    stripeCustomerId = await getStripeCustomerId({ kind: "user", id: user.id });
+    returnPath = "/me/account";
+  }
+
+  if (!stripeCustomerId) return { error: "NO_CUSTOMER" };
+
+  const result = await createBillingPortalSession({
+    stripeCustomerId,
+    returnUrl: `${baseUrl}${returnPath}`,
+  });
+
+  if ("error" in result) return { error: result.error };
+  if ("url" in result) return { url: result.url };
+  return { error: "STRIPE_NO_URL" };
 }
 
 // ---- Shop verification (KYC) ----

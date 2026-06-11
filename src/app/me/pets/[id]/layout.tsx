@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Lock } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { getOwnedPet } from "@/lib/data";
+import { getOwnedPet, getPetEntitlements } from "@/lib/data";
 import { PetAvatar } from "@/components/ui";
 import { PetTabs } from "@/components/PetTabs";
 import { petAge } from "@/lib/format";
@@ -21,6 +21,8 @@ export default async function MePetLayout({
   const { t } = await getI18n();
   const pet = await getOwnedPet(user.id, id);
   if (!pet) notFound();
+  const ent = await getPetEntitlements(id);
+  const readOnly = ent?.tier === "readonly";
 
   return (
     <div className="space-y-6">
@@ -49,7 +51,18 @@ export default async function MePetLayout({
         {pet.org ? t.me.continueNote(pet.org.name) : t.me.selfPetNote}
       </div>
 
-      <PetTabs petId={pet.id} base={`/me/pets/${pet.id}`} includeTransfer={false} />
+      {readOnly && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {t.account.petReadOnly}
+        </div>
+      )}
+
+      <PetTabs
+        petId={pet.id}
+        base={`/me/pets/${pet.id}`}
+        includeTransfer={false}
+        readOnly={readOnly}
+      />
 
       <div>{children}</div>
     </div>

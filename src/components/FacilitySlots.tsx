@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PawPrint, Plus } from "lucide-react";
 import { addFacilitySlot } from "@/app/actions";
+import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
 
 export function FacilitySlots({
@@ -91,6 +92,7 @@ export function FacilitySlots({
           <Plus size={13} />
           {busy === "stripe" ? "…" : t.facility.addSlot(price)}
         </button>
+        <BillingWalletNote />
       </div>
     </div>
   );
