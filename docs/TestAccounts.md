@@ -29,9 +29,8 @@ Sign in at `**/login`** (or via the relevant landing page: `/owner`, `/shop`).
 ### 1. Owner account — `owner.demo@pawsure.test`
 
 - Free **Owner's Account** (workspace at `/me`).
-- **Pipelines to test:** owner dashboard, adding pets (2 free), the **extra-pet
-purchase** on `/me/billing` (¥25/mo each, demo-grants a slot since no payment
-provider is wired; hard cap = 10 pets total), and claiming a passport.
+- **Pipelines to test:** owner dashboard, adding pets (**1 free**, then ¥15/mo per
+extra on `/me/billing`; hard cap = 10 pets total), and claiming a passport.
 
 ### 2. Verified shop — `shop.verified@pawsure.test`
 

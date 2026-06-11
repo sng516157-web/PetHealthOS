@@ -10,6 +10,7 @@ the regression safety net until unit/e2e tests are added.
 |----------|----------------|
 | **[SOP.md](./SOP.md)** | **Always** — before and after any code change |
 | **[change-impact.md](./change-impact.md)** | Pick which subsystem checklists to run |
+| **[BETA_READINESS.md](./BETA_READINESS.md)** | Pre-distribution gate + last production diagnosis |
 | **[accounts.md](./accounts.md)** | Credentials, seed commands, account matrix |
 | Subsystem files (`01-` … `12-`) | Deep checklists for the area you touched |
 
