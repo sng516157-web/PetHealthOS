@@ -57,14 +57,38 @@ export async function createOwnerPetSlot(
   return id;
 }
 
+/** Activate a purchased slot — creates the row if missing (repair after missed webhook). */
+export async function ensureOwnerPetSlotActive(
+  userId: string,
+  slotId: string,
+): Promise<void> {
+  const rows = await prisma.$queryRaw<{ status: string }[]>`
+    SELECT status FROM "OwnerPetSlot" WHERE id = ${slotId} LIMIT 1
+  `;
+  const row = rows[0];
+  if (row) {
+    if (row.status !== "ACTIVE") {
+      await prisma.$executeRaw`
+        UPDATE "OwnerPetSlot"
+        SET status = 'ACTIVE', "revokedAt" = NULL
+        WHERE id = ${slotId}
+      `;
+    }
+  } else {
+    await prisma.$executeRaw`
+      INSERT INTO "OwnerPetSlot" (id, "userId", status, "createdAt")
+      VALUES (${slotId}, ${userId}, 'ACTIVE', NOW())
+    `;
+  }
+  await syncOwnerSlotCount(userId);
+}
+
 export async function activateOwnerPetSlot(slotId: string): Promise<void> {
   const rows = await prisma.$queryRaw<{ userId: string }[]>`
-    UPDATE "OwnerPetSlot" SET status = 'ACTIVE'
-    WHERE id = ${slotId}
-    RETURNING "userId"
+    SELECT "userId" FROM "OwnerPetSlot" WHERE id = ${slotId} LIMIT 1
   `;
   const userId = rows[0]?.userId;
-  if (userId) await syncOwnerSlotCount(userId);
+  if (userId) await ensureOwnerPetSlotActive(userId, slotId);
 }
 
 export async function revokeOwnerPetSlot(slotId: string): Promise<void> {

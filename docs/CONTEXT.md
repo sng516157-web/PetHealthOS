@@ -217,6 +217,15 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **Slot fulfillment repair + Stripe sync on billing load.** Why (user:
+  paid facility care slot in live Stripe but billing still showed 0 extras). Root causes:
+  (1) `activateOrgSlot` silently no-oped when the row was missing/stuck `PENDING` while
+  checkout was already marked `fulfilled=1`; (2) billing sync required `stripeCustomerId`
+  but fulfillment never ran so the id was never saved. Fixes: `ensureOrgSlotActive` /
+  `ensureOwnerPetSlotActive` (upsert + re-activate), repair on `fulfilled=1` replays,
+  `resolveStripeCustomerId` (lookup by org member email), `syncSlotSubscriptionsFromStripe`
+  + `repairUnfulfilledCheckoutSessions` on billing page load, `invoice.payment_succeeded`
+  webhook backup. Facility UI now shows purchased extra slot count.
 - **2026-06-11** — **Facility slot cancel webhook fix.** Why (user: cancelled care-slot
   sub but capacity stayed at 51). `handleSubscriptionEnded` for `org_slot` only decremented
   `extraPetSlots` and never called `revokeOrgSlot` — `OrgSlot` stayed ACTIVE. Now mirrors

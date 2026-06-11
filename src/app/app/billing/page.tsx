@@ -70,6 +70,7 @@ export default async function OrgBillingPage() {
             price={FACILITY_EXTRA_SLOT_PRICE_RMB}
             inCare={capacity.inCare}
             limit={capacity.limit}
+            extraSlots={capacity.extra}
           />
         </>
       )}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { getStripeCustomerId } from "@/lib/billing";
+import { resolveStripeCustomerId } from "@/lib/billing";
 import { getUserUsage } from "@/lib/data";
 import { ManageSubscription } from "@/components/ManageSubscription";
 import { getI18n } from "@/lib/i18n/server";
@@ -13,7 +13,7 @@ export default async function OwnerAccountPage() {
   const [{ t }, usage, stripeCustomerId] = await Promise.all([
     getI18n(),
     getUserUsage(user.id),
-    getStripeCustomerId({ kind: "user", id: user.id }),
+    resolveStripeCustomerId({ kind: "user", id: user.id }),
   ]);
   if (!usage) redirect("/login");
 

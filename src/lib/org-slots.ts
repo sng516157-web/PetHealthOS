@@ -58,14 +58,41 @@ export async function createOrgSlot(
   return id;
 }
 
-export async function activateOrgSlot(slotId: string): Promise<void> {
-  const rows = await prisma.$queryRaw<{ orgId: string; kind: string }[]>`
-    UPDATE "OrgSlot" SET status = 'ACTIVE'
-    WHERE id = ${slotId}
-    RETURNING "orgId", kind
+/** Activate a purchased slot — creates the row if missing (repair after missed webhook). */
+export async function ensureOrgSlotActive(
+  orgId: string,
+  slotId: string,
+  kind: OrgSlotKind = "care",
+): Promise<void> {
+  const rows = await prisma.$queryRaw<{ status: string }[]>`
+    SELECT status FROM "OrgSlot" WHERE id = ${slotId} LIMIT 1
   `;
   const row = rows[0];
-  if (row?.kind === "care") await syncOrgCareSlotCount(row.orgId);
+  if (row) {
+    if (row.status !== "ACTIVE") {
+      await prisma.$executeRaw`
+        UPDATE "OrgSlot"
+        SET status = 'ACTIVE', "revokedAt" = NULL
+        WHERE id = ${slotId}
+      `;
+    }
+  } else {
+    await prisma.$executeRaw`
+      INSERT INTO "OrgSlot" (id, "orgId", kind, status, "createdAt")
+      VALUES (${slotId}, ${orgId}, ${kind}, 'ACTIVE', NOW())
+    `;
+  }
+  if (kind === "care") await syncOrgCareSlotCount(orgId);
+}
+
+export async function activateOrgSlot(slotId: string): Promise<void> {
+  const rows = await prisma.$queryRaw<{ orgId: string; kind: string }[]>`
+    SELECT "orgId", kind FROM "OrgSlot" WHERE id = ${slotId} LIMIT 1
+  `;
+  const row = rows[0];
+  if (row) {
+    await ensureOrgSlotActive(row.orgId, slotId, row.kind as OrgSlotKind);
+  }
 }
 
 export async function revokeOrgSlot(slotId: string): Promise<void> {

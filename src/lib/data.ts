@@ -10,7 +10,12 @@ import {
   facilityCapacity,
   FACILITY_BASE_CAPACITY,
 } from "./plans";
-import { ensureReferralCode, getReferralCount } from "./billing";
+import {
+  ensureReferralCode,
+  getReferralCount,
+  repairUnfulfilledCheckoutSessions,
+  syncSlotSubscriptionsFromStripe,
+} from "./billing";
 import {
   getOwnerPetEntitlements,
   type OwnerPetEntitlements,
@@ -106,6 +111,8 @@ export async function getFacilityActiveCount() {
 // Care capacity: base + purchased extra slots, and how many are in use now.
 export async function getFacilityCapacity() {
   const org = await requireActiveOrg();
+  await syncSlotSubscriptionsFromStripe({ kind: "org", id: org.id });
+  await repairUnfulfilledCheckoutSessions({ kind: "org", id: org.id });
   const inCare = await prisma.petStay.count({
     where: { orgId: org.id, status: "ACTIVE" },
   });
@@ -336,6 +343,8 @@ export async function getOrgUsage() {
 }
 
 export async function getUserUsage(userId: string) {
+  await syncSlotSubscriptionsFromStripe({ kind: "user", id: userId });
+  await repairUnfulfilledCheckoutSessions({ kind: "user", id: userId });
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
   const plan = getUserPlan(user.plan);

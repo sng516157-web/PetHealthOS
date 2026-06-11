@@ -846,6 +846,8 @@ export const zh: Dictionary = {
     slotsTitle: "照护名额",
     slotsDesc: (base: number, price: number) =>
       `最多可同时照护 ${base} 只宠物。每增加一个名额 ¥${price}/月，只要持续付费名额就一直保留——即使暂时空置。`,
+    slotsPurchased: (extra: number) =>
+      extra === 0 ? "尚未购买额外照护名额" : `已购买 ${extra} 个额外照护名额`,
     slotsStatus: (inCare: number, limit: number) => `照护中 ${inCare} / ${limit}`,
     addSlot: (price: number) => `新增照护名额（¥${price}/月）`,
     slotAdded: "已新增照护名额（演示模式——尚未配置支付渠道）。",

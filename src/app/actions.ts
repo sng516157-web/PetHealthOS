@@ -60,7 +60,7 @@ import {
   type CheckoutScope,
   type Provider,
   createBillingPortalSession,
-  getStripeCustomerId,
+  resolveStripeCustomerId,
 } from "@/lib/billing";
 import {
   normalizeEmail,
@@ -1182,12 +1182,12 @@ export async function openBillingPortal(scope: "user" | "org") {
 
   if (scope === "org") {
     const org = await requireActiveOrg();
-    stripeCustomerId = await getStripeCustomerId({ kind: "org", id: org.id });
+    stripeCustomerId = await resolveStripeCustomerId({ kind: "org", id: org.id });
     returnPath = "/app/account";
   } else {
     const user = await getCurrentUser();
     if (!user) return { error: "Please sign in first" };
-    stripeCustomerId = await getStripeCustomerId({ kind: "user", id: user.id });
+    stripeCustomerId = await resolveStripeCustomerId({ kind: "user", id: user.id });
     returnPath = "/me/account";
   }
 

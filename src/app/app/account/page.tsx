@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { getStripeCustomerId } from "@/lib/billing";
+import { resolveStripeCustomerId } from "@/lib/billing";
 import { requireActiveOrg, isFacilityOrg } from "@/lib/data";
 import { ManageSubscription } from "@/components/ManageSubscription";
 import { getI18n } from "@/lib/i18n/server";
@@ -9,7 +9,7 @@ export default async function OrgAccountPage() {
   const org = await requireActiveOrg();
   const [{ t }, stripeCustomerId] = await Promise.all([
     getI18n(),
-    getStripeCustomerId({ kind: "org", id: org.id }),
+    resolveStripeCustomerId({ kind: "org", id: org.id }),
   ]);
   const facility = isFacilityOrg(org);
   const planName = (t.plans as Record<string, string>)[org.plan] ?? org.plan;

@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-11 — Paid care slots sync after Stripe checkout.** Buying a facility care slot
+  now reliably activates in the app (billing page self-syncs from Stripe if the webhook or
+  success redirect was missed); the billing page shows how many extra slots you've purchased.
+
 - **2026-06-11 — Facility care-slot cancel sync.** Cancelling a paid facility care slot now
   properly revokes the slot and drops capacity back to the base 50 (billing page self-heals if
   it was out of sync).

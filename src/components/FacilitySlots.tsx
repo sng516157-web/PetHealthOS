@@ -12,11 +12,13 @@ export function FacilitySlots({
   price,
   inCare,
   limit,
+  extraSlots,
 }: {
   base: number;
   price: number;
   inCare: number;
   limit: number;
+  extraSlots: number;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -74,7 +76,10 @@ export function FacilitySlots({
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
         <div className="h-full rounded-full bg-brand-500" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-2 text-sm text-foreground">{t.facility.slotsStatus(inCare, limit)}</p>
+      <p className="mt-3 text-sm text-foreground">
+        {t.facility.slotsPurchased(extraSlots)}
+      </p>
+      <p className="mt-1 text-sm text-foreground">{t.facility.slotsStatus(inCare, limit)}</p>
 
       {error && (
         <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>

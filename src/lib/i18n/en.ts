@@ -862,6 +862,10 @@ export const en = {
     slotsTitle: "Care slots",
     slotsDesc: (base: number, price: number) =>
       `Care for up to ${base} pets at once. Each extra slot is ¥${price}/mo and stays yours as long as you keep it — even when it's empty.`,
+    slotsPurchased: (extra: number) =>
+      extra === 0
+        ? "No extra care slots purchased"
+        : `${extra} extra care slot${extra === 1 ? "" : "s"} purchased`,
     slotsStatus: (inCare: number, limit: number) => `${inCare} of ${limit} in care`,
     addSlot: (price: number) => `Add a care slot (¥${price}/mo)`,
     slotAdded: "Care slot added (demo mode — no payment provider configured yet).",

@@ -1,6 +1,7 @@
 import {
   fulfillCheckoutSession,
   handleChargeRefunded,
+  handleInvoicePaymentSucceeded,
   handleSubscriptionEnded,
 } from "@/lib/billing";
 
@@ -45,6 +46,11 @@ export async function POST(req: Request) {
   if (event.type === "charge.refunded") {
     const charge = event.data.object;
     await handleChargeRefunded(charge);
+  }
+
+  if (event.type === "invoice.payment_succeeded") {
+    const invoice = event.data.object as { subscription?: string | { id: string } | null };
+    await handleInvoicePaymentSucceeded(invoice);
   }
 
   return Response.json({ received: true });

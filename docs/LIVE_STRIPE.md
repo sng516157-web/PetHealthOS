@@ -25,6 +25,7 @@ Cards only for now — WeChat/Alipay are deferred (`docs/PAYMENTS_WALLETS_DEFERR
 | URL | `https://pet-health-os.vercel.app/api/stripe/webhook` |
 | Events | `checkout.session.completed` |
 | | `checkout.session.async_payment_succeeded` |
+| | `invoice.payment_succeeded` |
 | | `customer.subscription.deleted` |
 | | `charge.refunded` |
 
