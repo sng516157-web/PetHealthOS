@@ -218,6 +218,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **Demo seed resets Stripe subscriptions.** Why (user: broken subs after test
+  deploys). `seed-demo.ts` now cancels active Stripe subs for demo emails before DB recreate; loads
+  `.env.local`; added `prisma/regression-prep.ts` for KYC steps in manual E2E.
 - **2026-06-09** — **`Tests/` handbook — manual regression SOPs.** Why (user: future changes must not
   break major subsystems). Added `Tests/` with master `SOP.md`, change-impact matrix, and per-subsystem
   checklists (auth, owner/shop/facility, passport, KYC, billing, AI, i18n, UI, infra, build). `AGENTS.md`

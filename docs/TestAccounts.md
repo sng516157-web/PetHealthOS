@@ -10,6 +10,10 @@ Demo accounts for exercising every pipeline on the live site
 npx tsx prisma/seed-demo.ts
 ```
 
+Uses `.env.local` (`DATABASE_URL` + `STRIPE_SECRET_KEY`). Cancels active Stripe
+subscriptions on demo emails before recreating accounts — run this to clear broken
+billing state from prior test runs.
+
 > ⚠️ These are **throwaway demo credentials** for a pilot/demo environment only.
 > Don't reuse these passwords for anything real. Rotate or remove before any
 > production launch with real users.

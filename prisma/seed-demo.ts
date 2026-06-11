@@ -1,4 +1,6 @@
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config();
 import { randomBytes, scryptSync } from "crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -28,7 +30,42 @@ const EMAILS = {
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86400000);
 
+/** Cancel Stripe subscriptions tied to demo emails so billing sync cannot resurrect stale entitlements. */
+async function resetDemoStripeSubscriptions() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    console.log("Stripe not configured — skipping subscription reset");
+    return;
+  }
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(key);
+  for (const email of Object.values(EMAILS)) {
+    const customers = await stripe.customers.list({ email, limit: 10 });
+    for (const customer of customers.data) {
+      let startingAfter: string | undefined;
+      for (;;) {
+        const page = await stripe.subscriptions.list({
+          customer: customer.id,
+          status: "all",
+          limit: 100,
+          ...(startingAfter ? { starting_after: startingAfter } : {}),
+        });
+        for (const sub of page.data) {
+          if (sub.status === "canceled" || sub.status === "incomplete_expired") continue;
+          await stripe.subscriptions.cancel(sub.id);
+          console.log(`  ✓ cancelled Stripe sub ${sub.id} (${email})`);
+        }
+        if (!page.has_more) break;
+        startingAfter = page.data.at(-1)?.id;
+      }
+    }
+  }
+}
+
 async function main() {
+  console.log("Resetting Stripe subscriptions for demo emails…");
+  await resetDemoStripeSubscriptions();
+
   console.log("Cleaning up any previous demo accounts…");
   // Remove demo users, their owned pets, and their orgs (org pets + stays cascade).
   const existing = await prisma.user.findMany({

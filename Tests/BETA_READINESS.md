@@ -2,7 +2,7 @@
 
 Living checklist for shipping PawSure to beta testers. Re-run after each production deploy.
 
-**Last diagnosis:** 2026-06-09 · Deploy `7574f75` · Production alias `pet-health-os.vercel.app`
+**Last diagnosis:** 2026-06-11 · Deploy `03e3247` · Production alias `pet-health-os.vercel.app`
 
 ---
 
@@ -44,7 +44,8 @@ Core flows work on both Vercel and the China proxy domain. Suitable for a **smal
 | Pricing (no referral copy) | `pethealthos.online/pricing` | ✅ 200, flat tiers |
 | Shop login → workspace | `shop.verified@pawsure.test` | ✅ `/app` |
 | Shop billing page | `/app/billing` | ✅ loads, 2/50 pets, no server error |
-| Facility login | `facility.demo@pawsure.test` | ✅ facility UI; **0 pets in care** (re-seed recommended) |
+| Facility login | `facility.demo@pawsure.test` | ✅ Coco in care; billing 0 extra slots / 1 of 50 |
+| Full E2E regression | `Tests/accounts.md` path | ✅ Pass (2026-06-11 after seed reset) |
 | Cron auth | `/api/cron/reminders` no secret | ✅ 401 |
 | China proxy | `pethealthos.online` vs Vercel | ✅ Both serve app |
 

@@ -6,6 +6,20 @@
 npx tsx prisma/seed-demo.ts
 ```
 
+Requires `.env.local` with production `DATABASE_URL` (and `STRIPE_SECRET_KEY` to
+cancel stale Stripe subscriptions for demo emails before recreating accounts).
+
+**What reset does:** deletes and recreates all four demo users/orgs; cancels active
+Stripe subs on demo emails; restores Coco in care at Happy Paws; clears broken
+`OrgSlot` / billing state from prior test runs.
+
+Optional regression helper (simulate KYC upload / approve unverified shop):
+
+```bash
+npx tsx prisma/regression-prep.ts          # UNVERIFIED → PENDING
+npx tsx prisma/regression-prep.ts --approve  # PENDING → APPROVED
+```
+
 **Shared password (all demo accounts):** `Demo123456`
 
 Sign in at `/login` or via `/owner`, `/shop`, `/facility`.
@@ -21,7 +35,7 @@ Sign in at `/login` or via `/owner`, `/shop`, `/facility`.
 | `owner.demo@pawsure.test` | Owner | FREE, 1 pet included | `/me` | [02-owner-workspace.md](./02-owner-workspace.md) |
 | `shop.verified@pawsure.test` | Shop | SHOP, **APPROVED**, 2 demo pets | `/app` | [03-shop-workspace.md](./03-shop-workspace.md) |
 | `shop.unverified@pawsure.test` | Shop | STARTER, **UNVERIFIED** | `/verify` → `/app` | [06-verification-kyc-admin.md](./06-verification-kyc-admin.md) |
-| `facility.demo@pawsure.test` | Facility (HOSPITAL) | SHOP, **APPROVED**, Coco in care | `/app` | [04-facility-stays.md](./04-facility-stays.md) |
+| `facility.demo@pawsure.test` | Facility (HOSPITAL) | STARTER, **APPROVED**, Coco in care | `/app` | [04-facility-stays.md](./04-facility-stays.md) |
 
 ---
 
