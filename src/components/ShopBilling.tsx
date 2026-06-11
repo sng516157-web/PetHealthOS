@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, CreditCard, Copy, Gift, Crown } from "lucide-react";
+import { Check, CreditCard, Crown } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
@@ -13,22 +13,14 @@ export function ShopBilling({
   currentPlan,
   currentInterval,
   priceMonth,
-  priceYearFull,
   priceYear,
-  discountPct,
-  referralCode,
-  referralCount,
   title,
   subtitle,
 }: {
   currentPlan: string;
   currentInterval: string | null;
   priceMonth: number;
-  priceYearFull: number;
   priceYear: number;
-  discountPct: number;
-  referralCode: string;
-  referralCount: number;
   title?: string;
   subtitle?: string;
 }) {
@@ -39,14 +31,6 @@ export function ShopBilling({
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [link, setLink] = useState(`/shop?ref=${referralCode}`);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setLink(`${window.location.origin}/shop?ref=${referralCode}`);
-    }
-  }, [referralCode]);
 
   const isShop = currentPlan === "SHOP";
 
@@ -59,10 +43,7 @@ export function ShopBilling({
       id: "year",
       label: t.shopBilling.yearly,
       price: t.pricing.rmb(priceYear),
-      sub:
-        discountPct > 0
-          ? t.shopBilling.yearDiscount(discountPct, priceYearFull)
-          : t.shopBilling.perYear,
+      sub: t.shopBilling.perYear,
     },
   ];
 
@@ -105,12 +86,6 @@ export function ShopBilling({
     });
   }
 
-  function copy() {
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
-
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-border bg-surface p-5">
@@ -127,7 +102,6 @@ export function ShopBilling({
         </div>
         <p className="mt-1 text-xs text-muted">{subtitle ?? t.shopBilling.subtitle}</p>
 
-        {/* Interval selector */}
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {options.map((o) => {
             const active = interval === o.id;
@@ -170,29 +144,6 @@ export function ShopBilling({
           </button>
           <BillingWalletNote />
         </div>
-      </div>
-
-      {/* Referral card */}
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="flex items-center gap-2">
-          <Gift size={16} className="text-brand-600" />
-          <h3 className="text-sm font-semibold text-foreground">{t.shopBilling.referralTitle}</h3>
-        </div>
-        <p className="mt-1 text-xs text-muted">{t.shopBilling.referralDesc}</p>
-
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-background p-2.5">
-          <span className="min-w-0 flex-1 truncate text-sm text-slate-600">{link}</span>
-          <button
-            onClick={copy}
-            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
-          >
-            <Copy size={13} /> {copied ? t.transferForm.copied : t.transferForm.copy}
-          </button>
-        </div>
-
-        <p className="mt-3 text-sm font-medium text-forest">
-          {t.shopBilling.referralStatus(referralCount, discountPct)}
-        </p>
       </div>
     </div>
   );

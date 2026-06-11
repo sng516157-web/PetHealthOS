@@ -46,11 +46,9 @@ function dest(type?: string) {
 export function AuthCard({
   accountType = "owner",
   defaultTab = "signin",
-  referralCode,
 }: {
   accountType?: AccountType;
   defaultTab?: Tab;
-  referralCode?: string;
 }) {
   const { t } = useI18n();
   // Never land on the parked Phone tab while it's disabled.
@@ -103,7 +101,7 @@ export function AuthCard({
 
       {tab === "signin" && <SignInTab t={t} />}
       {tab === "register" && (
-        <RegisterTab t={t} accountType={accountType} referralCode={referralCode} />
+        <RegisterTab t={t} accountType={accountType} />
       )}
       {PHONE_AUTH_ENABLED && tab === "phone" && (
         <PhoneTab t={t} accountType={accountType} />
@@ -186,11 +184,9 @@ function SignInTab({ t }: { t: Dictionary }) {
 function RegisterTab({
   t,
   accountType,
-  referralCode,
 }: {
   t: Dictionary;
   accountType: AccountType;
-  referralCode?: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -239,14 +235,6 @@ function RegisterTab({
   return (
     <form action={submit} noValidate className="space-y-3">
       <input type="hidden" name="accountType" value={accountType} />
-      {isOrg && referralCode && (
-        <input type="hidden" name="ref" value={referralCode} />
-      )}
-      {isOrg && referralCode && (
-        <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-700">
-          {t.auth.referredNote}
-        </p>
-      )}
       {isShop && (
         <>
           <div>

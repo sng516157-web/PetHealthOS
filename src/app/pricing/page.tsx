@@ -91,7 +91,6 @@ export default async function PricingPage() {
               name={t.shopBilling.yearly}
               price={t.pricing.rmb(SHOP_BILLING.year)}
               cadence={t.shopBilling.perYear}
-              note={t.shopBilling.referralPitch}
               features={[
                 t.pricing.shopIncluded(shop.includedPets),
                 t.pricing.shopExtraPet(shop.extraPetPriceRmb),

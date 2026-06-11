@@ -218,6 +218,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **`Tests/` handbook — manual regression SOPs.** Why (user: future changes must not
+  break major subsystems). Added `Tests/` with master `SOP.md`, change-impact matrix, and per-subsystem
+  checklists (auth, owner/shop/facility, passport, KYC, billing, AI, i18n, UI, infra, build). `AGENTS.md`
+  verify step now points here until an automated suite exists.
+- **2026-06-11** — **Referral programme removed (deferred).** Why (user: too complex for
+  now). Removed referral UI, `?ref=` signup, dynamic yearly discount; flat ¥4888/yr. DB columns
+  kept; restore guide in `docs/REFERRALS_DEFERRED.md`. Billing safeguard rules added to
+  `docs/BILLING.md` + `AGENTS.md`.
 - **2026-06-11** — **Refunded slots stay revoked on billing sync.** Why (user: Happy Paws
   still showed 2 slots after Stripe refunds). `ensureOrgSlotActive` was re-activating REVOKED
   rows when old paid Checkout sessions re-synced; added `syncSlotRevocationsFromStripe` (revoke

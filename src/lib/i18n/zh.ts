@@ -316,7 +316,6 @@ export const zh: Dictionary = {
     tabRegister: "注册",
     tabPhone: "手机号",
     phoneSoon: "即将开放",
-    referredNote: "你由另一家商家邀请——你注册后，他们将获得推荐折扣。",
     agreePrefix: "创建账户即表示你同意我们的",
     name: "你的名字",
     namePlaceholder: "例如：李明",
@@ -593,21 +592,11 @@ export const zh: Dictionary = {
     yearly: "按年",
     perYear: "每年",
     featurePets: "管理众多动物",
-    yearDiscount: (pct: number, full: number) =>
-      `推荐可省 ${pct}%（原价 ¥${full}）`,
-    referralPitch: "每推荐一家商家，年费立减 5%。",
     starterNote: (n: number) =>
       `新商家免费起步，最多 ${n} 只宠物——随时升级即可签发更多护照、添加成员。`,
     facilityStarterNote: (n: number) =>
       `新机构免费起步，最多照护 ${n} 只宠物——随时升级以扩大照护名额、添加团队成员。`,
     activeInterval: (label: string) => `生效中 · ${label}`,
-    referralTitle: "推荐商家，年费立减",
-    referralDesc:
-      "分享你的链接。每有一家商家通过它注册，你的年费即立减 5%（最多 50%）。",
-    referralStatus: (count: number, pct: number) =>
-      count === 0
-        ? "还没有推荐——分享链接即可开始省钱。"
-        : `已有 ${count} 家商家加入 · 年费立减 ${pct}%。`,
   },
   landing: {
     nav: { pricing: "价格", signIn: "登录", getStarted: "立即开始" },

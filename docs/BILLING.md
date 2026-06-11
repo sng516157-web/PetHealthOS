@@ -35,8 +35,9 @@ Checkout sessions are marked `metadata.fulfilled=1` after success. Replays repai
 `syncBillingFromStripe` runs when loading `/me/billing`, `/app/billing`, or `/app/account`:
 
 - Expire `PENDING` slots older than 2 hours
+- Revoke slots with no active Stripe subscription
 - Match active Stripe subscriptions → DB entitlements
-- Re-fulfill paid Checkout sessions missing `fulfilled=1`
+- Re-fulfill paid Checkout sessions missing `fulfilled=1` (skip dead subscriptions)
 - `resolveStripeCustomerId` — find Stripe customer by account email if not yet saved
 
 ## Live webhook events (required)
@@ -59,3 +60,22 @@ See `docs/LIVE_STRIPE.md`. Minimum set:
 | Org / facility slots | `src/lib/org-slots.ts` |
 | Webhook router | `src/app/api/stripe/webhook/route.ts` |
 | Entitlements UI gates | `src/lib/data.ts` → `getPetEntitlements` |
+
+## Rules for future changes (do not break billing)
+
+1. **Metadata contract** — Every paid Checkout must set `scopeKind`, `scopeId`, and `slotId`
+   (for slots) on both session and `subscription_data.metadata`. Cancel/refund handlers read
+   the same fields.
+2. **No `revalidatePath` during render** — `syncOrgBillingFromStripe` / `syncUserBillingFromStripe`
+   run on billing/account page load. Repair paths must pass `{ revalidate: false }` to
+   `fulfillCheckoutSession`.
+3. **Never un-revoke slots** — `ensureOrgSlotActive` / `ensureOwnerPetSlotActive` only promote
+   `PENDING` → `ACTIVE`. `REVOKED` stays revoked unless a **new** purchase creates a new slot.
+4. **Sync order** — expire stale `PENDING` → `syncSlotRevocationsFromStripe` (revoke slots
+   without active sub) → activate from active subs → repair unfulfilled checkouts (skip slots
+   whose sub is dead).
+5. **Webhook parity** — Any new fulfillment path needs a matching reversal path and an entry
+   in this doc. Test: pay → fulfill → cancel → revoke → refund → stay revoked after billing
+   refresh.
+6. **Read before editing** — `AGENTS.md` points here; run `npx next build` after billing changes.
+7. **Manual regression** — run `Tests/07-billing-payments.md` for any billing change (see `Tests/SOP.md`).

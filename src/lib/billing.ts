@@ -1,4 +1,3 @@
-import { randomBytes } from "crypto";
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import {
@@ -163,34 +162,6 @@ export async function activatePlan(
   }
 }
 
-// Count of shops that registered through this org's referral link.
-export async function getReferralCount(orgId: string): Promise<number> {
-  return prisma.organization.count({ where: { referredById: orgId } });
-}
-
-// Ensure an org has a unique referral code, creating one on first access.
-export async function ensureReferralCode(orgId: string): Promise<string> {
-  const org = await prisma.organization.findUnique({
-    where: { id: orgId },
-    select: { referralCode: true },
-  });
-  if (org?.referralCode) return org.referralCode;
-  // Retry on the rare unique collision.
-  for (let i = 0; i < 5; i++) {
-    const code = randomBytes(5).toString("hex"); // 10 hex chars
-    try {
-      await prisma.organization.update({
-        where: { id: orgId },
-        data: { referralCode: code },
-      });
-      return code;
-    } catch {
-      /* collision — try again */
-    }
-  }
-  throw new Error("Could not allocate referral code");
-}
-
 // Build a Stripe Checkout session (card only). Monthly/yearly plans use a real
 // subscription; one-off slot purchases use mode "payment".
 async function createStripeCheckout(opts: {
@@ -255,9 +226,7 @@ export async function startCheckout(opts: {
   let amountRmb = plan.priceRmb;
   if (scope.kind === "org" && planKey === "SHOP") {
     interval = isBillingInterval(opts.interval) ? opts.interval : "month";
-    const referralCount =
-      interval === "year" ? await getReferralCount(scope.id) : 0;
-    amountRmb = shopPriceRmb(interval, referralCount);
+    amountRmb = shopPriceRmb(interval);
   }
 
   // No provider configured → demo mode: activate immediately.

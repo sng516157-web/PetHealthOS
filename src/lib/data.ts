@@ -11,8 +11,6 @@ import {
   FACILITY_BASE_CAPACITY,
 } from "./plans";
 import {
-  ensureReferralCode,
-  getReferralCount,
   syncOrgBillingFromStripe,
   syncUserBillingFromStripe,
 } from "./billing";
@@ -351,13 +349,4 @@ export async function getUserUsage(userId: string) {
   const plan = getUserPlan(user.plan);
   const count = await prisma.pet.count({ where: { ownerUserId: userId } });
   return { user, plan, count, limit: petLimit(plan, user.extraPetSlots) };
-}
-
-// Referral summary for the active shop: its code (created on demand) + how many
-// shops it has referred so far. Used by the billing page's referral card.
-export async function getOrgReferral() {
-  const org = await requireActiveOrg();
-  const code = await ensureReferralCode(org.id);
-  const referralCount = await getReferralCount(org.id);
-  return { code, referralCount };
 }

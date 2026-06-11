@@ -58,24 +58,8 @@ export function isBillingInterval(v: string | null | undefined): v is BillingInt
   return v === "month" || v === "year";
 }
 
-// Referral programme: for each other shop that registers through a shop's link,
-// that shop earns 5% off its YEARLY payment, stacking up to a 50% cap (i.e. 10
-// referrals). The discount applies to the yearly option only — not monthly.
-export const REFERRAL_DISCOUNT_STEP = 0.05;
-export const REFERRAL_DISCOUNT_MAX = 0.5;
-
-export function referralDiscountRate(referralCount: number): number {
-  return Math.min(REFERRAL_DISCOUNT_MAX, REFERRAL_DISCOUNT_STEP * Math.max(0, referralCount));
-}
-
-// Yearly price after applying a shop's referral discount (rounded to whole RMB).
-export function yearlyPriceRmb(referralCount: number): number {
-  return Math.round(SHOP_BILLING.year * (1 - referralDiscountRate(referralCount)));
-}
-
-export function shopPriceRmb(interval: BillingInterval, referralCount = 0): number {
-  if (interval === "year") return yearlyPriceRmb(referralCount);
-  return SHOP_BILLING.month;
+export function shopPriceRmb(interval: BillingInterval): number {
+  return SHOP_BILLING[interval];
 }
 
 // Facilities (hospital/boarding) care for pets that come and go. They mirror

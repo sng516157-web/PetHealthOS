@@ -318,7 +318,6 @@ export const en = {
     tabRegister: "Register",
     tabPhone: "Phone",
     phoneSoon: "Soon",
-    referredNote: "You were invited by another shop — they'll earn a referral discount when you join.",
     agreePrefix: "By creating an account you agree to our",
     name: "Your name",
     namePlaceholder: "e.g. Jordan Lee",
@@ -600,21 +599,11 @@ export const en = {
     yearly: "Yearly",
     perYear: "per year",
     featurePets: "Manage many animals",
-    yearDiscount: (pct: number, full: number) =>
-      `${pct}% off with referrals (was ¥${full})`,
-    referralPitch: "Earn 5% off yearly for every shop you refer.",
     starterNote: (n: number) =>
       `New shops start free with up to ${n} pets — upgrade anytime to issue more passports and add seats.`,
     facilityStarterNote: (n: number) =>
       `New facilities start free with up to ${n} pets in care — upgrade anytime for more capacity and team seats.`,
     activeInterval: (label: string) => `Active · ${label}`,
-    referralTitle: "Refer a shop, save on yearly",
-    referralDesc:
-      "Share your link. For every shop that registers through it, you get 5% off your yearly payment (up to 50%).",
-    referralStatus: (count: number, pct: number) =>
-      count === 0
-        ? "No referrals yet — share your link to start saving."
-        : `${count} shop${count === 1 ? "" : "s"} joined · ${pct}% off your yearly payment.`,
   },
   landing: {
     // Header / shared

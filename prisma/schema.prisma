@@ -31,9 +31,7 @@ model Organization {
   // Stripe Customer for card subscriptions (portal cancel / renew).
   stripeCustomerId String?
 
-  // Referral programme. Each shop gets a unique referral code to share; shops
-  // that register through it set referredById to the referrer. The referrer
-  // earns a stacking discount on its yearly payment (see src/lib/plans.ts).
+  // Referral programme (deferred — see docs/REFERRALS_DEFERRED.md). Columns unused.
   referralCode String? @unique
   referredById String?
   referredBy   Organization?  @relation("Referrals", fields: [referredById], references: [id])

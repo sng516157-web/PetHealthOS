@@ -1,13 +1,10 @@
 import {
   getOrgUsage,
-  getOrgReferral,
   isFacilityOrg,
   getFacilityCapacity,
 } from "@/lib/data";
 import {
   SHOP_BILLING,
-  yearlyPriceRmb,
-  referralDiscountRate,
   FACILITY_EXTRA_SLOT_PRICE_RMB,
 } from "@/lib/plans";
 import { Check } from "lucide-react";
@@ -18,10 +15,7 @@ import { getI18n } from "@/lib/i18n/server";
 export default async function OrgBillingPage() {
   const { t } = await getI18n();
   const { org, plan, count, limit } = await getOrgUsage();
-  const { code, referralCount } = await getOrgReferral();
-  const discountPct = Math.round(referralDiscountRate(referralCount) * 100);
   const facility = isFacilityOrg(org);
-  // Facilities don't own pets — show care-slot capacity instead of a pet quota.
   const capacity = facility ? await getFacilityCapacity() : null;
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
   const atLimit = count >= limit;
@@ -79,11 +73,7 @@ export default async function OrgBillingPage() {
         currentPlan={plan.key}
         currentInterval={org.planInterval}
         priceMonth={SHOP_BILLING.month}
-        priceYearFull={SHOP_BILLING.year}
-        priceYear={yearlyPriceRmb(referralCount)}
-        discountPct={discountPct}
-        referralCode={code}
-        referralCount={referralCount}
+        priceYear={SHOP_BILLING.year}
         title={facility ? t.facility.planTitle : undefined}
         subtitle={facility ? t.facility.planSubtitle : undefined}
       />

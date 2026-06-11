@@ -1,5 +1,8 @@
 # Test / demo accounts
 
+> **Full test SOPs:** see [`Tests/`](../Tests/README.md) (subsystem checklists + agent procedures).
+> This file is the quick credential reference.
+
 Demo accounts for exercising every pipeline on the live site
 ([https://pet-health-os.vercel.app](https://pet-health-os.vercel.app)) and locally. Recreate any time with:
 

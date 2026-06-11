@@ -56,7 +56,6 @@ import {
   startCheckout,
   buyOwnerPetSlot,
   buyFacilitySlot,
-  ensureReferralCode,
   type CheckoutScope,
   type Provider,
   createBillingPortalSession,
@@ -872,21 +871,9 @@ export async function register(formData: FormData) {
         : ["BREEDER", "SHOP", "SHELTER"].includes(orgKindRaw)
           ? orgKindRaw
           : "BREEDER";
-    // Referral attribution: a new shop/facility may arrive via another org's
-    // link (?ref=CODE). Credit the referrer so they earn their yearly discount.
-    const refCode = String(formData.get("ref") || "").trim();
-    let referredById: string | null = null;
-    if (refCode) {
-      const referrer = await prisma.organization.findUnique({
-        where: { referralCode: refCode },
-        select: { id: true },
-      });
-      referredById = referrer?.id ?? null;
-    }
     const org = await prisma.organization.create({
-      data: { name: orgName, kind: orgKind, referredById },
+      data: { name: orgName, kind: orgKind },
     });
-    await ensureReferralCode(org.id);
     const user = await prisma.user.create({
       data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
     });

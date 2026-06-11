@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-11 — Referral programme removed.** Shop yearly price is now a flat ¥4888 with no
+  referral links or discounts; the idea is parked for a future version.
+
 - **2026-06-11 — Refunded care slots drop off billing.** Refreshing Plan & billing now revokes
   slots whose Stripe subscriptions are cancelled or refunded (no longer stuck at old counts).
 
