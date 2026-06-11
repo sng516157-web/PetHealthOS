@@ -1,24 +1,28 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { resolveStripeCustomerId } from "@/lib/billing";
+import { resolveStripeCustomerId, syncBillingFromStripe } from "@/lib/billing";
 import { requireActiveOrg, isFacilityOrg } from "@/lib/data";
+import { prisma } from "@/lib/prisma";
 import { ManageSubscription } from "@/components/ManageSubscription";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OrgAccountPage() {
   const org = await requireActiveOrg();
+  await syncBillingFromStripe({ kind: "org", id: org.id });
+  const current =
+    (await prisma.organization.findUnique({ where: { id: org.id } })) ?? org;
   const [{ t }, stripeCustomerId] = await Promise.all([
     getI18n(),
     resolveStripeCustomerId({ kind: "org", id: org.id }),
   ]);
-  const facility = isFacilityOrg(org);
-  const planName = (t.plans as Record<string, string>)[org.plan] ?? org.plan;
+  const facility = isFacilityOrg(current);
+  const planName = (t.plans as Record<string, string>)[current.plan] ?? current.plan;
   const accountType = facility ? t.account.typeFacility : t.account.typeShop;
 
   const intervalLabel =
-    org.planInterval === "month"
+    current.planInterval === "month"
       ? t.shopBilling.monthly
-      : org.planInterval === "year"
+      : current.planInterval === "year"
         ? t.shopBilling.yearly
         : null;
 

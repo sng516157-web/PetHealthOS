@@ -13,8 +13,7 @@ import {
 import {
   ensureReferralCode,
   getReferralCount,
-  repairUnfulfilledCheckoutSessions,
-  syncSlotSubscriptionsFromStripe,
+  syncBillingFromStripe,
 } from "./billing";
 import {
   getOwnerPetEntitlements,
@@ -111,8 +110,7 @@ export async function getFacilityActiveCount() {
 // Care capacity: base + purchased extra slots, and how many are in use now.
 export async function getFacilityCapacity() {
   const org = await requireActiveOrg();
-  await syncSlotSubscriptionsFromStripe({ kind: "org", id: org.id });
-  await repairUnfulfilledCheckoutSessions({ kind: "org", id: org.id });
+  await syncBillingFromStripe({ kind: "org", id: org.id });
   const inCare = await prisma.petStay.count({
     where: { orgId: org.id, status: "ACTIVE" },
   });
@@ -337,14 +335,16 @@ export async function getUserNotifications(userId: string) {
 
 export async function getOrgUsage() {
   const org = await requireActiveOrg();
-  const plan = getOrgPlan(org.plan);
+  await syncBillingFromStripe({ kind: "org", id: org.id });
+  const fresh = await prisma.organization.findUnique({ where: { id: org.id } });
+  const current = fresh ?? org;
+  const plan = getOrgPlan(current.plan);
   const count = await prisma.pet.count({ where: { orgId: org.id } });
-  return { org, plan, count, limit: petLimit(plan, org.extraPetSlots) };
+  return { org: current, plan, count, limit: petLimit(plan, current.extraPetSlots) };
 }
 
 export async function getUserUsage(userId: string) {
-  await syncSlotSubscriptionsFromStripe({ kind: "user", id: userId });
-  await repairUnfulfilledCheckoutSessions({ kind: "user", id: userId });
+  await syncBillingFromStripe({ kind: "user", id: userId });
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
   const plan = getUserPlan(user.plan);

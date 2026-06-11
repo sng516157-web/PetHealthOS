@@ -110,6 +110,21 @@ export async function revokeOrgSlot(slotId: string): Promise<void> {
   if (row.kind === "care") await syncOrgCareSlotCount(row.orgId);
 }
 
+/** Drop an abandoned checkout slot (PENDING only). */
+export async function revokePendingOrgSlot(slotId: string): Promise<void> {
+  const rows = await prisma.$queryRaw<{ orgId: string; kind: string; status: string }[]>`
+    SELECT "orgId", kind, status FROM "OrgSlot" WHERE id = ${slotId} LIMIT 1
+  `;
+  const row = rows[0];
+  if (!row || row.status !== "PENDING") return;
+  await prisma.$executeRaw`
+    UPDATE "OrgSlot"
+    SET status = 'REVOKED', "revokedAt" = NOW()
+    WHERE id = ${slotId}
+  `;
+  if (row.kind === "care") await syncOrgCareSlotCount(row.orgId);
+}
+
 /** Shop: link an extra slot when adding a pet beyond the plan's included count. */
 export async function assignShopPetSlot(orgId: string, petId: string): Promise<void> {
   const org = await prisma.organization.findUnique({

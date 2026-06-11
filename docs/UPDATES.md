@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-11 — Billing sync hardened across all subscription types.** Payments, refunds,
+  and cancellations now reconcile reliably for shop plans, owner pet slots, and facility care
+  slots — billing pages self-heal from Stripe if a webhook or redirect was missed.
+
 - **2026-06-11 — Paid care slots sync after Stripe checkout.** Buying a facility care slot
   now reliably activates in the app (billing page self-syncs from Stripe if the webhook or
   success redirect was missed); the billing page shows how many extra slots you've purchased.

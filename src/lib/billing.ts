@@ -1,17 +1,19 @@
 import { randomBytes } from "crypto";
+import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import {
-  countPurchasedOwnerSlots,
+  countActiveOwnerSlots,
   createOwnerPetSlot,
   ensureOwnerPetSlotActive,
   revokeOwnerPetSlot,
+  revokePendingOwnerPetSlot,
   syncOwnerSlotCount,
 } from "./owner-slots";
 import {
-  countPurchasedOrgCareSlots,
   createOrgSlot,
   ensureOrgSlotActive,
   revokeOrgSlot,
+  revokePendingOrgSlot,
   syncOrgCareSlotCount,
 } from "./org-slots";
 import { prisma } from "./prisma";
@@ -296,7 +298,8 @@ export async function buyOwnerPetSlot(opts: {
   if (!user) return { error: "NO_USER" };
   const plan = getUserPlan(user.plan);
   if (plan.extraPetPriceRmb <= 0) return { error: "NO_OVERAGE" };
-  const purchased = await countPurchasedOwnerSlots(userId);
+  await expireStalePendingSlots({ kind: "user", id: userId });
+  const purchased = await countActiveOwnerSlots(userId);
   if (purchased >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
 
   if (!anyProviderConfigured()) {
@@ -336,6 +339,7 @@ export async function buyFacilitySlot(opts: {
 
   if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
 
+  await expireStalePendingSlots({ kind: "org", id: orgId });
   const slotId = await createOrgSlot(orgId, "care", { pending: true });
   const stripeCustomerId = await getStripeCustomerId({ kind: "org", id: orgId });
 
@@ -372,23 +376,86 @@ function checkoutSessionReady(session: StripeCheckoutSession): boolean {
   );
 }
 
-async function repairSlotFromMetadata(
-  scopeKind: FulfillScopeKind,
-  scopeId: string,
-  slotId: string | undefined,
+const PENDING_SLOT_TTL_MS = 2 * 60 * 60 * 1000;
+
+/** Apply entitlements from Stripe metadata (fulfillment). */
+export async function applyFulfillmentFromMetadata(
+  md: Record<string, string>,
 ): Promise<void> {
-  if (!slotId) return;
+  const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
+  const scopeId = md.scopeId;
+  if (!scopeKind || !scopeId) return;
+
   if (scopeKind === "user_slot") {
-    await ensureOwnerPetSlotActive(scopeId, slotId);
+    if (md.slotId) {
+      await ensureOwnerPetSlotActive(scopeId, md.slotId);
+    } else {
+      await createOwnerPetSlot(scopeId);
+    }
   } else if (scopeKind === "org_slot") {
-    await ensureOrgSlotActive(scopeId, slotId, "care");
+    if (md.slotId) {
+      await ensureOrgSlotActive(scopeId, md.slotId, "care");
+    } else {
+      await createOrgSlot(scopeId, "care");
+    }
+  } else if (scopeKind === "org" || scopeKind === "user") {
+    if (!md.planKey) return;
+    const interval = isBillingInterval(md.interval) ? md.interval : undefined;
+    await activatePlan({ kind: scopeKind, id: scopeId }, md.planKey, interval);
   }
 }
 
-/** Reconcile DB slots with active Stripe slot subscriptions (missed webhooks / success page). */
-export async function syncSlotSubscriptionsFromStripe(
-  scope: CheckoutScope,
+/** Revoke entitlements from Stripe metadata (cancel / refund). */
+export async function applyReversalFromMetadata(
+  md: Record<string, string>,
 ): Promise<void> {
+  const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
+  const scopeId = md.scopeId;
+  if (!scopeKind || !scopeId) return;
+
+  if (scopeKind === "user_slot") {
+    if (md.slotId) {
+      await revokeOwnerPetSlot(md.slotId);
+    } else {
+      await syncOwnerSlotCount(scopeId);
+    }
+  } else if (scopeKind === "org_slot") {
+    if (md.slotId) {
+      await revokeOrgSlot(md.slotId);
+    } else {
+      await syncOrgCareSlotCount(scopeId);
+    }
+  } else if (scopeKind === "org") {
+    await activatePlan({ kind: "org", id: scopeId }, "STARTER");
+  }
+}
+
+async function repairFromMetadata(md: Record<string, string>): Promise<void> {
+  await applyFulfillmentFromMetadata(md);
+}
+
+/** Remove checkout slots that were never paid for. */
+export async function expireStalePendingSlots(scope: CheckoutScope): Promise<void> {
+  const cutoff = new Date(Date.now() - PENDING_SLOT_TTL_MS);
+  if (scope.kind === "org") {
+    await prisma.$executeRaw`
+      UPDATE "OrgSlot"
+      SET status = 'REVOKED', "revokedAt" = NOW()
+      WHERE "orgId" = ${scope.id} AND kind = 'care' AND status = 'PENDING' AND "createdAt" < ${cutoff}
+    `;
+    await syncOrgCareSlotCount(scope.id);
+  } else {
+    await prisma.$executeRaw`
+      UPDATE "OwnerPetSlot"
+      SET status = 'REVOKED', "revokedAt" = NOW()
+      WHERE "userId" = ${scope.id} AND status = 'PENDING' AND "createdAt" < ${cutoff}
+    `;
+    await syncOwnerSlotCount(scope.id);
+  }
+}
+
+/** Reconcile DB with active Stripe slot + plan subscriptions. */
+async function syncSubscriptionsFromStripe(scope: CheckoutScope): Promise<void> {
   if (!stripeConfigured()) return;
   const customerId = await resolveStripeCustomerId(scope);
   if (!customerId) return;
@@ -407,21 +474,15 @@ export async function syncSlotSubscriptionsFromStripe(
     for (const sub of page.data) {
       const md = sub.metadata ?? {};
       if (md.scopeId !== scope.id) continue;
-      if (md.scopeKind === "org_slot" && scope.kind === "org") {
-        await repairSlotFromMetadata("org_slot", md.scopeId, md.slotId);
-      } else if (md.scopeKind === "user_slot" && scope.kind === "user") {
-        await repairSlotFromMetadata("user_slot", md.scopeId, md.slotId);
-      }
+      await repairFromMetadata(md);
     }
     if (!page.has_more) break;
     startingAfter = page.data.at(-1)?.id;
   }
 }
 
-/** Fulfill paid Checkout sessions that were never marked fulfilled (idempotent). */
-export async function repairUnfulfilledCheckoutSessions(
-  scope: CheckoutScope,
-): Promise<void> {
+/** Fulfill paid Checkout sessions not yet marked fulfilled (all product types). */
+async function repairUnfulfilledCheckoutSessions(scope: CheckoutScope): Promise<void> {
   if (!stripeConfigured()) return;
   const customerId = await resolveStripeCustomerId(scope);
   if (!customerId) return;
@@ -435,13 +496,30 @@ export async function repairUnfulfilledCheckoutSessions(
   for (const session of sessions.data) {
     const md = session.metadata ?? {};
     if (md.scopeId !== scope.id) continue;
-    if (md.scopeKind !== "org_slot" && md.scopeKind !== "user_slot") continue;
+    if (
+      md.scopeKind !== "org" &&
+      md.scopeKind !== "user" &&
+      md.scopeKind !== "org_slot" &&
+      md.scopeKind !== "user_slot"
+    ) {
+      continue;
+    }
     if (!checkoutSessionReady(session)) continue;
     await fulfillCheckoutSession(session, stripe);
   }
 }
 
-/** Activate slot subscriptions on recurring invoice payment (backup to checkout webhook). */
+/**
+ * Full billing reconcile for one account — cached per request.
+ * Runs on billing page load to heal missed webhooks / success redirects.
+ */
+export const syncBillingFromStripe = cache(async (scope: CheckoutScope): Promise<void> => {
+  await expireStalePendingSlots(scope);
+  await syncSubscriptionsFromStripe(scope);
+  await repairUnfulfilledCheckoutSessions(scope);
+});
+
+/** Activate subscriptions on invoice payment (backup to checkout webhook). */
 export async function handleInvoicePaymentSucceeded(invoice: {
   subscription?: string | { id: string } | null;
 }): Promise<void> {
@@ -454,10 +532,59 @@ export async function handleInvoicePaymentSucceeded(invoice: {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const sub = await stripe.subscriptions.retrieve(subId);
   const md = sub.metadata ?? {};
-  const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
-  if (!scopeKind || !md.scopeId || !md.slotId) return;
-  await repairSlotFromMetadata(scopeKind, md.scopeId, md.slotId);
-  revalidateAfterFulfillment(scopeKind);
+  if (!md.scopeKind || !md.scopeId) return;
+  await applyFulfillmentFromMetadata(md);
+  revalidateAfterFulfillment(md.scopeKind);
+}
+
+/** Clean up slots when a Checkout session expires without payment. */
+export async function handleCheckoutSessionExpired(
+  session: StripeCheckoutSession,
+): Promise<void> {
+  const md = session.metadata ?? {};
+  if (md.slotId && md.scopeKind === "user_slot") {
+    await revokePendingOwnerPetSlot(md.slotId);
+    revalidateAfterFulfillment("user_slot");
+  } else if (md.slotId && md.scopeKind === "org_slot") {
+    await revokePendingOrgSlot(md.slotId);
+    revalidateAfterFulfillment("org_slot");
+  }
+}
+
+async function metadataFromCharge(
+  stripe: import("stripe").default,
+  charge: {
+    payment_intent?: string | { id: string } | null;
+    invoice?: string | { id: string } | null;
+  },
+): Promise<Record<string, string> | null> {
+  const pi = charge.payment_intent;
+  const paymentIntentId = typeof pi === "string" ? pi : pi?.id;
+  if (paymentIntentId) {
+    const sessions = await stripe.checkout.sessions.list({
+      payment_intent: paymentIntentId,
+      limit: 1,
+    });
+    const md = sessions.data[0]?.metadata;
+    if (md?.scopeKind && md.scopeId) return md;
+  }
+
+  const invRef = charge.invoice;
+  const invoiceId = typeof invRef === "string" ? invRef : invRef?.id;
+  if (invoiceId) {
+    const invoice = (await stripe.invoices.retrieve(invoiceId)) as {
+      subscription?: string | { id: string } | null;
+    };
+    const subRef = invoice.subscription;
+    const subId = typeof subRef === "string" ? subRef : subRef?.id;
+    if (subId) {
+      const sub = await stripe.subscriptions.retrieve(subId);
+      const md = sub.metadata ?? {};
+      if (md.scopeKind && md.scopeId) return md;
+    }
+  }
+
+  return null;
 }
 
 function revalidateAfterFulfillment(scopeKind: string) {
@@ -485,7 +612,7 @@ export async function fulfillCheckoutSession(
   const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
 
   if (md.fulfilled === "1" && scopeKind) {
-    await repairSlotFromMetadata(scopeKind, md.scopeId, md.slotId);
+    await repairFromMetadata(md);
     revalidateAfterFulfillment(scopeKind);
     return {
       ok: true,
@@ -502,25 +629,13 @@ export async function fulfillCheckoutSession(
     return { ok: false, error: "INVALID_METADATA" };
   }
 
-  if (scopeKind === "user_slot") {
-    if (md.slotId) {
-      await ensureOwnerPetSlotActive(md.scopeId, md.slotId);
-    } else {
-      await createOwnerPetSlot(md.scopeId);
-    }
-  } else if (scopeKind === "org_slot") {
-    if (md.slotId) {
-      await ensureOrgSlotActive(md.scopeId, md.slotId, "care");
-    } else {
-      await createOrgSlot(md.scopeId, "care");
-    }
-  } else if (scopeKind === "org" || scopeKind === "user") {
+  if (scopeKind === "org" || scopeKind === "user") {
     if (!md.planKey) return { ok: false, error: "INVALID_METADATA" };
-    const interval = isBillingInterval(md.interval) ? md.interval : undefined;
-    await activatePlan({ kind: scopeKind, id: md.scopeId }, md.planKey, interval);
-  } else {
+  } else if (scopeKind !== "user_slot" && scopeKind !== "org_slot") {
     return { ok: false, error: "INVALID_METADATA" };
   }
+
+  await applyFulfillmentFromMetadata(md);
 
   const customerId = stripeCustomerIdFromSession(session.customer);
   if (customerId) {
@@ -568,58 +683,26 @@ export async function handleSubscriptionEnded(subscription: {
 }): Promise<void> {
   const md = subscription.metadata ?? {};
   const scopeKind = md.scopeKind as FulfillScopeKind | undefined;
-  const scopeId = md.scopeId;
-  if (!scopeKind || !scopeId) return;
+  if (!scopeKind || !md.scopeId) return;
 
-  if (scopeKind === "user_slot") {
-    if (md.slotId) {
-      await revokeOwnerPetSlot(md.slotId);
-    } else {
-      await syncOwnerSlotCount(scopeId);
-    }
-    revalidateAfterFulfillment(scopeKind);
-    return;
-  }
-
-  if (scopeKind === "org") {
-    await activatePlan({ kind: "org", id: scopeId }, "STARTER");
-  } else if (scopeKind === "org_slot") {
-    if (md.slotId) {
-      await revokeOrgSlot(md.slotId);
-    } else {
-      await syncOrgCareSlotCount(scopeId);
-    }
-  }
-
+  await applyReversalFromMetadata(md);
   revalidateAfterFulfillment(scopeKind);
 }
 
-// Manual refund in Stripe — revoke a tagged owner slot when the charge is refunded.
+// Refund in Stripe Dashboard — reverse checkout or subscription entitlements.
 export async function handleChargeRefunded(charge: {
   payment_intent?: string | { id: string } | null;
+  invoice?: string | { id: string } | null;
 }): Promise<void> {
   if (!stripeConfigured()) return;
-  const pi = charge.payment_intent;
-  const paymentIntentId = typeof pi === "string" ? pi : pi?.id;
-  if (!paymentIntentId) return;
 
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-  const sessions = await stripe.checkout.sessions.list({
-    payment_intent: paymentIntentId,
-    limit: 1,
-  });
-  const session = sessions.data[0];
-  const slotId = session?.metadata?.slotId;
-  const scopeKind = session?.metadata?.scopeKind;
-  if (!slotId) return;
-  if (scopeKind === "user_slot") {
-    await revokeOwnerPetSlot(slotId);
-    revalidateAfterFulfillment("user_slot");
-  } else if (scopeKind === "org_slot") {
-    await revokeOrgSlot(slotId);
-    revalidateAfterFulfillment("org_slot");
-  }
+  const md = await metadataFromCharge(stripe, charge);
+  if (!md?.scopeKind || !md.scopeId) return;
+
+  await applyReversalFromMetadata(md);
+  revalidateAfterFulfillment(md.scopeKind);
 }
 
 // Confirm a returning Stripe Checkout session (success-page redirect).

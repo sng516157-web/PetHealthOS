@@ -131,9 +131,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 - **Verification review:** `/verify` (`submitVerification`) → team approves at `/admin`
   (`reviewOrg`) → `APPROVED` unlocks passport issuance.
 - **Billing:** `startCheckout` / `buyOwnerPetSlot` / `buyFacilitySlot` via **Stripe card
-  checkout only** (`createStripeCheckout` in `lib/billing.ts`). Shop/facility plans with
-  `interval` month/year and facility extra slots use Stripe **subscriptions**; owner extra
-  pet slots are one-time `payment` for now. **WeChat Pay + Alipay removed** (2026-06-10)
+  checkout only** (`createStripeCheckout` in `lib/billing.ts`). Shop/facility plans,
+  owner extra pet slots, and facility care slots all use Stripe **subscriptions** (monthly;
+  shop also yearly). Fulfillment/reversal matrix: `docs/BILLING.md`. **WeChat Pay + Alipay
+  removed** (2026-06-10)
   until incorporation — full revisit guide in `docs/PAYMENTS_WALLETS_DEFERRED.md`. Demo mode
   still activates instantly when `STRIPE_SECRET_KEY` is unset. Live: `STRIPE_SECRET_KEY` +
   `STRIPE_WEBHOOK_SECRET` + `APP_PUBLIC_URL=https://pethealthos.online`.
@@ -217,6 +218,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-11** — **Billing hardening (all accounts / subscription types).** Why (user:
+  watertight payment/refund/cancel). Central `applyFulfillmentFromMetadata` /
+  `applyReversalFromMetadata`; refunds resolve metadata via Checkout session **or** invoice →
+  subscription (fixes renewal refunds); SHOP plan included in repair + invoice backup; stale
+  `PENDING` slots expire after 2h; `checkout.session.expired` webhook; `syncBillingFromStripe`
+  (cached) on billing/account load; owner purchase cap uses ACTIVE slots only. Matrix:
+  `docs/BILLING.md`.
 - **2026-06-11** — **Slot fulfillment repair + Stripe sync on billing load.** Why (user:
   paid facility care slot in live Stripe but billing still showed 0 extras). Root causes:
   (1) `activateOrgSlot` silently no-oped when the row was missing/stuck `PENDING` while

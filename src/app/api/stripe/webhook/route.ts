@@ -1,6 +1,7 @@
 import {
   fulfillCheckoutSession,
   handleChargeRefunded,
+  handleCheckoutSessionExpired,
   handleInvoicePaymentSucceeded,
   handleSubscriptionEnded,
 } from "@/lib/billing";
@@ -36,6 +37,11 @@ export async function POST(req: Request) {
   ) {
     const session = event.data.object;
     await fulfillCheckoutSession(session, stripe);
+  }
+
+  if (event.type === "checkout.session.expired") {
+    const session = event.data.object;
+    await handleCheckoutSessionExpired(session);
   }
 
   if (event.type === "customer.subscription.deleted") {

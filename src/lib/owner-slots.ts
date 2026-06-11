@@ -31,6 +31,29 @@ export async function countPurchasedOwnerSlots(userId: string): Promise<number> 
   return Number(rows[0]?.c ?? 0);
 }
 
+/** ACTIVE slots only — used for purchase caps and billing display. */
+export async function countActiveOwnerSlots(userId: string): Promise<number> {
+  const rows = await prisma.$queryRaw<{ c: bigint }[]>`
+    SELECT COUNT(*)::bigint AS c FROM "OwnerPetSlot"
+    WHERE "userId" = ${userId} AND status = 'ACTIVE'
+  `;
+  return Number(rows[0]?.c ?? 0);
+}
+
+/** Drop an abandoned checkout slot (PENDING only). */
+export async function revokePendingOwnerPetSlot(slotId: string): Promise<void> {
+  const rows = await prisma.$queryRaw<{ userId: string; status: string }[]>`
+    SELECT "userId", status FROM "OwnerPetSlot" WHERE id = ${slotId} LIMIT 1
+  `;
+  const row = rows[0];
+  if (!row || row.status !== "PENDING") return;
+  await prisma.$executeRaw`
+    UPDATE "OwnerPetSlot"
+    SET status = 'REVOKED', "revokedAt" = NOW()
+    WHERE id = ${slotId}
+  `;
+}
+
 export async function syncOwnerSlotCount(userId: string): Promise<void> {
   const rows = await prisma.$queryRaw<{ c: bigint }[]>`
     SELECT COUNT(*)::bigint AS c FROM "OwnerPetSlot"
