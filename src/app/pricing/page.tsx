@@ -39,7 +39,7 @@ export default async function PricingPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-paper">
-      <AuroraOrbs className="-z-10 opacity-70" />
+      <AuroraOrbs subtle className="-z-10 opacity-70" />
       <header className="relative border-b border-border bg-surface/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3 md:px-8">
           <Link href="/" className="flex items-center gap-2.5">

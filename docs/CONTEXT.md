@@ -230,6 +230,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Remove aurora orbs from workspaces; soften marketing wash.** Why (user:
+  peach/blue gradient felt awkward on pet pages). `/me` + `/app` use flat `bg-paper`; card
+  motion kept. Public pages use `AuroraOrbs subtle` (brand/sage only, no gold/blue).
 - **2026-06-09** — **Fix owner pet page crash.** Why (prod error on `/me/pets/[id]`). i18n
   `continueNote` is a function — can't pass it into client `OwnerPetChrome`; resolve the string
   on the server instead.

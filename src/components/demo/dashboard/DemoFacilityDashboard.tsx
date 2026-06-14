@@ -5,7 +5,6 @@ import { DemoDashboardChrome } from "./DemoDashboardChrome";
 import { DemoWorkspaceShell } from "./DemoShells";
 import { MOCK_FACILITY } from "./mock-data";
 import {
-  AuroraOrbs,
   MotionPop,
   MotionReveal,
   motionCardHover,
@@ -20,9 +19,7 @@ export function DemoFacilityDashboard() {
     <div className="min-h-screen bg-paper">
       <DemoDashboardChrome active="facility" />
       <DemoWorkspaceShell orgName={m.orgName}>
-        <div className="relative min-h-full overflow-hidden">
-          <AuroraOrbs className="opacity-40" />
-          <div className="relative w-full px-5 py-8 lg:px-10 lg:py-10">
+        <div className="relative w-full px-5 py-8 lg:px-10 lg:py-10">
             <MotionPop index={0}>
               <div className="flex flex-wrap items-end justify-between gap-6 rounded-3xl border border-brand-200 bg-gradient-to-r from-brand-50/90 via-surface to-sand/30 p-6 shadow-soft lg:p-8">
                 <div>
@@ -94,7 +91,6 @@ export function DemoFacilityDashboard() {
               <span className="text-sm font-medium text-brand-700">View archived stays →</span>
             </MotionReveal>
           </div>
-        </div>
       </DemoWorkspaceShell>
     </div>
   );

@@ -43,15 +43,34 @@ function useInView(threshold = 0.12) {
 }
 
 /** Ambient gradient orbs for hero / landing sections. */
-export function AuroraOrbs({ className = "" }: { className?: string }) {
+export function AuroraOrbs({
+  className = "",
+  subtle = false,
+}: {
+  className?: string;
+  /** Softer, slower wash — avoids strong peach/blue patches on long pages. */
+  subtle?: boolean;
+}) {
   return (
     <div
       className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
       aria-hidden
     >
-      <div className="ps-aurora-drift-a absolute -left-16 top-8 h-72 w-72 rounded-full bg-brand-200/50 blur-3xl" />
-      <div className="ps-aurora-drift-b absolute right-0 top-24 h-64 w-64 rounded-full bg-gold/25 blur-3xl" />
-      <div className="ps-aurora-glow absolute bottom-0 left-1/3 h-56 w-56 rounded-full bg-blue/30 blur-3xl" />
+      <div
+        className={`ps-aurora-drift-a absolute -left-20 top-0 h-[28rem] w-[28rem] rounded-full blur-3xl ${
+          subtle ? "bg-brand-100/20" : "bg-brand-200/35"
+        }`}
+      />
+      <div
+        className={`ps-aurora-drift-b absolute -right-16 top-32 h-80 w-80 rounded-full blur-3xl ${
+          subtle ? "bg-sage/12" : "bg-sage/20"
+        }`}
+      />
+      <div
+        className={`ps-aurora-glow absolute -bottom-24 left-1/4 h-72 w-72 rounded-full blur-3xl ${
+          subtle ? "bg-sand/15" : "bg-brand-50/40"
+        }`}
+      />
     </div>
   );
 }

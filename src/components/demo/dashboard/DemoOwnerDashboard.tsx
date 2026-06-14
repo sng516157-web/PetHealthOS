@@ -13,7 +13,6 @@ import { DemoDashboardChrome } from "./DemoDashboardChrome";
 import { DemoOwnerHeader } from "./DemoShells";
 import { MOCK_OWNER } from "./mock-data";
 import {
-  AuroraOrbs,
   MotionPop,
   MotionReveal,
   motionCardHover,
@@ -32,9 +31,7 @@ export function DemoOwnerDashboard() {
       <DemoDashboardChrome active="owner" />
       <DemoOwnerHeader />
 
-      <div className="relative overflow-hidden">
-        <AuroraOrbs className="opacity-50" />
-        <div className="relative mx-auto max-w-[1600px] px-5 py-8 lg:px-10 lg:py-10">
+      <div className="relative mx-auto max-w-[1600px] px-5 py-8 lg:px-10 lg:py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <MotionPop index={0}>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white/90 px-3 py-1 text-xs font-medium text-forest">
@@ -151,7 +148,6 @@ export function DemoOwnerDashboard() {
               </MotionReveal>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

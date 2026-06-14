@@ -23,7 +23,7 @@ export default async function DisclaimerPage() {
       <LandingHeader t={t} locale={locale} />
 
       <main className="relative overflow-hidden">
-        <AuroraOrbs className="-z-10 opacity-60" />
+        <AuroraOrbs subtle className="-z-10 opacity-60" />
         <div className="relative mx-auto max-w-3xl px-5 py-12 md:px-8">
           <MotionPop index={0}>
             <Link

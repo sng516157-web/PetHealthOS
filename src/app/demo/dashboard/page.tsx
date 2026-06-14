@@ -8,7 +8,7 @@ import { AuroraOrbs, MotionPop, MotionReveal } from "@/components/motion/aurora"
 export default function DashboardDemoHubPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-paper">
-      <AuroraOrbs className="opacity-60" />
+      <AuroraOrbs subtle className="opacity-60" />
       <div className="relative mx-auto max-w-4xl px-5 py-16 md:px-8 md:py-24">
         <MotionPop index={0}>
           <Link

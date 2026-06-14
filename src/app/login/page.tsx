@@ -18,7 +18,7 @@ export default async function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-10">
-      <AuroraOrbs className="-z-10 opacity-80" />
+      <AuroraOrbs subtle className="-z-10 opacity-80" />
       <div className="relative w-full max-w-sm">
         <MotionPop index={0}>
           <div className="mb-6 flex items-center justify-between">

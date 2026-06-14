@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Cleaner workspace backgrounds.** Dashboard and pet pages no longer show the
+  drifting color gradient; marketing pages use a softer green wash instead of peach/blue.
+
 - **2026-06-09 — Fix: pet profile page crash.** Opening a pet from the owner dashboard no longer
   throws a server error.
 

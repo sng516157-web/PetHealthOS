@@ -59,7 +59,7 @@ export default async function MeLayout({
         </div>
       </header>
       <main className="mx-auto min-w-0 max-w-[1600px] overflow-x-hidden px-5 md:px-8 lg:px-10">
-        <WorkspaceMotionShell orbClassName="opacity-50">{children}</WorkspaceMotionShell>
+        <WorkspaceMotionShell>{children}</WorkspaceMotionShell>
       </main>
     </div>
   );

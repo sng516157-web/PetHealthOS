@@ -1,27 +1,15 @@
 "use client";
 
 import { Children, type ReactNode } from "react";
-import {
-  AuroraOrbs,
-  MotionPop,
-  MotionReveal,
-  motionCardHover,
-} from "@/components/motion/aurora";
+import { MotionPop, MotionReveal, motionCardHover } from "@/components/motion/aurora";
 
 export { MotionPop, MotionReveal, motionCardHover };
 
-/** Ambient Aurora backdrop for authenticated workspaces (/me, /app). */
-export function WorkspaceMotionShell({
-  children,
-  orbClassName = "opacity-40",
-}: {
-  children: ReactNode;
-  orbClassName?: string;
-}) {
+/** Workspace page wrapper — flat paper background; motion is on cards, not ambient orbs. */
+export function WorkspaceMotionShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
-      <AuroraOrbs className={orbClassName} />
-      <div className="relative">{children}</div>
+    <div className="relative min-h-[calc(100vh-3.5rem)] bg-paper">
+      {children}
     </div>
   );
 }

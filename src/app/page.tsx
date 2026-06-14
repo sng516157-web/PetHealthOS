@@ -46,7 +46,7 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <AuroraOrbs />
+        <AuroraOrbs subtle />
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1fr_1.25fr] md:px-8 md:py-24">
           <div>
             <MotionPop index={0}>

@@ -36,7 +36,7 @@ export default async function FacilityLandingPage() {
       <LandingHeader t={t} locale={locale} />
 
       <main className="relative overflow-hidden">
-        <AuroraOrbs className="-z-10" />
+        <AuroraOrbs subtle className="-z-10" />
         <div className="relative mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
           <MotionPop index={0}>
             <Link
