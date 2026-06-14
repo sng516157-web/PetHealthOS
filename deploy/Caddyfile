@@ -23,6 +23,10 @@
 pethealthos.online, www.pethealthos.online {
 	encode zstd gzip
 
+	# One canonical host — avoid duplicate URLs in Search Console.
+	@www host www.pethealthos.online
+	redir @www https://pethealthos.online{uri} permanent
+
 	# Forward everything to the Vercel production deployment. We must send the
 	# Vercel hostname as the Host header so Vercel routes to the right project;
 	# the browser's real host is preserved in X-Forwarded-Host so Next.js can

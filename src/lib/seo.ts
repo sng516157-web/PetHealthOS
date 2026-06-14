@@ -13,6 +13,14 @@ export function siteUrl(): string {
   return "http://localhost:3000";
 }
 
+/** Absolute URL for a site path (no trailing slash on `/`). */
+export function absolutePageUrl(path: string): string {
+  const base = siteUrl();
+  if (path === "/" || path === "") return base;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+}
+
 const DEFAULT_OG = "/apple-icon.png";
 
 export const defaultSiteMetadata: Metadata = {
@@ -41,9 +49,6 @@ export const defaultSiteMetadata: Metadata = {
     card: "summary",
     images: [DEFAULT_OG],
   },
-  alternates: {
-    canonical: "/",
-  },
 };
 
 export function pageMetadata(opts: {
@@ -51,15 +56,15 @@ export function pageMetadata(opts: {
   description: string;
   path: string;
 }): Metadata {
-  const url = opts.path.startsWith("/") ? opts.path : `/${opts.path}`;
+  const canonical = absolutePageUrl(opts.path);
   return {
     title: opts.title,
     description: opts.description,
-    alternates: { canonical: url },
+    alternates: { canonical },
     openGraph: {
       title: opts.title,
       description: opts.description,
-      url,
+      url: canonical,
     },
   };
 }

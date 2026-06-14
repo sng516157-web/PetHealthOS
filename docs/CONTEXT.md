@@ -230,6 +230,18 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **GSC canonical detection fix.** Why (user: Search Console showed no
+  user-declared canonical). Next.js 16 streams metadata after the HTML shell — GSC can miss
+  late `<link rel="canonical">`; set `htmlLimitedBots: /.*/` to render metadata synchronously
+  in `<head>`. Marketing pages now emit absolute canonical URLs; removed root default
+  `canonical: "/"` (was inherited by `/login` etc.); www → apex redirect on Caddy + Vercel.
+- **2026-06-09** — **Edit/delete documents, weights, reminders.** Why (user request). New
+  server actions `updateReminder`, `deleteReminder`, `updateWeight`, `updateAttachment`;
+  panels get inline edit (pencil) + always-visible delete; `requirePetWriteAccess` gates all
+  writes; headline `pet.weightKg` recalculates from latest entry on weight change/delete.
+- **2026-06-09** — **Owner pet profile photo after creation.** Why (user request). Owner pet
+  header uses `PetPhotoUpload` (same as shop); `updatePetPhoto` gated by `canAccessPet` +
+  `canLog`; `/me` revalidated on upload.
 - **2026-06-09** — **Remove aurora orbs from workspaces; soften marketing wash.** Why (user:
   peach/blue gradient felt awkward on pet pages). `/me` + `/app` use flat `bg-paper`; card
   motion kept. Public pages use `AuroraOrbs subtle` (brand/sage only, no gold/blue).

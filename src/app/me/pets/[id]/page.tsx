@@ -46,6 +46,7 @@ export default async function MePetPage({
     title: r.title,
     category: r.category,
     dueAt: r.dueAt.toISOString(),
+    recurrence: r.recurrence,
     completed: r.completed,
     notes: r.notes,
   }));
@@ -57,10 +58,11 @@ export default async function MePetPage({
 
   const sidebar = [
     <CheckinQR key="checkin" petId={pet.id} activeStays={activeStays} />,
-    <RemindersPanel key="reminders" petId={pet.id} reminders={reminders} />,
+    <RemindersPanel key="reminders" petId={pet.id} reminders={reminders} readOnly={!canLog} />,
     <WeightPanel
       key="weight"
       petId={pet.id}
+      readOnly={!canLog}
       weights={pet.weights.map((w) => ({
         id: w.id,
         weightKg: w.weightKg,
@@ -71,6 +73,7 @@ export default async function MePetPage({
     <DocumentsPanel
       key="docs"
       petId={pet.id}
+      readOnly={!canLog}
       attachments={pet.attachments.map((a) => ({
         id: a.id,
         kind: a.kind,

@@ -20,6 +20,7 @@ export default async function MePetLayout({
   if (!pet) notFound();
   const ent = await getPetEntitlements(id);
   const readOnly = ent?.tier === "readonly";
+  const canEditPhoto = ent?.canLog ?? true;
 
   return (
     <OwnerPetChrome
@@ -33,6 +34,7 @@ export default async function MePetLayout({
         pet.org ? t.me.continueNote(pet.org.name) : t.me.selfPetNote
       }
       readOnly={readOnly}
+      canEditPhoto={canEditPhoto}
       backLabel={t.me.backToPets}
       readOnlyBanner={t.account.petReadOnly}
     >

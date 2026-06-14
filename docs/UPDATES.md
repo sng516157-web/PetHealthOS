@@ -9,6 +9,16 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Canonical URLs for Google Search Console.** Marketing pages now declare
+  absolute canonical links in the HTML head (not streamed), and www redirects to the main
+  domain so Google picks one preferred URL.
+
+- **2026-06-09 — Edit documents, weights, and reminders.** You can now change or remove
+  uploaded files, weight entries, and scheduled reminders after they're created.
+
+- **2026-06-09 — Add or change pet profile photo.** Owners can tap the avatar on a pet's page
+  to upload a photo anytime — not just when creating the pet.
+
 - **2026-06-09 — Cleaner workspace backgrounds.** Dashboard and pet pages no longer show the
   drifting color gradient; marketing pages use a softer green wash instead of peach/blue.
 

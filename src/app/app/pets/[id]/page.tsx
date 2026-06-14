@@ -90,13 +90,16 @@ export default async function PetOverview({
               title: r.title,
               category: r.category,
               dueAt: r.dueAt.toISOString(),
+              recurrence: r.recurrence,
               completed: r.completed,
               notes: r.notes,
             }))}
+            readOnly={!canLog}
           />,
           <WeightPanel
             key="weight"
             petId={view.pet.id}
+            readOnly={!canLog}
             weights={view.pet.weights.map((w) => ({
               id: w.id,
               weightKg: w.weightKg,
@@ -107,6 +110,7 @@ export default async function PetOverview({
           <DocumentsPanel
             key="docs"
             petId={view.pet.id}
+            readOnly={!canLog}
             attachments={view.pet.attachments.map((a) => ({
               id: a.id,
               kind: a.kind,
@@ -142,6 +146,7 @@ export default async function PetOverview({
     title: r.title,
     category: r.category,
     dueAt: r.dueAt.toISOString(),
+    recurrence: r.recurrence,
     completed: r.completed,
     notes: r.notes,
   }));
@@ -182,10 +187,11 @@ export default async function PetOverview({
   ].filter(Boolean);
 
   const sidebar = [
-    <RemindersPanel key="reminders" petId={pet.id} reminders={reminders} />,
+    <RemindersPanel key="reminders" petId={pet.id} reminders={reminders} readOnly={!canLog} />,
     <WeightPanel
       key="weight"
       petId={pet.id}
+      readOnly={!canLog}
       weights={pet.weights.map((w) => ({
         id: w.id,
         weightKg: w.weightKg,
@@ -196,6 +202,7 @@ export default async function PetOverview({
     <DocumentsPanel
       key="docs"
       petId={pet.id}
+      readOnly={!canLog}
       attachments={pet.attachments.map((a) => ({
         id: a.id,
         kind: a.kind,

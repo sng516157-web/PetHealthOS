@@ -38,6 +38,8 @@ export function PetPhotoUpload({
     });
   }
 
+  const label = photoUrl ? t.photo.change : t.photo.add;
+
   return (
     <div className="shrink-0">
       <button
@@ -45,15 +47,24 @@ export function PetPhotoUpload({
         onClick={() => inputRef.current?.click()}
         disabled={pending}
         className="group relative block rounded-2xl"
-        aria-label={t.photo.change}
-        title={t.photo.change}
+        aria-label={label}
+        title={label}
       >
         <PetAvatar species={species} name={name} size="lg" photoUrl={photoUrl} />
-        <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/45 text-white opacity-0 transition group-hover:opacity-100">
+        <span
+          className={`absolute inset-0 flex items-center justify-center rounded-2xl bg-black/45 text-white transition ${
+            photoUrl ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+          }`}
+        >
           {pending ? (
             <span className="text-[10px] font-medium">{t.photo.uploading}</span>
           ) : (
-            <Camera size={18} />
+            <span className="flex flex-col items-center gap-0.5">
+              <Camera size={18} />
+              {!photoUrl && (
+                <span className="text-[10px] font-medium">{t.photo.add}</span>
+              )}
+            </span>
           )}
         </span>
       </button>

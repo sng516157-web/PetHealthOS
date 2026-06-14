@@ -180,6 +180,32 @@ export async function setTimezone(timeZone: string) {
 // Persist an uploaded file and return its public URL.
 // In production (Vercel) the filesystem is read-only, so use Vercel Blob when a
 // token is present; otherwise fall back to public/uploads for local dev.
+async function requirePetWriteAccess(
+  petId: string,
+): Promise<{ error: string } | null> {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const ent = await getPetEntitlements(petId);
+  if (ent && !ent.canLog) return { error: "SLOT_READONLY" };
+  return null;
+}
+
+async function syncPetHeadlineWeight(petId: string) {
+  const latest = await prisma.weightEntry.findFirst({
+    where: { petId },
+    orderBy: { measuredAt: "desc" },
+  });
+  await prisma.pet.update({
+    where: { id: petId },
+    data: { weightKg: latest?.weightKg ?? null },
+  });
+}
+
+function revalidateReminderPaths(petId: string) {
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
+  revalidatePath("/app/reminders");
+}
+
 async function saveUpload(file: File): Promise<string> {
   const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
   const fileName = `${randomBytes(8).toString("hex")}.${ext}`;
@@ -439,22 +465,59 @@ export async function addReminder(petId: string, formData: FormData) {
       notes: notes || null,
     },
   });
-  revalidatePath(`/app/pets/${petId}`);
-  revalidatePath(`/me/pets/${petId}`);
-  revalidatePath("/app/reminders");
+  revalidateReminderPaths(petId);
+  return { ok: true };
+}
+
+export async function updateReminder(id: string, formData: FormData) {
+  const r = await prisma.reminder.findUnique({ where: { id } });
+  if (!r) return { error: "Not found" };
+  const gate = await requirePetWriteAccess(r.petId);
+  if (gate) return gate;
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: VErr.TITLE_REQUIRED };
+  if (title.length > TITLE_MAX) return { error: VErr.TITLE_TOO_LONG };
+  const dueAt = String(formData.get("dueAt") || "");
+  const dueErr = validateDate(dueAt, true);
+  if (dueErr) return { error: dueErr };
+  const notes = String(formData.get("notes") || "").trim();
+  if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  await prisma.reminder.update({
+    where: { id },
+    data: {
+      title,
+      category: String(formData.get("category") || "OTHER"),
+      dueAt: new Date(dueAt),
+      recurrence: String(formData.get("recurrence") || "") || null,
+      notes: notes || null,
+    },
+  });
+  revalidateReminderPaths(r.petId);
+  return { ok: true };
+}
+
+export async function deleteReminder(id: string) {
+  const r = await prisma.reminder.findUnique({ where: { id } });
+  if (!r) return { error: "Not found" };
+  const gate = await requirePetWriteAccess(r.petId);
+  if (gate) return gate;
+  await prisma.reminder.delete({ where: { id } });
+  revalidateReminderPaths(r.petId);
   return { ok: true };
 }
 
 export async function toggleReminder(id: string) {
   const r = await prisma.reminder.findUnique({ where: { id } });
   if (!r) return { error: "Not found" };
+  const gate = await requirePetWriteAccess(r.petId);
+  if (gate) return gate;
   await prisma.reminder.update({
     where: { id },
     data: { completed: !r.completed },
   });
-  revalidatePath(`/app/pets/${r.petId}`);
-  revalidatePath(`/me/pets/${r.petId}`);
-  revalidatePath("/app/reminders");
+  revalidateReminderPaths(r.petId);
   return { ok: true };
 }
 
@@ -488,7 +551,8 @@ export async function generateTriageReport(petId: string, localeHint?: string) {
 }
 
 export async function addAttachment(petId: string, formData: FormData) {
-  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return { error: "Choose a file to upload" };
   if (file.size > 8 * 1024 * 1024) return { error: "File must be under 8 MB" };
@@ -510,21 +574,58 @@ export async function addAttachment(petId: string, formData: FormData) {
 }
 
 export async function updatePetPhoto(petId: string, formData: FormData) {
-  const file = formData.get("photo") as File | null;
-  if (!file || file.size === 0) return { error: "Choose an image" };
-  if (file.size > 8 * 1024 * 1024) return { error: "Image must be under 8 MB" };
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const ent = await getPetEntitlements(petId);
+  if (ent && !ent.canLog) return { error: "SLOT_READONLY" };
 
-  const url = await saveUpload(file);
+  const file = formData.get("photo") as File | null;
+  if (!file || file.size === 0) return { error: VErr.PHOTO_REQUIRED };
+  const photoErr = validatePetPhoto(file);
+  if (photoErr) return { error: photoErr };
+
+  const url = await saveUpload(file!);
   await prisma.pet.update({ where: { id: petId }, data: { photoUrl: url } });
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath("/app/pets");
   revalidatePath("/app");
+  revalidatePath("/me");
   return { ok: true, url };
 }
 
+export async function updateAttachment(petId: string, id: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+  const att = await prisma.attachment.findFirst({ where: { id, petId } });
+  if (!att) return { error: "Not found" };
+
+  const label = String(formData.get("label") || "").trim();
+  const file = formData.get("file") as File | null;
+  let url = att.url;
+  let mimeType = att.mimeType;
+  if (file && file.size > 0) {
+    if (file.size > 8 * 1024 * 1024) return { error: "File must be under 8 MB" };
+    url = await saveUpload(file);
+    mimeType = file.type || null;
+  }
+
+  await prisma.attachment.update({
+    where: { id },
+    data: {
+      kind: String(formData.get("kind") || att.kind),
+      label: label || att.label,
+      url,
+      mimeType,
+    },
+  });
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
+  return { ok: true };
+}
+
 export async function deleteAttachment(petId: string, id: string) {
-  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
   const att = await prisma.attachment.findFirst({ where: { id, petId } });
   if (!att) return { error: "Not found" };
   await prisma.attachment.delete({ where: { id } });
@@ -889,7 +990,8 @@ export async function markAllNotificationsRead() {
 }
 
 export async function addWeight(petId: string, formData: FormData) {
-  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
   const weightRaw = String(formData.get("weightKg") || "").trim();
   const weightErr = validateWeightKg(weightRaw, true);
   if (weightErr) return { error: weightErr };
@@ -910,15 +1012,50 @@ export async function addWeight(petId: string, formData: FormData) {
     },
   });
 
-  // Keep the profile's headline weight in sync with the latest measurement.
-  await prisma.pet.update({ where: { id: petId }, data: { weightKg } });
+  await syncPetHeadlineWeight(petId);
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
+  return { ok: true };
+}
+
+export async function updateWeight(petId: string, id: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+  const entry = await prisma.weightEntry.findFirst({ where: { id, petId } });
+  if (!entry) return { error: "Not found" };
+
+  const weightRaw = String(formData.get("weightKg") || "").trim();
+  const weightErr = validateWeightKg(weightRaw, true);
+  if (weightErr) return { error: weightErr };
+  const weightKg = parseWeightKg(weightRaw) as number;
+
+  const measuredRaw = String(formData.get("measuredAt") || "");
+  const measuredErr = validatePastOrToday(measuredRaw, false);
+  if (measuredErr) return { error: measuredErr };
+  const note = String(formData.get("note") || "").trim();
+  if (note.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  await prisma.weightEntry.update({
+    where: { id },
+    data: {
+      weightKg,
+      measuredAt: measuredRaw ? new Date(measuredRaw) : entry.measuredAt,
+      note: note || null,
+    },
+  });
+  await syncPetHeadlineWeight(petId);
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };
 }
 
 export async function deleteWeight(petId: string, id: string) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+  const entry = await prisma.weightEntry.findFirst({ where: { id, petId } });
+  if (!entry) return { error: "Not found" };
   await prisma.weightEntry.delete({ where: { id } });
+  await syncPetHeadlineWeight(petId);
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   return { ok: true };

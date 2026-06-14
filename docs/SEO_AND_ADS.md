@@ -1,7 +1,8 @@
 # SEO & Google Ads — setup checklist
 
 Shipped in code (P0): sitemap, robots, per-page metadata, `noindex` on private routes,
-GA4 events when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set.
+GA4 events when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set, synchronous canonical tags
+(`htmlLimitedBots: /.*/` in `next.config.ts`), www → apex redirects.
 
 ## You do manually
 
@@ -12,8 +13,14 @@ GA4 events when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set.
 3. Vercel env (Production):
    - `APP_PUBLIC_URL=https://pethealthos.online`
    - `NEXT_PUBLIC_APP_URL=https://pethealthos.online` (same value)
+4. HK Caddy (`deploy/Caddyfile`): reload after pulling — `www` 301s to apex.
 
 Redeploy after env changes.
+
+**If GSC still shows “User-declared canonical: None”** on a URL you already deployed:
+use URL Inspection → **Test live URL** → **Request indexing**. Stale crawls predate the
+sync-metadata fix. Confirm with:
+`curl -A Google-InspectionTool https://pethealthos.online/shop | findstr canonical`
 
 ### 2. Google Search Console
 

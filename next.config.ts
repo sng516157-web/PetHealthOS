@@ -17,6 +17,10 @@ const allowedOrigins = [
 ];
 
 const nextConfig: NextConfig = {
+  // Next.js 15.2+ streams metadata after the HTML shell. Google Search Console can
+  // report "User-declared canonical: None" when the <link rel="canonical"> arrives
+  // late. Disable streaming so title, description, and canonical are always in <head>.
+  htmlLimitedBots: /.*/,
   // The /admin page reads the repo's /docs markdown at request time. Bundle those
   // files into the admin function so they exist on Vercel (the filesystem there
   // only contains traced files).

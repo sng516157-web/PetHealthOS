@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ChevronLeft, Lock } from "lucide-react";
 import { PetAvatar } from "@/components/ui";
+import { PetPhotoUpload } from "@/components/PetPhotoUpload";
 import { PetTabs } from "@/components/PetTabs";
 import {
   MotionPop,
@@ -19,6 +20,7 @@ export function OwnerPetChrome({
   photoUrl,
   ownershipNote,
   readOnly,
+  canEditPhoto,
   backLabel,
   readOnlyBanner,
   children,
@@ -31,6 +33,7 @@ export function OwnerPetChrome({
   photoUrl: string | null;
   ownershipNote: string;
   readOnly: boolean;
+  canEditPhoto: boolean;
   backLabel: string;
   readOnlyBanner: string;
   children: React.ReactNode;
@@ -50,7 +53,16 @@ export function OwnerPetChrome({
 
       <MotionPop index={1}>
         <div className="flex items-center gap-4">
-          <PetAvatar species={species} name={name} size="lg" photoUrl={photoUrl} />
+          {canEditPhoto ? (
+            <PetPhotoUpload
+              petId={petId}
+              species={species}
+              name={name}
+              photoUrl={photoUrl}
+            />
+          ) : (
+            <PetAvatar species={species} name={name} size="lg" photoUrl={photoUrl} />
+          )}
           <div className="min-w-0">
             <h1 className="text-3xl font-extrabold tracking-tight text-forest">{name}</h1>
             {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
