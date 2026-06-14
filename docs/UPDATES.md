@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-14 — English pages for search engines.** Google and other crawlers now see English
+  page content (matching your English meta tags); human visitors in China are unchanged.
+
 - **2026-06-09 — SEO & analytics foundation.** Sitemap, search-friendly page titles, and
   Google Analytics events (sign-up, verification, checkout) when you add a GA4 measurement ID.
 

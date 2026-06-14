@@ -50,6 +50,7 @@ export function I18nProvider({
   );
 
   useLayoutEffect(() => {
+    if (document.documentElement.dataset.seoBot === "true") return;
     const stored = readStoredLocale();
     if (stored) {
       if (stored !== locale) {
@@ -81,6 +82,7 @@ export function LocaleBootstrap({ serverLocale }: { serverLocale: Locale }) {
   const router = useRouter();
 
   useLayoutEffect(() => {
+    if (document.documentElement.dataset.seoBot === "true") return;
     if (readStoredLocale()) return;
     void fetch("/api/geo")
       .then((r) => r.json())

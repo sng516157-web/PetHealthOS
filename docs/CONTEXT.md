@@ -229,6 +229,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-14** — **English SSR for search bots.** Why (GSC: zh body + en meta; international
+  SEO). `getLocale()` returns `en` when User-Agent matches Googlebot/Bingbot/etc.; skip
+  `LocaleBootstrap` for bots; `/api/geo` returns `en` for bots. Humans unchanged (geo → zh in CN/HK/MO).
 - **2026-06-09** — **P0 SEO + GA4 for Ads.** Why (user: international traction). Added
   `metadataBase`, per-landing-page titles/descriptions/OG, `sitemap.xml`, `robots.txt`,
   `noindex` on app/auth routes, optional GA4 (`NEXT_PUBLIC_GA_MEASUREMENT_ID`) with

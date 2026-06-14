@@ -62,6 +62,13 @@ Use **phrase/exact match** first. Ad copy must match landing page (trust + passp
 - **Blog / for-breeders pages** — content SEO (Phase 2).
 - **Google Tag Manager** — only if you need non-devs to manage tags.
 
+### Search bots always get English
+
+Googlebot, Bingbot, etc. receive **English SSR** (`lang="en"`, English body copy) even when
+the crawler IP is in CN/HK. Human visitors in China still get Chinese via geo/localStorage.
+Verify: `curl -A Googlebot https://pethealthos.online/ | findstr "lang="` → `lang="en"`.
+Request re-indexing in Search Console after deploy.
+
 ## Verify nothing broke
 
 - Register owner / shop / facility → still gates on `/verify-email`.

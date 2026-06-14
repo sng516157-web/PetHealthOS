@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getLocale } from "@/lib/i18n/server";
+import { isSearchEngineBotRequest } from "@/lib/i18n/bot-server";
 import { I18nProvider, LocaleBootstrap } from "@/lib/i18n/client";
 import { getTimezone } from "@/lib/timezone/server";
 import { TimezoneProvider, TimezoneSync } from "@/lib/timezone/client";
@@ -34,16 +35,18 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const timeZone = await getTimezone();
+  const forBot = await isSearchEngineBotRequest();
   return (
     <html
       lang={locale === "zh" ? "zh-CN" : "en"}
       className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
+      {...(forBot ? { "data-seo-bot": "true" } : {})}
     >
       <body className="min-h-full">
         <GoogleAnalytics />
         <AnalyticsListener />
         <I18nProvider initialLocale={locale}>
-          <LocaleBootstrap serverLocale={locale} />
+          {!forBot && <LocaleBootstrap serverLocale={locale} />}
           <TimezoneProvider timeZone={timeZone}>
             <TimezoneSync serverTimeZone={timeZone} />
             {children}
