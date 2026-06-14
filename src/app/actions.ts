@@ -56,6 +56,7 @@ import {
   countActiveOrgCareSlots,
 } from "@/lib/org-slots";
 import { checkoutBaseUrl } from "@/lib/site-url";
+import { legalAcceptanceFromForm } from "@/lib/legal-policies";
 import {
   startCheckout,
   buyOwnerPetSlot,
@@ -677,8 +678,10 @@ export async function claimPassport(token: string, formData: FormData) {
     if (!user.passwordHash || !verifyPassword(password, user.passwordHash))
       return { error: "An account with this email exists — wrong password." };
   } else {
+    const legal = legalAcceptanceFromForm(formData);
+    if (!legal) return { error: VErr.LEGAL_ACCEPT_REQUIRED };
     user = await prisma.user.create({
-      data: { email, name, passwordHash: hashPassword(password) },
+      data: { email, name, passwordHash: hashPassword(password), ...legal },
     });
   }
 
@@ -939,6 +942,9 @@ export async function register(formData: FormData) {
   const pwErr = validatePassword(password);
   if (pwErr) return { error: pwErr };
 
+  const legal = legalAcceptanceFromForm(formData);
+  if (!legal) return { error: VErr.LEGAL_ACCEPT_REQUIRED };
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return { error: VErr.EMAIL_TAKEN };
 
@@ -960,7 +966,13 @@ export async function register(formData: FormData) {
       data: { name: orgName, kind: orgKind },
     });
     const user = await prisma.user.create({
-      data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
+      data: {
+        email,
+        name,
+        passwordHash: hashPassword(password),
+        orgId: org.id,
+        ...legal,
+      },
     });
     await setSession(user.id, { single: false });
     const locale = await getLocale();
@@ -979,7 +991,7 @@ export async function register(formData: FormData) {
   }
 
   const user = await prisma.user.create({
-    data: { email, name, passwordHash: hashPassword(password) },
+    data: { email, name, passwordHash: hashPassword(password), ...legal },
   });
   await setSession(user.id, { single: true });
   const locale = await getLocale();

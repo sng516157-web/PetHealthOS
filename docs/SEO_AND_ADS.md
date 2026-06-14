@@ -93,4 +93,6 @@ After deploy, **request indexing** for `/`, `/owner`, `/shop`, `/facility`, `/pr
 - `/shop` — breeders & pet shops
 - `/facility` — hospitals & boarding
 - `/pricing` — plans
-- `/disclaimer` — legal
+- `/terms` — Terms of Service
+- `/privacy` — Privacy Policy
+- `/disclaimer` — health / AI disclaimer

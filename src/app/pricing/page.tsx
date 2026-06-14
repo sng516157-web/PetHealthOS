@@ -163,7 +163,15 @@ export default async function PricingPage() {
 
         <MotionReveal delay={200}>
           <p className="mt-10 text-center text-xs text-muted">
-            <Link href="/disclaimer" className="underline hover:text-forest">
+            <Link href="/terms" className="hover:text-forest hover:underline">
+              {t.landing.termsOfService}
+            </Link>
+            {" · "}
+            <Link href="/privacy" className="hover:text-forest hover:underline">
+              {t.landing.privacyPolicy}
+            </Link>
+            {" · "}
+            <Link href="/disclaimer" className="hover:text-forest hover:underline">
               {t.landing.disclaimer}
             </Link>
           </p>

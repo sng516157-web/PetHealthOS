@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, Check } from "lucide-react";
 import { claimPassport } from "@/app/actions";
@@ -15,6 +14,7 @@ import {
   VErr,
 } from "@/lib/validation";
 import { trackSignUp } from "@/lib/analytics";
+import { LegalAcceptField, isLegalAccepted } from "@/components/LegalAcceptField";
 
 export function ClaimPassport({
   token,
@@ -32,6 +32,7 @@ export function ClaimPassport({
     name?: string | null;
     email?: string | null;
     password?: string | null;
+    legal?: string | null;
   }>({});
 
   function submit(formData: FormData) {
@@ -40,14 +41,17 @@ export function ClaimPassport({
       name: validateRequiredName(String(formData.get("claimedByName") || "")),
       email: validateEmail(String(formData.get("email") || "")),
       password: validatePassword(String(formData.get("password") || "")),
+      legal: isLegalAccepted(formData) ? null : VErr.LEGAL_ACCEPT_REQUIRED,
     };
     setFieldErr(fe);
-    if (fe.name || fe.email || fe.password) return;
+    if (fe.name || fe.email || fe.password || fe.legal) return;
     startTransition(async () => {
       const res = await claimPassport(token, formData);
       if (res?.error) {
         if (res.error === VErr.EMAIL_INVALID) {
           setFieldErr((p) => ({ ...p, email: res.error }));
+        } else if (res.error === VErr.LEGAL_ACCEPT_REQUIRED) {
+          setFieldErr((p) => ({ ...p, legal: res.error }));
         } else {
           setError(
             validationMessage(
@@ -123,12 +127,7 @@ export function ClaimPassport({
           />
           <FieldError code={fieldErr.password} />
         </div>
-        <p className="text-[11px] text-brand-700">
-          {t.claim.accountNote}{" "}
-          <Link href="/disclaimer" target="_blank" className="underline hover:text-forest">
-            {t.landing.disclaimer}
-          </Link>
-        </p>
+        <LegalAcceptField t={t} error={fieldErr.legal} />
         {error && <p className="text-xs text-rose-600">{error}</p>}
         <button
           type="submit"

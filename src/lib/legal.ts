@@ -12,7 +12,7 @@ export const DISCLAIMER_CONTACT_EMAIL = "support@pethealthos.online";
 export const DISCLAIMER_UPDATED = "2026-06-08";
 
 export type DisclaimerSection = { heading: string; body: string[] };
-export type DisclaimerContent = {
+export type LegalDocument = {
   title: string;
   updatedLabel: string;
   intro: string;
@@ -20,6 +20,7 @@ export type DisclaimerContent = {
   contactHeading: string;
   contactBody: string;
 };
+export type DisclaimerContent = LegalDocument;
 
 const zh: DisclaimerContent = {
   title: "免责声明",

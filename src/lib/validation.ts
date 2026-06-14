@@ -59,6 +59,7 @@ export const VErr = {
   PHOTO_REQUIRED: "PHOTO_REQUIRED",
   PHOTO_TOO_BIG: "PHOTO_TOO_BIG",
   BIRTH_OR_INTAKE_REQUIRED: "BIRTH_OR_INTAKE_REQUIRED",
+  LEGAL_ACCEPT_REQUIRED: "LEGAL_ACCEPT_REQUIRED",
 } as const;
 
 export type VErrCode = (typeof VErr)[keyof typeof VErr];

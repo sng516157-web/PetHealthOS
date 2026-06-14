@@ -19,6 +19,7 @@ import {
   VErr,
 } from "@/lib/validation";
 import { trackSignUp, type AccountSegment } from "@/lib/analytics";
+import { LegalAcceptField, isLegalAccepted } from "@/components/LegalAcceptField";
 
 function vmsg(t: Dictionary, code: string | null | undefined): string {
   return validationMessage(
@@ -198,6 +199,7 @@ function RegisterTab({
     name?: string | null;
     email?: string | null;
     password?: string | null;
+    legal?: string | null;
   }>({});
   const isShop = accountType === "shop";
   const isFacility = accountType === "facility";
@@ -216,15 +218,18 @@ function RegisterTab({
       name: validateRequiredName(name),
       email: validateEmail(email),
       password: validatePassword(password),
+      legal: isLegalAccepted(formData) ? null : VErr.LEGAL_ACCEPT_REQUIRED,
     };
     setFieldErr(fe);
-    if (fe.orgName || fe.name || fe.email || fe.password) return;
+    if (fe.orgName || fe.name || fe.email || fe.password || fe.legal) return;
     start(async () => {
       const res = await register(formData);
       if (res?.error) {
         // Surface duplicate-email under the email field; others as a banner.
         if (res.error === VErr.EMAIL_TAKEN || res.error === VErr.EMAIL_INVALID) {
           setFieldErr((p) => ({ ...p, email: res.error }));
+        } else if (res.error === VErr.LEGAL_ACCEPT_REQUIRED) {
+          setFieldErr((p) => ({ ...p, legal: res.error }));
         } else {
           setError(vmsg(t, res.error));
         }
@@ -296,6 +301,7 @@ function RegisterTab({
         <FieldError code={fieldErr.password} />
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
+      <LegalAcceptField t={t} error={fieldErr.legal} />
       <button type="submit" disabled={pending} className={primaryBtn}>
         {isOrg ? <Store size={15} /> : <UserPlus size={15} />}{" "}
         {pending
@@ -306,12 +312,6 @@ function RegisterTab({
               ? t.auth.createShop
               : t.auth.register}
       </button>
-      <p className="text-center text-[11px] leading-relaxed text-muted">
-        {t.auth.agreePrefix}{" "}
-        <Link href="/disclaimer" target="_blank" className="underline hover:text-forest">
-          {t.landing.disclaimer}
-        </Link>
-      </p>
     </form>
   );
 }

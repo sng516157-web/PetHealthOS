@@ -48,9 +48,15 @@ export function LandingFooter({ t, locale = "en" }: { t: Dictionary; locale?: Lo
           </span>
         </div>
         <p className="text-xs text-muted">{t.landing.footerRights}</p>
-        <div className="flex items-center gap-4 text-xs font-medium text-slate-600">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
           <Link href="/pricing" className="hover:text-forest">
             {t.landing.nav.pricing}
+          </Link>
+          <Link href="/terms" className="hover:text-forest">
+            {t.landing.termsOfService}
+          </Link>
+          <Link href="/privacy" className="hover:text-forest">
+            {t.landing.privacyPolicy}
           </Link>
           <Link href="/disclaimer" className="hover:text-forest">
             {t.landing.disclaimer}

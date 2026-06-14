@@ -324,6 +324,8 @@ export const en = {
     tabPhone: "Phone",
     phoneSoon: "Soon",
     agreePrefix: "By creating an account you agree to our",
+    legalAcceptPrefix: "I agree to the",
+    legalAcceptJoin: "and",
     name: "Your name",
     namePlaceholder: "e.g. Jordan Lee",
     emailPlaceholder: "you@example.com",
@@ -801,6 +803,8 @@ export const en = {
     backHome: "Back to home",
     alreadyMember: "Already have an account?",
     disclaimer: "Disclaimer",
+    termsOfService: "Terms of Service",
+    privacyPolicy: "Privacy Policy",
     demoHomeAlt: "Writing a health note and AI organising it into a structured log entry",
     demoShopAlt: "Issuing a tamper-evident health passport for a pet from the shop workspace",
     demoOwnerAlt: "Scanning a passport to add a pet and asking the AI assistant about it",
@@ -949,6 +953,8 @@ export const en = {
     PHOTO_TOO_BIG: "Photo must be under 8 MB.",
     BIRTH_OR_INTAKE_REQUIRED:
       "Enter a birth date and/or an intake date (when the pet entered your care).",
+    LEGAL_ACCEPT_REQUIRED:
+      "You must accept the Terms of Service and Privacy Policy to create an account.",
   },
 };
 

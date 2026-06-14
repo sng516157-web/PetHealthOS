@@ -76,6 +76,8 @@ export const INDEXABLE_PATHS = [
   "/shop",
   "/facility",
   "/pricing",
+  "/terms",
+  "/privacy",
   "/disclaimer",
 ] as const;
 

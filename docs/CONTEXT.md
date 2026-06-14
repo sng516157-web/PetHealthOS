@@ -230,6 +230,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-15** — **Terms, Privacy & registration consent.** Why (user: legal compliance
+  for global launch). `/terms`, `/privacy` (bilingual templates in `legal-policies.ts`);
+  required checkbox on register + passport claim; `User.termsAcceptedAt` /
+  `privacyAcceptedAt`. Disclaimer unchanged at `/disclaimer`.
+- **2026-06-15** — **Aurora motion on marketing pages.** Why (user picked Aurora demo). Shared
+  `src/components/motion/aurora.tsx` (orbs, scroll reveal, hero stagger, float on GIFs); applied to
+  `/`, `/owner`, `/shop`, `/facility`, `/pricing`, `/disclaimer`, `/login`. CSS in `globals.css`;
+  respects `prefers-reduced-motion`. Copy unchanged. `/demo/*` kept as noindex motion lab.
 - **2026-06-14** — **English default locale (global audience).** Why (user: Google `site:`
   still Chinese; international GTM). Removed geo→zh SSR and client auto-switch — HK proxy
   tagged all traffic as HK. Default `en`; 中文 via toggle only. Marketing chrome hides 宠诺 when `en`.

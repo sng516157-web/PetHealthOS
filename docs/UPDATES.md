@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-15 — Terms, Privacy & signup consent.** New legal pages; you must accept Terms
+  and Privacy Policy before creating an account or claiming a passport.
+
 - **2026-06-15 — Livelier landing pages.** Soft floating backgrounds, scroll-in sections, and
   gentle hero animations on the homepage and all public marketing pages (owner, shop, facility,
   pricing, disclaimer, login).

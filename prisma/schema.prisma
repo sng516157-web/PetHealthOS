@@ -81,6 +81,8 @@ model User {
   name             String
   passwordHash     String?
   emailVerifiedAt  DateTime?
+  termsAcceptedAt  DateTime?
+  privacyAcceptedAt DateTime?
   createdAt        DateTime  @default(now())
 
   plan          String @default("FREE") // FREE (Owner's Account)
