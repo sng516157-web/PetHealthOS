@@ -19,7 +19,7 @@ export default async function DisclaimerPage() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <LandingHeader t={t} />
+      <LandingHeader t={t} locale={locale} />
 
       <main className="mx-auto max-w-3xl px-5 py-12 md:px-8">
         <Link
@@ -62,7 +62,7 @@ export default async function DisclaimerPage() {
         </article>
       </main>
 
-      <LandingFooter t={t} />
+      <LandingFooter t={t} locale={locale} />
     </div>
   );
 }

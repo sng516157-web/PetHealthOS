@@ -51,8 +51,8 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
 - **i18n:** `en`/`zh` dictionaries in `src/lib/i18n/` (`en.ts` is the source of
   truth; `zh.ts` must mirror its shape — enforced by the `Dictionary` type).
   **Language:** stored in **localStorage** (`pawsure-locale`); client mirrors to a
-  short-lived cookie for SSR. **Default by geo:** CN/HK/MO → `zh`, elsewhere → `en`
-  (`src/lib/i18n/geo.ts`, `/api/geo`). Toggle via `LocaleToggle` → `I18nProvider.setLocale`.
+  short-lived cookie for SSR. **Default: English** — users opt into 中文 via `LocaleToggle`.
+  Geo auto-switch disabled (HK proxy made every visitor look CN/HK). Search bots always get English SSR.
 - **Auth:** **unified** — one `User` account system (scrypt email+password and/or
   phone OTP, signed cookies; `src/lib/auth.ts`). A `User` with `orgId` set is a
   **shop** account (manages an `Organization`); a `User` without `orgId` is an
@@ -229,6 +229,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-14** — **English default locale (global audience).** Why (user: Google `site:`
+  still Chinese; international GTM). Removed geo→zh SSR and client auto-switch — HK proxy
+  tagged all traffic as HK. Default `en`; 中文 via toggle only. Marketing chrome hides 宠诺 when `en`.
 - **2026-06-14** — **English SSR for search bots.** Why (GSC: zh body + en meta; international
   SEO). `getLocale()` returns `en` when User-Agent matches Googlebot/Bingbot/etc.; skip
   `LocaleBootstrap` for bots; `/api/geo` returns `en` for bots. Humans unchanged (geo → zh in CN/HK/MO).

@@ -7,14 +7,13 @@ import {
   Locale,
   isLocale,
 } from "./config";
-import { localeFromHeaders } from "./geo";
 import { isSearchEngineBotHeaders } from "./bot";
 import { en, type Dictionary } from "./en";
 import { zh } from "./zh";
 
 const DICTS: Record<Locale, Dictionary> = { en, zh };
 
-/** Resolve locale: search bots → en; client preference → geo → default. */
+/** Resolve locale: search bots → en; stored preference → else English default. */
 export async function getLocale(): Promise<Locale> {
   const h = await headers();
   if (isSearchEngineBotHeaders(h)) return "en";
@@ -25,7 +24,7 @@ export async function getLocale(): Promise<Locale> {
   const legacy = store.get(LOCALE_COOKIE)?.value;
   if (isLocale(legacy)) return legacy;
 
-  return localeFromHeaders(h);
+  return DEFAULT_LOCALE;
 }
 
 export function getDictionary(locale: Locale): Dictionary {

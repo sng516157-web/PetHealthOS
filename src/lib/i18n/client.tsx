@@ -77,25 +77,13 @@ export function useI18n(): I18nValue {
   return useContext(I18nContext);
 }
 
-/** First visit: if no localStorage preference, seed from /api/geo (CN/HK/MO → zh). */
+/** First visit: persist server locale (English default). Geo auto-switch disabled — HK proxy made every visitor look CN/HK. */
 export function LocaleBootstrap({ serverLocale }: { serverLocale: Locale }) {
-  const router = useRouter();
-
   useLayoutEffect(() => {
     if (document.documentElement.dataset.seoBot === "true") return;
     if (readStoredLocale()) return;
-    void fetch("/api/geo")
-      .then((r) => r.json())
-      .then((data: { locale?: string }) => {
-        if (!isLocale(data.locale) || data.locale === serverLocale) return;
-        persistLocale(data.locale);
-        document.documentElement.lang = data.locale === "zh" ? "zh-CN" : "en";
-        router.refresh();
-      })
-      .catch(() => {
-        persistLocale(serverLocale);
-      });
-  }, [serverLocale, router]);
+    persistLocale(serverLocale);
+  }, [serverLocale]);
 
   return null;
 }

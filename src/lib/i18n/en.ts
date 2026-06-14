@@ -710,7 +710,7 @@ export const en = {
     ctaDesc: "Start free in minutes — no card required.",
     // Footer
     footerTagline: "Every pet comes with confidence.",
-    footerRights: "PawSure 宠诺. A trustworthy home for pet health.",
+    footerRights: "PawSure. A trustworthy home for pet health.",
     // Owner landing
     owner: {
       eyebrow: "For pet owners",

@@ -65,9 +65,19 @@ Use **phrase/exact match** first. Ad copy must match landing page (trust + passp
 ### Search bots always get English
 
 Googlebot, Bingbot, etc. receive **English SSR** (`lang="en"`, English body copy) even when
-the crawler IP is in CN/HK. Human visitors in China still get Chinese via geo/localStorage.
+the crawler IP is in CN/HK. Human visitors default to **English** too; 中文 is opt-in via the
+language toggle (geo auto-switch was removed — the HK proxy made every visitor look HK).
+
 Verify: `curl -A Googlebot https://pethealthos.online/ | findstr "lang="` → `lang="en"`.
-Request re-indexing in Search Console after deploy.
+
+### Google still shows Chinese? (stale index)
+
+If `site:pethealthos.online` shows Chinese titles/snippets, that is usually an **old index**
+from before English metadata + bot SSR shipped. Live HTML is already English — confirm with
+URL Inspection → **View crawled page** in Search Console.
+
+After deploy, **request indexing** for `/`, `/owner`, `/shop`, `/facility`, `/pricing`,
+`/disclaimer`. Snippets can take days to refresh; titles usually update first.
 
 ## Verify nothing broke
 

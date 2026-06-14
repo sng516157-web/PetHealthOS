@@ -18,12 +18,12 @@ export const metadata: Metadata = pageMetadata({
 export default async function OwnerLandingPage() {
   const user = await getCurrentUser();
   if (user) redirect(user.orgId ? "/app" : "/me");
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   const o = t.landing.owner;
 
   return (
     <div className="min-h-screen bg-paper">
-      <LandingHeader t={t} />
+      <LandingHeader t={t} locale={locale} />
 
       <main className="mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
         <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-forest">
@@ -91,7 +91,7 @@ export default async function OwnerLandingPage() {
         </div>
       </main>
 
-      <LandingFooter t={t} />
+      <LandingFooter t={t} locale={locale} />
     </div>
   );
 }

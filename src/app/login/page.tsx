@@ -13,7 +13,7 @@ export const metadata: Metadata = privateRobots;
 export default async function LoginPage() {
   const user = await getCurrentUser();
   if (user) redirect(user.orgId ? "/app" : "/me");
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-5 py-10">
@@ -23,7 +23,9 @@ export default async function LoginPage() {
             <PawSureMarkTile className="h-9 w-9" />
             <span className="flex items-baseline gap-1.5">
               <span className="text-sm font-extrabold text-forest">PawSure</span>
-              <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
+              {locale === "zh" && (
+                <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
+              )}
             </span>
           </Link>
           <LocaleToggle compact />

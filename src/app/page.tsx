@@ -30,12 +30,12 @@ const FEATURE_ICONS = [ShieldCheck, Sparkles, CalendarClock, Languages];
 export default async function HomePage() {
   const user = await getCurrentUser();
   if (user) redirect(user.orgId ? "/app" : "/me");
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   const l = t.landing;
 
   return (
     <div className="min-h-screen bg-paper">
-      <LandingHeader t={t} />
+      <LandingHeader t={t} locale={locale} />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -162,7 +162,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <LandingFooter t={t} />
+      <LandingFooter t={t} locale={locale} />
     </div>
   );
 }

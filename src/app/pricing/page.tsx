@@ -24,7 +24,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function PricingPage() {
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   const shop = ORG_PLANS.SHOP;
   const facilityFeatures = t.facility.planBenefits(
     FACILITY_BASE_CAPACITY,
@@ -39,7 +39,9 @@ export default async function PricingPage() {
             <PawSureMarkTile className="h-9 w-9" />
             <span className="flex items-baseline gap-1.5">
               <span className="text-sm font-extrabold text-forest">PawSure</span>
-              <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
+              {locale === "zh" && (
+                <span className="font-cn text-xs font-bold text-forest/70">宠诺</span>
+              )}
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
