@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { needsEmailVerification } from "@/lib/email-verify";
 import { signOut } from "@/app/actions";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { WorkspaceMotionShell } from "@/components/dashboard/DashboardMotion";
 import { getI18n } from "@/lib/i18n/server";
 import { privateRobots } from "@/lib/seo";
 
@@ -58,7 +59,7 @@ export default async function MeLayout({
         </div>
       </header>
       <main className="mx-auto min-w-0 max-w-[1600px] overflow-x-hidden px-5 md:px-8 lg:px-10">
-        {children}
+        <WorkspaceMotionShell orbClassName="opacity-50">{children}</WorkspaceMotionShell>
       </main>
     </div>
   );

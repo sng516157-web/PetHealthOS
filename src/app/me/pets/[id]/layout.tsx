@@ -1,10 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Lock } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnedPet, getPetEntitlements } from "@/lib/data";
-import { PetAvatar } from "@/components/ui";
-import { PetTabs } from "@/components/PetTabs";
+import { OwnerPetChrome } from "@/components/dashboard/OwnerPetChrome";
 import { petAge } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -25,46 +22,21 @@ export default async function MePetLayout({
   const readOnly = ent?.tier === "readonly";
 
   return (
-    <div className="space-y-6">
-      <Link
-        href="/me"
-        className="inline-flex items-center gap-1 text-sm text-muted hover:text-brand-600"
-      >
-        <ChevronLeft size={15} /> {t.me.backToPets}
-      </Link>
-
-      <div className="flex items-center gap-4">
-        <PetAvatar species={pet.species} name={pet.name} size="lg" photoUrl={pet.photoUrl} />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {pet.name}
-          </h1>
-          <p className="text-sm text-muted">
-            {pet.breed || (pet.species === "DOG" ? t.species.DOG : t.species.CAT)}
-            {pet.birthDate ? ` · ${petAge(pet.birthDate)}` : ""}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2 rounded-xl border border-brand-200 bg-brand-50/50 p-3 text-xs text-brand-800">
-        <Lock size={14} className="mt-0.5 shrink-0" />
-        {pet.org ? t.me.continueNote(pet.org.name) : t.me.selfPetNote}
-      </div>
-
-      {readOnly && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {t.account.petReadOnly}
-        </div>
-      )}
-
-      <PetTabs
-        petId={pet.id}
-        base={`/me/pets/${pet.id}`}
-        includeTransfer={false}
-        readOnly={readOnly}
-      />
-
-      <div>{children}</div>
-    </div>
+    <OwnerPetChrome
+      petId={pet.id}
+      name={pet.name}
+      species={pet.species}
+      breed={pet.breed}
+      photoUrl={pet.photoUrl}
+      birthDateLabel={pet.birthDate ? (petAge(pet.birthDate) ?? "") : ""}
+      orgName={pet.org?.name ?? null}
+      readOnly={readOnly}
+      backLabel={t.me.backToPets}
+      continueNote={t.me.continueNote}
+      selfPetNote={t.me.selfPetNote}
+      readOnlyBanner={t.account.petReadOnly}
+    >
+      {children}
+    </OwnerPetChrome>
   );
 }

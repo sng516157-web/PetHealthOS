@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import {
   AuroraOrbs,
   MotionPop,
@@ -10,7 +10,8 @@ import {
 
 export { MotionPop, MotionReveal, motionCardHover };
 
-export function DashboardCanvas({
+/** Ambient Aurora backdrop for authenticated workspaces (/me, /app). */
+export function WorkspaceMotionShell({
   children,
   orbClassName = "opacity-40",
 }: {
@@ -18,12 +19,66 @@ export function DashboardCanvas({
   orbClassName?: string;
 }) {
   return (
-    <div className="relative min-h-full overflow-hidden">
+    <div className="relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
       <AuroraOrbs className={orbClassName} />
-      <div className="relative mx-auto w-full max-w-[1600px] px-5 py-8 lg:px-10 lg:py-10">
-        {children}
-      </div>
+      <div className="relative">{children}</div>
     </div>
+  );
+}
+
+/** Inner page padding for dashboard-style views (orbs come from layout shell). */
+export function DashboardCanvas({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`relative py-8 lg:py-10 ${className}`}>{children}</div>
+  );
+}
+
+/** Stagger entrance for sibling sections (cards, panels, form blocks). */
+export function MotionStagger({
+  children,
+  className = "",
+  step = 80,
+  itemClassName = "",
+}: {
+  children: ReactNode;
+  className?: string;
+  step?: number;
+  itemClassName?: string;
+}) {
+  const items = Children.toArray(children).filter(Boolean);
+  return (
+    <div className={className}>
+      {items.map((child, i) => (
+        <MotionReveal
+          key={i}
+          delay={i * step}
+          className={i > 0 ? itemClassName || "mt-5" : itemClassName}
+        >
+          {child}
+        </MotionReveal>
+      ))}
+    </div>
+  );
+}
+
+/** Full-page stagger for account/billing-style stacked sections. */
+export function MotionPage({
+  children,
+  step = 100,
+}: {
+  children: ReactNode;
+  step?: number;
+}) {
+  return (
+    <MotionStagger step={step} itemClassName="mt-6">
+      {children}
+    </MotionStagger>
   );
 }
 

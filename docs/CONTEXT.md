@@ -230,6 +230,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Aurora motion across workspace pages.** Why (user: pet detail still
+  static). `WorkspaceMotionShell` on `/me` + `/app` layouts; animated pet chrome, staggered
+  panels on pet overview/chat/triage, and motion on account/billing pages.
 - **2026-06-09** — **Animated full-width dashboards.** Why (user approved `/demo/dashboard`
   previews). Owner `/me` widened to `max-w-[1600px]`; shop/facility `/app` uses Aurora motion +
   bento layout (stats, attention, pets grid, reminders sidebar; facility adds capacity bar +

@@ -58,7 +58,7 @@ export function OwnerHomeView({
   const watchCount = pets.filter((p) => p.status === "UNDER_OBSERVATION").length;
 
   return (
-    <DashboardCanvas orbClassName="opacity-50">
+    <DashboardCanvas>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <MotionPop index={0}>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white/90 px-3 py-1 text-xs font-medium text-forest">

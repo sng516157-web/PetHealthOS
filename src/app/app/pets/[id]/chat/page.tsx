@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { hasAI } from "@/lib/ai";
 import { ChatPanel } from "@/components/ChatPanel";
+import { MotionReveal } from "@/components/dashboard/DashboardMotion";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function ChatPage({
@@ -20,13 +21,17 @@ export default async function ChatPage({
   return (
     <div>
       {!hasAI() && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <strong>{t.common.demoBadge}:</strong> {t.chat.demoNote}{" "}
-          <code className="rounded bg-amber-100 px-1">AI_GATEWAY_API_KEY</code>{" "}
-          <code className="rounded bg-amber-100 px-1">.env</code> {t.chat.demoNoteEnd}
-        </div>
+        <MotionReveal>
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-soft">
+            <strong>{t.common.demoBadge}:</strong> {t.chat.demoNote}{" "}
+            <code className="rounded bg-amber-100 px-1">AI_GATEWAY_API_KEY</code>{" "}
+            <code className="rounded bg-amber-100 px-1">.env</code> {t.chat.demoNoteEnd}
+          </div>
+        </MotionReveal>
       )}
-      <ChatPanel petId={pet.id} petName={pet.name} aiEnabled={hasAI()} />
+      <MotionReveal delay={80}>
+        <ChatPanel petId={pet.id} petName={pet.name} aiEnabled={hasAI()} />
+      </MotionReveal>
     </div>
   );
 }

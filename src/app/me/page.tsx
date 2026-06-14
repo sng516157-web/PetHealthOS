@@ -32,11 +32,10 @@ export default async function MeHome({
   return (
     <>
       {showVerified && (
-        <div className="mb-6 pt-8">
+        <div className="mb-6">
           <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
         </div>
       )}
-      {!showVerified && <div className="pt-8" />}
       <OwnerHomeView
         userName={user.name}
         pets={petItems}

@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Aurora motion on all dashboard pages.** Pet profiles, chat, triage, account,
+  and billing now use the same animated layout as the home dashboard — not just the landing view.
+
 - **2026-06-09 — Livelier dashboards.** Owner, shop, and facility home screens now use full-width
   layouts (up to 1600px) with Aurora motion, stat cards, and bento grids — no more narrow column
   on desktop.

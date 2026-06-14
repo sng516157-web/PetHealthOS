@@ -6,6 +6,7 @@ import { resolveStripeCustomerId } from "@/lib/billing";
 import { getUserUsage } from "@/lib/data";
 import { ManageSubscription } from "@/components/ManageSubscription";
 import { DeleteAccountPanel } from "@/components/DeleteAccountPanel";
+import { MotionPage } from "@/components/dashboard/DashboardMotion";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OwnerAccountPage() {
@@ -22,15 +23,15 @@ export default async function OwnerAccountPage() {
     (t.plans as Record<string, string>)[usage.plan.key] ?? usage.plan.key;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+    <MotionPage>
+      <div className="py-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-forest">
           {t.account.title}
         </h1>
         <p className="mt-1 text-sm text-muted">{t.account.subtitle}</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-5">
+      <div className="rounded-2xl border border-border bg-surface/90 p-5 shadow-soft backdrop-blur">
         <dl className="space-y-4">
           <div>
             <dt className="text-xs font-medium uppercase tracking-wide text-muted">
@@ -55,7 +56,7 @@ export default async function OwnerAccountPage() {
         </dl>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-5">
+      <div className="rounded-2xl border border-border bg-surface/90 p-5 shadow-soft backdrop-blur">
         <h2 className="text-sm font-semibold text-foreground">
           {t.account.subscriptionTitle}
         </h2>
@@ -69,13 +70,13 @@ export default async function OwnerAccountPage() {
 
       <Link
         href="/me/billing"
-        className="flex items-center justify-between rounded-2xl border border-border bg-surface px-5 py-4 text-sm font-medium text-foreground transition hover:border-brand-300"
+        className="flex items-center justify-between rounded-2xl border border-border bg-surface/90 px-5 py-4 text-sm font-medium text-foreground shadow-soft transition hover:border-brand-200 hover:shadow-[0_14px_36px_rgba(36,89,76,0.12)]"
       >
         {t.account.billingLink}
         <ChevronRight size={16} className="text-muted" />
       </Link>
 
       <DeleteAccountPanel scope="owner" hasPassword={Boolean(user.passwordHash)} />
-    </div>
+    </MotionPage>
   );
 }

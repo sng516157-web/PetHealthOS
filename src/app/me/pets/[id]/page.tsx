@@ -7,6 +7,7 @@ import { RemindersPanel } from "@/components/RemindersPanel";
 import { WeightPanel } from "@/components/WeightPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { CheckinQR } from "@/components/CheckinQR";
+import { PetOverviewGrid } from "@/components/dashboard/PetOverviewMotion";
 import { safeTags } from "@/lib/ai";
 
 export default async function MePetPage({
@@ -49,37 +50,36 @@ export default async function MePetPage({
     notes: r.notes,
   }));
 
-  return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <div className="space-y-5 lg:col-span-2">
-        {canLog ? (
-          <QuickAddLog petId={pet.id} />
-        ) : null}
-        <LogTimeline petId={pet.id} logs={logs} />
-      </div>
-      <div className="space-y-5">
-        <CheckinQR petId={pet.id} activeStays={activeStays} />
-        <RemindersPanel petId={pet.id} reminders={reminders} />
-        <WeightPanel
-          petId={pet.id}
-          weights={pet.weights.map((w) => ({
-            id: w.id,
-            weightKg: w.weightKg,
-            measuredAt: w.measuredAt.toISOString(),
-            note: w.note,
-          }))}
-        />
-        <DocumentsPanel
-          petId={pet.id}
-          attachments={pet.attachments.map((a) => ({
-            id: a.id,
-            kind: a.kind,
-            label: a.label,
-            url: a.url,
-            mimeType: a.mimeType,
-          }))}
-        />
-      </div>
-    </div>
-  );
+  const main = [
+    canLog ? <QuickAddLog key="log" petId={pet.id} /> : null,
+    <LogTimeline key="timeline" petId={pet.id} logs={logs} />,
+  ].filter(Boolean);
+
+  const sidebar = [
+    <CheckinQR key="checkin" petId={pet.id} activeStays={activeStays} />,
+    <RemindersPanel key="reminders" petId={pet.id} reminders={reminders} />,
+    <WeightPanel
+      key="weight"
+      petId={pet.id}
+      weights={pet.weights.map((w) => ({
+        id: w.id,
+        weightKg: w.weightKg,
+        measuredAt: w.measuredAt.toISOString(),
+        note: w.note,
+      }))}
+    />,
+    <DocumentsPanel
+      key="docs"
+      petId={pet.id}
+      attachments={pet.attachments.map((a) => ({
+        id: a.id,
+        kind: a.kind,
+        label: a.label,
+        url: a.url,
+        mimeType: a.mimeType,
+      }))}
+    />,
+  ];
+
+  return <PetOverviewGrid main={main} sidebar={sidebar} />;
 }

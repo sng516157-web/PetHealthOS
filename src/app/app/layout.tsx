@@ -5,6 +5,7 @@ import { Clock, LogOut } from "lucide-react";
 import { Sidebar, MobileNav } from "@/components/Sidebar";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { WorkspaceMotionShell } from "@/components/dashboard/DashboardMotion";
 import { signOut } from "@/app/actions";
 import { requireActiveOrg, getOrgUnreadCount } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
@@ -72,7 +73,9 @@ export default async function AppLayout({
             {t.verify.pendingTitle} — {t.verify.pendingDesc}
           </Link>
         )}
-        {children}
+        <WorkspaceMotionShell>
+          <div className="px-5 md:px-8 lg:px-10">{children}</div>
+        </WorkspaceMotionShell>
       </main>
       <MobileNav unread={unread} />
     </div>

@@ -13,12 +13,26 @@ import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { WeightPanel } from "@/components/WeightPanel";
+import { PetOverviewGrid } from "@/components/dashboard/PetOverviewMotion";
+import { MotionStagger } from "@/components/dashboard/DashboardMotion";
 import { safeTags } from "@/lib/ai";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
 
 function serializeLogs(
-  logs: { id: string; occurredAt: Date; rawText: string; type: string; severity: string; title: string | null; summary: string | null; tags: string; imageUrl: string | null; imageMime: string | null; loggedByName: string | null }[],
+  logs: {
+    id: string;
+    occurredAt: Date;
+    rawText: string;
+    type: string;
+    severity: string;
+    title: string | null;
+    summary: string | null;
+    tags: string;
+    imageUrl: string | null;
+    imageMime: string | null;
+    loggedByName: string | null;
+  }[],
 ) {
   return logs.map((l) => ({
     id: l.id,
@@ -43,7 +57,6 @@ export default async function PetOverview({
   const { id } = await params;
   const { t } = await getI18n();
 
-  // ---- Facility (hospital/boarding): windowed, stay-gated view ----
   const org = await getActiveOrg();
   if (org && isFacilityOrg(org)) {
     const view = await getFacilityPetView(id);
@@ -51,25 +64,26 @@ export default async function PetOverview({
     const fLogs = serializeLogs(view.pet.logs);
     if (!view.active) {
       return (
-        <div className="space-y-5">
-          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+        <MotionStagger className="space-y-5" step={90} itemClassName="">
+          <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 shadow-soft">
             <Lock size={18} className="mt-0.5 shrink-0 text-slate-400" />
             <p>{t.facility.readonlyNotice}</p>
           </div>
           <LogTimeline petId={view.pet.id} logs={fLogs} canDelete={false} />
-        </div>
+        </MotionStagger>
       );
     }
     const ent = await getPetEntitlements(view.pet.id);
     const canLog = ent?.canLog ?? true;
     return (
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-5 lg:col-span-2">
-          {canLog ? <QuickAddLog petId={view.pet.id} /> : null}
-          <LogTimeline petId={view.pet.id} logs={fLogs} canDelete={false} />
-        </div>
-        <div className="space-y-5">
+      <PetOverviewGrid
+        main={[
+          canLog ? <QuickAddLog key="log" petId={view.pet.id} /> : null,
+          <LogTimeline key="timeline" petId={view.pet.id} logs={fLogs} canDelete={false} />,
+        ].filter(Boolean)}
+        sidebar={[
           <RemindersPanel
+            key="reminders"
             petId={view.pet.id}
             reminders={view.pet.reminders.map((r) => ({
               id: r.id,
@@ -79,8 +93,9 @@ export default async function PetOverview({
               completed: r.completed,
               notes: r.notes,
             }))}
-          />
+          />,
           <WeightPanel
+            key="weight"
             petId={view.pet.id}
             weights={view.pet.weights.map((w) => ({
               id: w.id,
@@ -88,8 +103,9 @@ export default async function PetOverview({
               measuredAt: w.measuredAt.toISOString(),
               note: w.note,
             }))}
-          />
+          />,
           <DocumentsPanel
+            key="docs"
             petId={view.pet.id}
             attachments={view.pet.attachments.map((a) => ({
               id: a.id,
@@ -98,9 +114,9 @@ export default async function PetOverview({
               url: a.url,
               mimeType: a.mimeType,
             }))}
-          />
-        </div>
-      </div>
+          />,
+        ]}
+      />
     );
   }
 
@@ -130,7 +146,6 @@ export default async function PetOverview({
     notes: r.notes,
   }));
 
-  // Proactive flag: serious entry in the last 14 days
   const now = Date.now();
   const flagged = pet.logs.filter(
     (l) =>
@@ -141,61 +156,64 @@ export default async function PetOverview({
   const canLog = ent?.canLog ?? true;
   const canUseAI = ent?.canUseAI ?? true;
 
-  return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <div className="space-y-5 lg:col-span-2">
-        {flagged.length > 0 && canUseAI && (
-          <Link
-            href={`/app/pets/${pet.id}/triage`}
-            className="flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 transition hover:bg-orange-100/70"
-          >
-            <AlertTriangle size={20} className="mt-0.5 shrink-0 text-orange-500" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-orange-900">
-                {t.petDetail.attentionTitle(flagged.length)}
-              </p>
-              <p className="mt-0.5 text-sm text-orange-800">
-                {t.petDetail.attentionDesc(pet.name)}
-              </p>
-              <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-orange-900 underline">
-                <Stethoscope size={14} /> {t.petDetail.goToTriage}
-              </span>
-            </div>
-          </Link>
-        )}
+  const main = [
+    flagged.length > 0 && canUseAI ? (
+      <Link
+        key="flag"
+        href={`/app/pets/${pet.id}/triage`}
+        className="flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 shadow-soft transition hover:border-orange-300 hover:bg-orange-100/70"
+      >
+        <AlertTriangle size={20} className="mt-0.5 shrink-0 text-orange-500" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-orange-900">
+            {t.petDetail.attentionTitle(flagged.length)}
+          </p>
+          <p className="mt-0.5 text-sm text-orange-800">
+            {t.petDetail.attentionDesc(pet.name)}
+          </p>
+          <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-orange-900 underline">
+            <Stethoscope size={14} /> {t.petDetail.goToTriage}
+          </span>
+        </div>
+      </Link>
+    ) : null,
+    canLog ? <QuickAddLog key="log" petId={pet.id} /> : null,
+    <LogTimeline key="timeline" petId={pet.id} logs={logs} />,
+  ].filter(Boolean);
 
-        {canLog ? <QuickAddLog petId={pet.id} /> : null}
-        <LogTimeline petId={pet.id} logs={logs} />
+  const sidebar = [
+    <RemindersPanel key="reminders" petId={pet.id} reminders={reminders} />,
+    <WeightPanel
+      key="weight"
+      petId={pet.id}
+      weights={pet.weights.map((w) => ({
+        id: w.id,
+        weightKg: w.weightKg,
+        measuredAt: w.measuredAt.toISOString(),
+        note: w.note,
+      }))}
+    />,
+    <DocumentsPanel
+      key="docs"
+      petId={pet.id}
+      attachments={pet.attachments.map((a) => ({
+        id: a.id,
+        kind: a.kind,
+        label: a.label,
+        url: a.url,
+        mimeType: a.mimeType,
+      }))}
+    />,
+    pet.notes ? (
+      <div
+        key="notes"
+        className="rounded-2xl border border-border bg-surface/90 p-4 shadow-soft backdrop-blur"
+      >
+        <h3 className="text-sm font-semibold text-foreground">{t.petDetail.profileNotes}</h3>
+        <p className="mt-2 text-sm text-slate-600">{pet.notes}</p>
       </div>
+    ) : null,
+  ].filter(Boolean);
 
-      <div className="space-y-5">
-        <RemindersPanel petId={pet.id} reminders={reminders} />
-        <WeightPanel
-          petId={pet.id}
-          weights={pet.weights.map((w) => ({
-            id: w.id,
-            weightKg: w.weightKg,
-            measuredAt: w.measuredAt.toISOString(),
-            note: w.note,
-          }))}
-        />
-        <DocumentsPanel
-          petId={pet.id}
-          attachments={pet.attachments.map((a) => ({
-            id: a.id,
-            kind: a.kind,
-            label: a.label,
-            url: a.url,
-            mimeType: a.mimeType,
-          }))}
-        />
-        {pet.notes && (
-          <div className="rounded-2xl border border-border bg-surface p-4">
-            <h3 className="text-sm font-semibold text-foreground">{t.petDetail.profileNotes}</h3>
-            <p className="mt-2 text-sm text-slate-600">{pet.notes}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return <PetOverviewGrid main={main} sidebar={sidebar} />;
 }

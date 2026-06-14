@@ -48,11 +48,10 @@ export default async function Dashboard({
     return (
       <>
         {showVerified && (
-          <div className="mb-6 pt-8">
+          <div className="mb-6">
             <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
           </div>
         )}
-        {!showVerified && <div className="pt-8" />}
         <FacilityHomeView
           orgName={org.name}
           inCare={capacity.inCare}
@@ -114,11 +113,10 @@ export default async function Dashboard({
   return (
     <>
       {showVerified && (
-        <div className="mb-6 pt-8">
+        <div className="mb-6">
           <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
         </div>
       )}
-      {!showVerified && <div className="pt-8" />}
       <ShopHomeView
         orgName={org.name}
         pets={petItems}
