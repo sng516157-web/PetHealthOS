@@ -1,14 +1,29 @@
 // Minimal transactional email via Resend's REST API — no SDK dependency, and
 // fully gated behind RESEND_API_KEY so everything works without it.
 
+export type SendEmailResult = { ok: true } | { ok: false; error: string };
+
+/** Resend expects `Name <email@domain.com>` — no surrounding JSON-style quotes. */
+export function normalizeResendFrom(raw: string | undefined): string {
+  let from = (raw ?? "PawSure <onboarding@resend.dev>").trim();
+  // Vercel/dashboard copy-paste often wraps the whole value in extra quotes.
+  if (
+    (from.startsWith('"') && from.endsWith('"')) ||
+    (from.startsWith("'") && from.endsWith("'"))
+  ) {
+    from = from.slice(1, -1).trim();
+  }
+  return from;
+}
+
 export async function sendEmail(msg: {
   to: string | string[];
   subject: string;
   text: string;
-}): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
-  const from = process.env.RESEND_FROM ?? "PawSure <onboarding@resend.dev>";
+}): Promise<SendEmailResult> {
+  const key = process.env.RESEND_API_KEY?.trim();
+  if (!key) return { ok: false, error: "RESEND_API_KEY not set" };
+  const from = normalizeResendFrom(process.env.RESEND_FROM);
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -18,9 +33,14 @@ export async function sendEmail(msg: {
       },
       body: JSON.stringify({ from, to: msg.to, subject: msg.subject, text: msg.text }),
     });
-    return res.ok;
-  } catch {
-    return false;
+    if (res.ok) return { ok: true };
+    const body = await res.text();
+    console.error("[email] Resend API error", res.status, body);
+    return { ok: false, error: `Resend ${res.status}: ${body.slice(0, 200)}` };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error("[email] Resend fetch failed", message);
+    return { ok: false, error: message };
   }
 }
 
@@ -38,5 +58,6 @@ export function adminEmails(): string[] {
 export async function notifyAdmins(subject: string, text: string): Promise<void> {
   const to = adminEmails();
   if (to.length === 0) return;
-  await sendEmail({ to, subject, text });
+  const res = await sendEmail({ to, subject, text });
+  if (!res.ok) console.error("[email] notifyAdmins failed:", res.error);
 }

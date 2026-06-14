@@ -19,10 +19,17 @@ import {
 } from "@/lib/constants";
 import { petAge, relativeTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
+import { EmailVerifiedBanner } from "@/components/EmailVerifiedBanner";
 
-export default async function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ verified?: string }>;
+}) {
   const org = await requireActiveOrg();
-  if (isFacilityOrg(org)) return <FacilityDashboard orgName={org.name} />;
+  const params = await searchParams;
+  const showVerified = params.verified === "1";
+  if (isFacilityOrg(org)) return <FacilityDashboard orgName={org.name} verified={showVerified} />;
 
   const [{ t }, pets, reminders] = await Promise.all([
     getI18n(),
@@ -45,6 +52,11 @@ export default async function Dashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 md:px-8">
+      {showVerified && (
+        <div className="mb-6">
+          <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
+        </div>
+      )}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted">{org.name}</p>
@@ -230,7 +242,13 @@ function StatCard({
 }
 
 // Hospital / boarding dashboard: pets currently in care + scan-to-admit.
-async function FacilityDashboard({ orgName }: { orgName: string }) {
+async function FacilityDashboard({
+  orgName,
+  verified = false,
+}: {
+  orgName: string;
+  verified?: boolean;
+}) {
   const { t } = await getI18n();
   const stays = await getFacilityPets("ACTIVE");
   const items = stays.map(({ pet }) => ({
@@ -254,6 +272,11 @@ async function FacilityDashboard({ orgName }: { orgName: string }) {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 md:px-8">
+      {verified && (
+        <div className="mb-6">
+          <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
+        </div>
+      )}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted">{orgName}</p>

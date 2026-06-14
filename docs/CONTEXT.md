@@ -229,10 +229,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
-- **2026-06-09** — **Email verification via Resend (magic link).** Why (user: international
-  pivot; prove email is real). New sign-ups get `emailVerifiedAt` null until they click the
-  link; `/me` and `/app` gated until verified. Existing accounts backfilled as verified.
-  Requires `RESEND_API_KEY` + verified domain in production; dev logs link to console.
+- **2026-06-09** — **Email verify confirm → Route Handler.** Why (user: magic link 500 on
+  Vercel). `cookies().set()` + `redirect()` in a Server Component page fails in production;
+  moved to `GET /verify-email/confirm` route handler. Replay of consumed link still signs in
+  if already verified; success banner on `/me?verified=1` / `/app?verified=1`.
 - **2026-06-09** — **USD pricing + geo locale + localStorage language.** Why (user: global
   defaults). All Stripe charges in **USD** (`SHOP_BILLING` $29.99/mo · $299/yr; extra slots
   $4.99/mo; owner extra pet $2.99/mo). Language stored in **localStorage** (`pawsure-locale`)

@@ -368,6 +368,7 @@ export const zh: Dictionary = {
     resend: "重新发送验证邮件",
     backHome: "返回首页",
     hint: "链接 24 小时内有效。验证完成后可关闭此页面。",
+    confirmedBanner: "邮箱已验证 —— 欢迎使用 PawSure！",
     errors: {
       TOKEN_MISSING: "链接不完整，请在下方重新获取。",
       TOKEN_INVALID: "链接无效或已过期，请在下方重新获取。",

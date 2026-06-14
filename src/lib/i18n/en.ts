@@ -374,6 +374,7 @@ export const en = {
     resend: "Resend verification email",
     backHome: "Back to home",
     hint: "The link expires in 24 hours. You can close this tab once you've verified.",
+    confirmedBanner: "Your email is verified — welcome to PawSure!",
     errors: {
       TOKEN_MISSING: "That link is incomplete. Request a new one below.",
       TOKEN_INVALID: "That link is invalid or expired. Request a new one below.",

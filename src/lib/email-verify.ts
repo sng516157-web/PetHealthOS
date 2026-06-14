@@ -84,7 +84,7 @@ export async function sendVerificationEmail(
   }
 
   const sent = await sendEmail({ to: email, subject, text: text(url) });
-  if (!sent) return { error: "SEND_FAILED" };
+  if (!sent.ok) return { error: "SEND_FAILED" };
   return { ok: true };
 }
 
@@ -99,37 +99,52 @@ export async function confirmEmailVerification(
   if (!token) return { error: "TOKEN_MISSING" };
 
   const match = await prisma.emailVerification.findFirst({
-    where: {
-      tokenHash: hashToken(token),
-      consumedAt: null,
-      expiresAt: { gt: new Date() },
-    },
+    where: { tokenHash: hashToken(token) },
     include: {
-      user: { select: { id: true, orgId: true, org: { select: { kind: true } } } },
+      user: {
+        select: {
+          id: true,
+          orgId: true,
+          emailVerifiedAt: true,
+          org: { select: { kind: true } },
+        },
+      },
     },
   });
   if (!match) return { error: "TOKEN_INVALID" };
 
-  const now = new Date();
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: match.userId },
-      data: { emailVerifiedAt: now },
-    }),
-    prisma.emailVerification.update({
-      where: { id: match.id },
-      data: { consumedAt: now },
-    }),
-  ]);
+  const accountType = accountTypeForUser(match.user);
 
-  const user = match.user;
-  let accountType: "owner" | "shop" | "facility" = "owner";
-  if (user.orgId) {
-    accountType =
-      user.org?.kind === "HOSPITAL" || user.org?.kind === "BOARDING"
-        ? "facility"
-        : "shop";
+  // Link already used but email verified — sign-in via the link again (refresh).
+  if (match.consumedAt && match.user.emailVerifiedAt) {
+    return { ok: true, userId: match.user.id, accountType };
   }
 
-  return { ok: true, userId: user.id, accountType };
+  if (match.consumedAt || match.expiresAt.getTime() <= Date.now()) {
+    return { error: "TOKEN_INVALID" };
+  }
+
+  const now = new Date();
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: match.userId },
+      data: { emailVerifiedAt: now },
+    });
+    await tx.emailVerification.update({
+      where: { id: match.id },
+      data: { consumedAt: now },
+    });
+  });
+
+  return { ok: true, userId: match.user.id, accountType };
+}
+
+function accountTypeForUser(user: {
+  orgId: string | null;
+  org: { kind: string } | null;
+}): "owner" | "shop" | "facility" {
+  if (!user.orgId) return "owner";
+  return user.org?.kind === "HOSPITAL" || user.org?.kind === "BOARDING"
+    ? "facility"
+    : "shop";
 }

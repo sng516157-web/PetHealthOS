@@ -8,6 +8,7 @@ import { OwnerScanCard } from "@/components/OwnerScanCard";
 import { PetStatus } from "@/lib/constants";
 import { petAge } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
+import { EmailVerifiedBanner } from "@/components/EmailVerifiedBanner";
 
 const STATUS_TONE: Record<string, Tone> = {
   ACTIVE: "emerald",
@@ -16,10 +17,16 @@ const STATUS_TONE: Record<string, Tone> = {
   ARCHIVED: "slate",
 };
 
-export default async function MeHome() {
+export default async function MeHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ verified?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) return null;
   const { t } = await getI18n();
+  const params = await searchParams;
+  const showVerified = params.verified === "1";
   const [pets, notifications] = await Promise.all([
     getOwnedPets(user.id),
     getUserNotifications(user.id),
@@ -27,6 +34,9 @@ export default async function MeHome() {
 
   return (
     <div className="space-y-8">
+      {showVerified && (
+        <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
