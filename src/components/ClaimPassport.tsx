@@ -14,6 +14,7 @@ import {
   validationMessage,
   VErr,
 } from "@/lib/validation";
+import { trackSignUp } from "@/lib/analytics";
 
 export function ClaimPassport({
   token,
@@ -57,6 +58,7 @@ export function ClaimPassport({
           );
         }
       } else {
+        trackSignUp("owner");
         router.push(res?.needsVerification ? "/verify-email" : "/me");
       }
     });

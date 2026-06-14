@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, Check, Info, User } from "lucide-react";
@@ -5,6 +6,14 @@ import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { OwnerStartPanel } from "@/components/OwnerStartPanel";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Pet Owner Health Records & Passport Claims",
+  description:
+    "Free pet health tracker for owners: log vaccines and weights, AI-assisted triage, reminders, and claim a digital passport from your breeder or shop.",
+  path: "/owner",
+});
 
 export default async function OwnerLandingPage() {
   const user = await getCurrentUser();

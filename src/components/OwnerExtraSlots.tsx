@@ -6,6 +6,7 @@ import { PawPrint, Plus } from "lucide-react";
 import { addOwnerPetSlot } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 export function OwnerExtraSlots({
   includedPets,
@@ -50,6 +51,11 @@ export function OwnerExtraSlots({
       const res = await addOwnerPetSlot(fd);
       setBusy(null);
       if (res?.url) {
+        trackBeginCheckout({
+          accountType: "owner",
+          product: "owner_extra_pet_slot",
+          valueUsd: extraPetPriceUsd,
+        });
         setNotice(t.billing.redirecting);
         window.location.href = res.url;
         return;

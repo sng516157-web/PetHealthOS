@@ -229,6 +229,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **P0 SEO + GA4 for Ads.** Why (user: international traction). Added
+  `metadataBase`, per-landing-page titles/descriptions/OG, `sitemap.xml`, `robots.txt`,
+  `noindex` on app/auth routes, optional GA4 (`NEXT_PUBLIC_GA_MEASUREMENT_ID`) with
+  `sign_up`, `email_verified`, `begin_checkout`, `purchase` events. Manual steps in
+  `docs/SEO_AND_ADS.md`.
 - **2026-06-09** — **Email verify confirm → Route Handler.** Why (user: magic link 500 on
   Vercel). `cookies().set()` + `redirect()` in a Server Component page fails in production;
   moved to `GET /verify-email/confirm` route handler. Replay of consumed link still signs in

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, Star } from "lucide-react";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
@@ -13,6 +14,14 @@ import {
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/en";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Plans & Pricing (USD)",
+  description:
+    "Pet owners: 1 pet free, extra pets from $2.99/mo. Breeders & shops: from $29.99/mo. Facilities: care-slot pricing for hospitals and boarding.",
+  path: "/pricing",
+});
 
 export default async function PricingPage() {
   const { t } = await getI18n();

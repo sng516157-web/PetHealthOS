@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, Check, Hospital } from "lucide-react";
@@ -9,6 +10,14 @@ import {
 } from "@/lib/plans";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Veterinary & Boarding Pet Care Records",
+  description:
+    "Hospitals and boarding facilities scan an owner QR to access time-boxed pet health history during care — no passport issuance, owner-controlled access.",
+  path: "/facility",
+});
 
 export default async function FacilityLandingPage() {
   const user = await getCurrentUser();

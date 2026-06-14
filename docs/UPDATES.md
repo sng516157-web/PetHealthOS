@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — SEO & analytics foundation.** Sitemap, search-friendly page titles, and
+  Google Analytics events (sign-up, verification, checkout) when you add a GA4 measurement ID.
+
 - **2026-06-09 — Verify your email.** New accounts must click a link sent to their inbox
   before using the app; powered by Resend for international users.
 

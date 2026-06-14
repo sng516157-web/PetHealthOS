@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -14,6 +15,14 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Lifelong Pet Health Passports",
+  description:
+    "PawSure helps breeders, pet shops, and hospitals issue trusted digital health passports — with AI logs, reminders, and seamless handoff to new pet owners.",
+  path: "/",
+});
 
 const STEP_ICONS = [User, Store, Hospital];
 const FEATURE_ICONS = [ShieldCheck, Sparkles, CalendarClock, Languages];

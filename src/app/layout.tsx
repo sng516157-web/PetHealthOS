@@ -5,6 +5,9 @@ import { getLocale } from "@/lib/i18n/server";
 import { I18nProvider, LocaleBootstrap } from "@/lib/i18n/client";
 import { getTimezone } from "@/lib/timezone/server";
 import { TimezoneProvider, TimezoneSync } from "@/lib/timezone/client";
+import { defaultSiteMetadata } from "@/lib/seo";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { AnalyticsListener } from "@/components/AnalyticsListener";
 
 // Nunito gives the warm, rounded, trustworthy feel of the PawSure brand. CJK
 // text falls back to the system stack (PingFang/YaHei) to avoid shipping a
@@ -22,11 +25,7 @@ const geistMono = Geist_Mono({
 
 // Favicon / apple-touch icons are provided via the file conventions
 // src/app/icon.png and src/app/apple-icon.png.
-export const metadata: Metadata = {
-  title: "PawSure 宠诺 · Every pet comes with confidence",
-  description:
-    "PawSure 宠诺 — trusted lifelong health passports for breeders, shops, and the families who adopt their pets.",
-};
+export const metadata: Metadata = defaultSiteMetadata;
 
 export default async function RootLayout({
   children,
@@ -41,6 +40,8 @@ export default async function RootLayout({
       className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        <GoogleAnalytics />
+        <AnalyticsListener />
         <I18nProvider initialLocale={locale}>
           <LocaleBootstrap serverLocale={locale} />
           <TimezoneProvider timeZone={timeZone}>

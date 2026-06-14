@@ -29,5 +29,6 @@ export async function GET(request: Request) {
 
   const dest = new URL(workspacePath(res.accountType), url.origin);
   dest.searchParams.set("verified", "1");
+  dest.searchParams.set("account", res.accountType);
   return NextResponse.redirect(dest);
 }

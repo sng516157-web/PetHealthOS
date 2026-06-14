@@ -18,6 +18,7 @@ import {
   validationMessage,
   VErr,
 } from "@/lib/validation";
+import { trackSignUp, type AccountSegment } from "@/lib/analytics";
 
 function vmsg(t: Dictionary, code: string | null | undefined): string {
   return validationMessage(
@@ -231,6 +232,13 @@ function RegisterTab({
         if (res.devVerifyLink) {
           console.log("[email:dev] Verification link:", res.devVerifyLink);
         }
+        const segment: AccountSegment =
+          accountType === "facility"
+            ? "facility"
+            : accountType === "shop"
+              ? "shop"
+              : "owner";
+        trackSignUp(segment);
         router.push(dest(res?.accountType, res?.needsVerification));
       }
     });

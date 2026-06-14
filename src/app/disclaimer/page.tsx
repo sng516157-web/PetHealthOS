@@ -4,10 +4,14 @@ import { ArrowLeft, ShieldAlert } from "lucide-react";
 import { getI18n } from "@/lib/i18n/server";
 import { getDisclaimer } from "@/lib/legal";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "免责声明 · Disclaimer — PawSure 宠诺",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Disclaimer & Terms",
+  description:
+    "PawSure is not a veterinary diagnosis service. Read our disclaimer on AI-assisted triage and health record limitations.",
+  path: "/disclaimer",
+});
 
 export default async function DisclaimerPage() {
   const { t, locale } = await getI18n();

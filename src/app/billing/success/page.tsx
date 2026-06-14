@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { finalizeStripeSession } from "@/lib/billing";
 import { getI18n } from "@/lib/i18n/server";
+import { BillingSuccessTracker } from "@/components/BillingSuccessTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +16,11 @@ export default async function BillingSuccessPage({
 
   let backHref = "/";
   let state: "success" | "pending" | "failed" | "missing" = "missing";
+  let scopeKind: string | undefined;
 
   if (session_id) {
     const res = await finalizeStripeSession(session_id);
+    scopeKind = res.scopeKind;
     backHref =
       res.scopeKind === "user" || res.scopeKind === "user_slot"
         ? "/me/billing"
@@ -67,6 +70,11 @@ export default async function BillingSuccessPage({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-5 text-center">
+      <BillingSuccessTracker
+        state={state}
+        scopeKind={scopeKind}
+        sessionId={session_id}
+      />
       {icon}
       <h1 className="mt-4 text-xl font-semibold text-foreground">{title}</h1>
       <p className="mt-1 max-w-sm text-sm text-muted">{desc}</p>

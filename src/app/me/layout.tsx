@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LogOut, UserCircle } from "lucide-react";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
@@ -7,6 +8,9 @@ import { needsEmailVerification } from "@/lib/email-verify";
 import { signOut } from "@/app/actions";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
+import { privateRobots } from "@/lib/seo";
+
+export const metadata: Metadata = privateRobots;
 
 export default async function MeLayout({
   children,

@@ -6,6 +6,7 @@ import { Check, CreditCard, Crown } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 type Interval = "month" | "year";
 
@@ -71,6 +72,11 @@ export function ShopBilling({
       const res = await startPlanCheckout(fd);
       setBusy(null);
       if (res?.url) {
+        trackBeginCheckout({
+          accountType: "shop",
+          product: `SHOP_${interval}`,
+          valueUsd: interval === "year" ? priceYear : priceMonth,
+        });
         setNotice(t.billing.redirecting);
         window.location.href = res.url;
         return;

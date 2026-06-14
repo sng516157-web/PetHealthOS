@@ -6,6 +6,7 @@ import { PawPrint, Plus } from "lucide-react";
 import { addFacilitySlot } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 export function FacilitySlots({
   base,
@@ -48,6 +49,11 @@ export function FacilitySlots({
       const res = await addFacilitySlot(fd);
       setBusy(null);
       if (res?.url) {
+        trackBeginCheckout({
+          accountType: "facility",
+          product: "facility_care_slot",
+          valueUsd: price,
+        });
         setNotice(t.billing.redirecting);
         window.location.href = res.url;
         return;

@@ -7,6 +7,7 @@ import { startPlanCheckout } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
 import { OWNER_EXTRA_PET_CAP } from "@/lib/plans";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 export type PlanOption = {
   key: string;
@@ -61,6 +62,11 @@ export function UpgradePanel({
       const res = await startPlanCheckout(fd);
       setBusyKey(null);
       if (res?.url) {
+        trackBeginCheckout({
+          accountType: scope === "org" ? "shop" : "owner",
+          product: planKey,
+          valueUsd: plans.find((p) => p.key === planKey)?.priceUsd,
+        });
         setNotice(t.billing.redirecting);
         window.location.href = res.url;
         return;

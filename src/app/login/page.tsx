@@ -1,10 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { getCurrentUser } from "@/lib/auth";
 import { AuthCard } from "@/components/AuthCard";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
+import { privateRobots } from "@/lib/seo";
+
+export const metadata: Metadata = privateRobots;
 
 export default async function LoginPage() {
   const user = await getCurrentUser();

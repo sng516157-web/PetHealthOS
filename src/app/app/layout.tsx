@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Clock, LogOut } from "lucide-react";
 import { Sidebar, MobileNav } from "@/components/Sidebar";
@@ -9,6 +10,9 @@ import { requireActiveOrg, getOrgUnreadCount } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { needsEmailVerification } from "@/lib/email-verify";
 import { getI18n } from "@/lib/i18n/server";
+import { privateRobots } from "@/lib/seo";
+
+export const metadata: Metadata = privateRobots;
 
 export default async function AppLayout({
   children,

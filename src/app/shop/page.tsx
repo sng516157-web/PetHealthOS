@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Store } from "lucide-react";
@@ -6,6 +7,14 @@ import { getI18n } from "@/lib/i18n/server";
 import { SHOP_BILLING, USER_PLANS } from "@/lib/plans";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Breeder & Pet Shop Health Record Software",
+  description:
+    "Log pet health over time, issue tamper-evident digital passports at sale, and build buyer trust. Multi-seat workspace from $29.99/month.",
+  path: "/shop",
+});
 
 export default async function ShopLandingPage() {
   const user = await getCurrentUser();
