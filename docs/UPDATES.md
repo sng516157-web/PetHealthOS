@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-15 — Livelier landing pages.** Soft floating backgrounds, scroll-in sections, and
+  gentle hero animations on the homepage and all public marketing pages (owner, shop, facility,
+  pricing, disclaimer, login).
+
 - **2026-06-14 — English by default on the public site.** New visitors see English; Chinese
   is still available via the language toggle. Helps Google show English snippets after re-crawl.
 

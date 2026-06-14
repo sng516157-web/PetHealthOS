@@ -75,7 +75,8 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
     `requireActiveOrg()` → redirects non-shop / logged-out users to `/shop`.
   - `/me/*` = owner workspace. `/passport/[token]` = public passport.
   - `/login` = shared auth entry; `/pricing`, `/app/billing`, `/me/billing`,
-    `/billing/success|cancelled`; `/brand` = design-system showcase.
+    `/billing/success|cancelled`; `/brand` = design-system showcase; `/demo/*` = motion
+    previews (noindex, not in sitemap).
 - **Cron:** `/api/cron/reminders` (daily, `vercel.json`), guarded by `CRON_SECRET`.
 
 ---

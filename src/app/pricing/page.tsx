@@ -14,6 +14,12 @@ import {
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/en";
+import {
+  AuroraOrbs,
+  MotionPop,
+  MotionReveal,
+  motionCardHover,
+} from "@/components/motion/aurora";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -32,8 +38,9 @@ export default async function PricingPage() {
   );
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border bg-surface/95">
+    <div className="relative min-h-screen overflow-hidden bg-paper">
+      <AuroraOrbs className="-z-10 opacity-70" />
+      <header className="relative border-b border-border bg-surface/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3 md:px-8">
           <Link href="/" className="flex items-center gap-2.5">
             <PawSureMarkTile className="h-9 w-9" />
@@ -56,101 +63,111 @@ export default async function PricingPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-5 py-12 md:px-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {t.pricing.title}
-          </h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-muted">
-            {t.pricing.subtitle}
-          </p>
-        </div>
-
-        <section className="mt-10">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            {t.pricing.forOwners}
-          </h2>
-          <div className="grid gap-4 sm:max-w-md">
-            {Object.values(USER_PLANS).map((p) => (
-              <PlanCard key={p.key} plan={p} t={t} />
-            ))}
+      <main className="relative mx-auto max-w-5xl px-5 py-12 md:px-8">
+        <MotionPop index={0}>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              {t.pricing.title}
+            </h1>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-muted">
+              {t.pricing.subtitle}
+            </p>
           </div>
-          <p className="mt-3 text-xs text-muted">{t.pricing.ownerNote}</p>
-        </section>
+        </MotionPop>
 
-        <section className="mt-12">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            {t.pricing.forShops}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <OrgBillingCard
-              t={t}
-              name={t.shopBilling.monthly}
-              price={t.pricing.usd(SHOP_BILLING.month)}
-              cadence={t.pricing.perMonth.trim()}
-              features={[
-                t.pricing.shopIncluded(shop.includedPets),
-                t.pricing.shopExtraPet(shop.extraPetPriceUsd),
-                t.pricing.issuePassports,
-                t.pricing.multiSeat,
-                t.pricing.aiAssistant,
-              ]}
-              href="/shop"
-            />
-            <OrgBillingCard
-              t={t}
-              name={t.shopBilling.yearly}
-              price={t.pricing.usd(SHOP_BILLING.year)}
-              cadence={t.shopBilling.perYear}
-              features={[
-                t.pricing.shopIncluded(shop.includedPets),
-                t.pricing.shopExtraPet(shop.extraPetPriceUsd),
-                t.pricing.issuePassports,
-                t.pricing.multiSeat,
-                t.pricing.aiAssistant,
-              ]}
-              href="/shop"
-              highlight
-            />
-          </div>
-          <p className="mt-3 text-xs text-muted">
-            {t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}
+        <MotionReveal delay={80}>
+          <section className="mt-10">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+              {t.pricing.forOwners}
+            </h2>
+            <div className="grid gap-4 sm:max-w-md">
+              {Object.values(USER_PLANS).map((p) => (
+                <PlanCard key={p.key} plan={p} t={t} />
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-muted">{t.pricing.ownerNote}</p>
+          </section>
+        </MotionReveal>
+
+        <MotionReveal delay={120}>
+          <section className="mt-12">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+              {t.pricing.forShops}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OrgBillingCard
+                t={t}
+                name={t.shopBilling.monthly}
+                price={t.pricing.usd(SHOP_BILLING.month)}
+                cadence={t.pricing.perMonth.trim()}
+                features={[
+                  t.pricing.shopIncluded(shop.includedPets),
+                  t.pricing.shopExtraPet(shop.extraPetPriceUsd),
+                  t.pricing.issuePassports,
+                  t.pricing.multiSeat,
+                  t.pricing.aiAssistant,
+                ]}
+                href="/shop"
+              />
+              <OrgBillingCard
+                t={t}
+                name={t.shopBilling.yearly}
+                price={t.pricing.usd(SHOP_BILLING.year)}
+                cadence={t.shopBilling.perYear}
+                features={[
+                  t.pricing.shopIncluded(shop.includedPets),
+                  t.pricing.shopExtraPet(shop.extraPetPriceUsd),
+                  t.pricing.issuePassports,
+                  t.pricing.multiSeat,
+                  t.pricing.aiAssistant,
+                ]}
+                href="/shop"
+                highlight
+              />
+            </div>
+            <p className="mt-3 text-xs text-muted">
+              {t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}
+            </p>
+          </section>
+        </MotionReveal>
+
+        <MotionReveal delay={160}>
+          <section className="mt-12">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+              {t.pricing.forFacilities}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OrgBillingCard
+                t={t}
+                name={t.shopBilling.monthly}
+                price={t.pricing.usd(SHOP_BILLING.month)}
+                cadence={t.pricing.perMonth.trim()}
+                features={facilityFeatures}
+                href="/facility"
+              />
+              <OrgBillingCard
+                t={t}
+                name={t.shopBilling.yearly}
+                price={t.pricing.usd(SHOP_BILLING.year)}
+                cadence={t.shopBilling.perYear}
+                features={facilityFeatures}
+                href="/facility"
+                highlight
+              />
+            </div>
+            <p className="mt-3 text-xs text-muted">
+              {t.shopBilling.facilityStarterNote(ORG_PLANS.STARTER.includedPets)}
+            </p>
+          </section>
+        </MotionReveal>
+
+        <MotionReveal delay={200}>
+          <p className="mt-10 text-center text-xs text-muted">
+            <Link href="/disclaimer" className="underline hover:text-forest">
+              {t.landing.disclaimer}
+            </Link>
           </p>
-        </section>
-
-        <section className="mt-12">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            {t.pricing.forFacilities}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <OrgBillingCard
-              t={t}
-              name={t.shopBilling.monthly}
-              price={t.pricing.usd(SHOP_BILLING.month)}
-              cadence={t.pricing.perMonth.trim()}
-              features={facilityFeatures}
-              href="/facility"
-            />
-            <OrgBillingCard
-              t={t}
-              name={t.shopBilling.yearly}
-              price={t.pricing.usd(SHOP_BILLING.year)}
-              cadence={t.shopBilling.perYear}
-              features={facilityFeatures}
-              href="/facility"
-              highlight
-            />
-          </div>
-          <p className="mt-3 text-xs text-muted">
-            {t.shopBilling.facilityStarterNote(ORG_PLANS.STARTER.includedPets)}
-          </p>
-        </section>
-
-        <p className="mt-10 text-center text-xs text-muted">
-          <Link href="/disclaimer" className="underline hover:text-forest">
-            {t.landing.disclaimer}
-          </Link>
-        </p>
+        </MotionReveal>
       </main>
     </div>
   );
@@ -177,7 +194,7 @@ function OrgBillingCard({
 }) {
   return (
     <div
-      className={`relative rounded-2xl border p-6 ${
+      className={`relative rounded-2xl border p-6 ${motionCardHover} ${
         highlight ? "border-brand-400 bg-brand-50/40 shadow-sm" : "border-border bg-surface"
       }`}
     >
@@ -218,7 +235,7 @@ function PlanCard({ plan, t }: { plan: Plan; t: Dictionary }) {
   const cap = plan.petCap ?? OWNER_EXTRA_PET_CAP;
 
   return (
-    <div className="relative rounded-2xl border border-brand-400 bg-brand-50/40 p-6 shadow-sm">
+    <div className={`relative rounded-2xl border border-brand-400 bg-brand-50/40 p-6 shadow-sm ${motionCardHover}`}>
       <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
         <Star size={11} /> {t.pricing.mostPopular}
       </span>
