@@ -25,7 +25,7 @@ export default async function MeLayout({
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-5 py-3 md:px-8">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-5 py-3 md:px-8 lg:px-10">
           <Link href="/me" className="flex min-w-0 items-center gap-2.5">
             <PawSureMarkTile className="h-9 w-9 shrink-0" />
             <div className="min-w-0 leading-tight">
@@ -57,7 +57,7 @@ export default async function MeLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto min-w-0 max-w-3xl overflow-x-hidden px-5 py-8 md:px-8">
+      <main className="mx-auto min-w-0 max-w-[1600px] overflow-x-hidden px-5 md:px-8 lg:px-10">
         {children}
       </main>
     </div>

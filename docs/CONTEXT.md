@@ -230,6 +230,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Animated full-width dashboards.** Why (user approved `/demo/dashboard`
+  previews). Owner `/me` widened to `max-w-[1600px]`; shop/facility `/app` uses Aurora motion +
+  bento layout (stats, attention, pets grid, reminders sidebar; facility adds capacity bar +
+  admit hero). Shared `src/components/dashboard/*`; `/demo/dashboard/*` kept as noindex previews.
 - **2026-06-15** — **Terms, Privacy & registration consent.** Why (user: legal compliance
   for global launch). `/terms`, `/privacy` (bilingual templates in `legal-policies.ts`);
   required checkbox on register + passport claim; `User.termsAcceptedAt` /

@@ -5,12 +5,16 @@ import { QrCode, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { PassportScanner } from "@/components/PassportScanner";
 
-export function OwnerScanCard() {
+export function OwnerScanCard({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-2xl border border-border bg-surface">
+    <div
+      className={
+        embedded ? "bg-transparent" : "rounded-2xl border border-border bg-surface"
+      }
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
