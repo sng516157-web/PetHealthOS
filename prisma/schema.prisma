@@ -76,11 +76,12 @@ model OrgSlot {
 // Auth is via email+password and/or phone (OTP); either identifier may be null.
 model User {
   id           String   @id @default(cuid())
-  email        String?  @unique
-  phone        String?  @unique
-  name         String
-  passwordHash String?
-  createdAt    DateTime @default(now())
+  email            String?   @unique
+  phone            String?   @unique
+  name             String
+  passwordHash     String?
+  emailVerifiedAt  DateTime?
+  createdAt        DateTime  @default(now())
 
   plan          String @default("FREE") // FREE (Owner's Account)
   extraPetSlots Int    @default(0)
@@ -98,12 +99,26 @@ model User {
   orgId String?
   org   Organization? @relation("OrgMembers", fields: [orgId], references: [id], onDelete: SetNull)
 
-  pets          Pet[]          @relation("OwnerUser")
-  ownerPetSlots OwnerPetSlot[]
-  claims        Transfer[]
-  notifications Notification[]
+  pets               Pet[]               @relation("OwnerUser")
+  ownerPetSlots      OwnerPetSlot[]
+  claims             Transfer[]
+  notifications      Notification[]
+  emailVerifications EmailVerification[]
 
   @@index([orgId])
+}
+
+// Magic-link tokens for email verification on register / sign-in.
+model EmailVerification {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }
 
 // A purchased extra-pet capacity slot for an owner. Linked to a pet once used;

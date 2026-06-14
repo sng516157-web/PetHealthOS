@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LogOut, UserCircle } from "lucide-react";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { getCurrentUser } from "@/lib/auth";
+import { needsEmailVerification } from "@/lib/email-verify";
 import { signOut } from "@/app/actions";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
@@ -14,6 +15,7 @@ export default async function MeLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  if (needsEmailVerification(user)) redirect("/verify-email");
   const { t } = await getI18n();
 
   return (

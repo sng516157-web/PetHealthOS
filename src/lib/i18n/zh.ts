@@ -360,6 +360,22 @@ export const zh: Dictionary = {
       TOO_MANY_ATTEMPTS: "尝试次数过多，请重新获取验证码。",
     },
   },
+  verifyEmail: {
+    title: "请查收邮件",
+    desc: (email: string) =>
+      `我们已向 ${email} 发送验证链接。点击链接即可激活账号。`,
+    sentAgain: "已重新发送 —— 请查收收件箱（以及垃圾邮件文件夹）。",
+    resend: "重新发送验证邮件",
+    backHome: "返回首页",
+    hint: "链接 24 小时内有效。验证完成后可关闭此页面。",
+    errors: {
+      TOKEN_MISSING: "链接不完整，请在下方重新获取。",
+      TOKEN_INVALID: "链接无效或已过期，请在下方重新获取。",
+      TOO_MANY_REQUESTS: "发送过于频繁，请稍后再试。",
+      EMAIL_NOT_CONFIGURED: "邮件服务尚未配置，请联系支持。",
+      SEND_FAILED: "邮件发送失败，请稍后再试。",
+    },
+  },
   me: {
     headerTagline: "我的宠物",
     greeting: (name: string) => `你好，${name}`,

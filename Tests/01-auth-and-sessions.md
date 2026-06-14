@@ -11,7 +11,7 @@ landing auth on `/owner`, `/shop`, `/facility`.
 
 | Step | Action | Expected |
 |------|--------|----------|
-| 1 | Go to `/login`, sign in as owner | Redirect to `/me` |
+| 1 | Go to `/login`, sign in as owner (verified email) | Redirect to `/me` |
 | 2 | Sign out, sign in as verified shop | Redirect to `/app` |
 | 3 | Wrong password | Error shown; no session |
 | 4 | Sign in as facility | `/app` facility dashboard |
@@ -22,9 +22,24 @@ landing auth on `/owner`, `/shop`, `/facility`.
 
 | Step | Action | Expected |
 |------|--------|----------|
-| 1 | `/owner` → create account | Owner user, no `orgId`, lands `/me` |
-| 2 | `/shop` → create shop | `Organization` + user with `orgId`; redirect `/verify` if unverified |
-| 3 | `/facility` → create facility | Org `kind` HOSPITAL or BOARDING; same verify gate |
+| 1 | `/owner` → create account | Verification email sent; lands `/verify-email` until link clicked |
+| 2 | Click link in email | `emailVerifiedAt` set; redirect `/me` |
+| 3 | `/shop` → create shop | Same email gate, then `/verify` KYC if shop unverified |
+| 4 | `/facility` → create facility | Org `kind` HOSPITAL or BOARDING; email verify then KYC gate |
+
+**Dev without Resend:** magic link logged to server console; resend button shows prompt with link.
+
+---
+
+## Email verification (Resend)
+
+| Step | Action | Expected |
+|------|--------|----------|
+| 1 | Register new account | Redirect `/verify-email`; `/me` blocked |
+| 2 | Resend | Rate-limited; new link emailed |
+| 3 | Expired/invalid link | Error on page; can resend |
+| 4 | Sign in unverified | Redirect `/verify-email` |
+| 5 | Existing accounts (pre-migration) | Already verified (`emailVerifiedAt` backfilled) |
 
 ---
 

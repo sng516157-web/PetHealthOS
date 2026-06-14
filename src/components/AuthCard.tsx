@@ -39,7 +39,8 @@ const PHONE_AUTH_ENABLED: boolean = false;
 type Tab = "signin" | "register" | "phone";
 type AccountType = "owner" | "shop" | "facility";
 
-function dest(type?: string) {
+function dest(type?: string, needsVerification?: boolean) {
+  if (needsVerification) return "/verify-email";
   return type === "shop" || type === "facility" ? "/app" : "/me";
 }
 
@@ -127,7 +128,7 @@ function SignInTab({ t }: { t: Dictionary }) {
         return;
       }
       if (res?.error) setError(vmsg(t, res.error));
-      else router.push(dest(res?.accountType));
+      else router.push(dest(res?.accountType, res && "needsVerification" in res && res.needsVerification));
     });
   }
 
@@ -227,7 +228,10 @@ function RegisterTab({
           setError(vmsg(t, res.error));
         }
       } else {
-        router.push(dest(res?.accountType));
+        if (res.devVerifyLink) {
+          console.log("[email:dev] Verification link:", res.devVerifyLink);
+        }
+        router.push(dest(res?.accountType, res?.needsVerification));
       }
     });
   }

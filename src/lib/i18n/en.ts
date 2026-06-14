@@ -366,6 +366,22 @@ export const en = {
       TOO_MANY_ATTEMPTS: "Too many attempts. Request a new code.",
     },
   },
+  verifyEmail: {
+    title: "Check your email",
+    desc: (email: string) =>
+      `We sent a verification link to ${email}. Click it to activate your account.`,
+    sentAgain: "We sent a fresh link — check your inbox (and spam folder).",
+    resend: "Resend verification email",
+    backHome: "Back to home",
+    hint: "The link expires in 24 hours. You can close this tab once you've verified.",
+    errors: {
+      TOKEN_MISSING: "That link is incomplete. Request a new one below.",
+      TOKEN_INVALID: "That link is invalid or expired. Request a new one below.",
+      TOO_MANY_REQUESTS: "Too many emails sent. Wait a bit, then try again.",
+      EMAIL_NOT_CONFIGURED: "Email delivery isn't configured yet. Contact support.",
+      SEND_FAILED: "Couldn't send the email. Try again in a moment.",
+    },
+  },
   me: {
     headerTagline: "My pets",
     greeting: (name: string) => `Hi, ${name}`,

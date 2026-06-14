@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Verify your email.** New accounts must click a link sent to their inbox
+  before using the app; powered by Resend for international users.
+
 - **2026-06-09 — Pricing in USD.** All plans and Stripe checkout now use US dollars
   ($29.99/mo or $299/yr shop plan; $4.99/mo extra slots; $2.99/mo owner extra pets).
 

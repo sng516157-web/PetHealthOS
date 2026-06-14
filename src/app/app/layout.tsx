@@ -6,6 +6,8 @@ import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { signOut } from "@/app/actions";
 import { requireActiveOrg, getOrgUnreadCount } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
+import { needsEmailVerification } from "@/lib/email-verify";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function AppLayout({
@@ -13,6 +15,9 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
+  if (user && needsEmailVerification(user)) redirect("/verify-email");
+
   // Gate the whole shop workspace: requireActiveOrg() redirects anyone who is
   // not signed in to a shop account (owners / logged-out) to the /shop landing.
   const org = await requireActiveOrg();

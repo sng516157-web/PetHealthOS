@@ -57,7 +57,7 @@ export function ClaimPassport({
           );
         }
       } else {
-        router.push("/me");
+        router.push(res?.needsVerification ? "/verify-email" : "/me");
       }
     });
   }

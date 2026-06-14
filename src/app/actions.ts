@@ -19,6 +19,10 @@ import {
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
 import { notifyAdmins } from "@/lib/email";
 import {
+  sendVerificationEmail,
+  needsEmailVerification,
+} from "@/lib/email-verify";
+import {
   structureLogEntry,
   generateTriage,
   heuristicStructure,
@@ -678,6 +682,15 @@ export async function claimPassport(token: string, formData: FormData) {
     });
   }
 
+  const locale = await getLocale();
+  if (needsEmailVerification(user)) {
+    await sendVerificationEmail(
+      user.id,
+      email,
+      isLocale(locale) ? locale : "en",
+    );
+  }
+
   await prisma.transfer.update({
     where: { id: transfer.id },
     data: { claimedAt: new Date(), claimedByName: name, claimedByUserId: user.id },
@@ -710,7 +723,11 @@ export async function claimPassport(token: string, formData: FormData) {
   revalidatePath(`/app/pets/${transfer.petId}/transfer`);
   revalidatePath("/app/pets");
   revalidatePath("/app");
-  return { ok: true, claimedByName: name };
+  return {
+    ok: true,
+    claimedByName: name,
+    needsVerification: needsEmailVerification(user),
+  };
 }
 
 // Claim a passport as the already-signed-in owner — used by the in-dashboard
@@ -772,7 +789,26 @@ export async function signIn(formData: FormData) {
   }
 
   await setSession(user.id, { single: isOwner });
-  return { ok: true, accountType: isOwner ? ("owner" as const) : ("shop" as const) };
+  const accountType = isOwner ? ("owner" as const) : ("shop" as const);
+  if (needsEmailVerification(user)) {
+    return { ok: true, accountType, needsVerification: true as const };
+  }
+  return { ok: true, accountType };
+}
+
+export async function resendVerificationEmail() {
+  const user = await getCurrentUser();
+  if (!user?.email) return { error: "NOT_SIGNED_IN" };
+  if (!needsEmailVerification(user)) return { ok: true as const };
+
+  const locale = await getLocale();
+  const res = await sendVerificationEmail(
+    user.id,
+    user.email,
+    isLocale(locale) ? locale : "en",
+  );
+  if ("error" in res) return { error: res.error };
+  return { ok: true as const, devLink: "devLink" in res ? res.devLink : undefined };
 }
 
 export async function signOut() {
@@ -927,14 +963,38 @@ export async function register(formData: FormData) {
       data: { email, name, passwordHash: hashPassword(password), orgId: org.id },
     });
     await setSession(user.id, { single: false });
-    return { ok: true, accountType };
+    const locale = await getLocale();
+    const sent = await sendVerificationEmail(
+      user.id,
+      email,
+      isLocale(locale) ? locale : "en",
+    );
+    return {
+      ok: true,
+      accountType,
+      needsVerification: true as const,
+      devVerifyLink: "devLink" in sent ? sent.devLink : undefined,
+      verifyError: "error" in sent ? sent.error : undefined,
+    };
   }
 
   const user = await prisma.user.create({
     data: { email, name, passwordHash: hashPassword(password) },
   });
   await setSession(user.id, { single: true });
-  return { ok: true, accountType: "owner" as const };
+  const locale = await getLocale();
+  const sent = await sendVerificationEmail(
+    user.id,
+    email,
+    isLocale(locale) ? locale : "en",
+  );
+  return {
+    ok: true,
+    accountType: "owner" as const,
+    needsVerification: true as const,
+    devVerifyLink: "devLink" in sent ? sent.devLink : undefined,
+    verifyError: "error" in sent ? sent.error : undefined,
+  };
 }
 
 // ---- Facility check-in / takeback (hospital & boarding) ----
