@@ -29,11 +29,11 @@ export default async function MePetLayout({
       breed={pet.breed}
       photoUrl={pet.photoUrl}
       birthDateLabel={pet.birthDate ? (petAge(pet.birthDate) ?? "") : ""}
-      orgName={pet.org?.name ?? null}
+      ownershipNote={
+        pet.org ? t.me.continueNote(pet.org.name) : t.me.selfPetNote
+      }
       readOnly={readOnly}
       backLabel={t.me.backToPets}
-      continueNote={t.me.continueNote}
-      selfPetNote={t.me.selfPetNote}
       readOnlyBanner={t.account.petReadOnly}
     >
       {children}

@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Fix: pet profile page crash.** Opening a pet from the owner dashboard no longer
+  throws a server error.
+
 - **2026-06-09 — Aurora motion on all dashboard pages.** Pet profiles, chat, triage, account,
   and billing now use the same animated layout as the home dashboard — not just the landing view.
 

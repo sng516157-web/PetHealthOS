@@ -17,11 +17,9 @@ export function OwnerPetChrome({
   breed,
   birthDateLabel,
   photoUrl,
-  orgName,
+  ownershipNote,
   readOnly,
   backLabel,
-  continueNote,
-  selfPetNote,
   readOnlyBanner,
   children,
 }: {
@@ -31,11 +29,9 @@ export function OwnerPetChrome({
   breed: string | null;
   birthDateLabel: string;
   photoUrl: string | null;
-  orgName: string | null;
+  ownershipNote: string;
   readOnly: boolean;
   backLabel: string;
-  continueNote: (org: string) => string;
-  selfPetNote: string;
   readOnlyBanner: string;
   children: React.ReactNode;
 }) {
@@ -67,7 +63,7 @@ export function OwnerPetChrome({
           className={`flex items-start gap-2 rounded-2xl border border-brand-200 bg-brand-50/50 p-4 text-xs text-brand-800 shadow-soft ${motionCardHover}`}
         >
           <Lock size={14} className="mt-0.5 shrink-0" />
-          {orgName ? continueNote(orgName) : selfPetNote}
+          {ownershipNote}
         </div>
       </MotionReveal>
 

@@ -230,6 +230,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Fix owner pet page crash.** Why (prod error on `/me/pets/[id]`). i18n
+  `continueNote` is a function — can't pass it into client `OwnerPetChrome`; resolve the string
+  on the server instead.
 - **2026-06-09** — **Aurora motion across workspace pages.** Why (user: pet detail still
   static). `WorkspaceMotionShell` on `/me` + `/app` layouts; animated pet chrome, staggered
   panels on pet overview/chat/triage, and motion on account/billing pages.
