@@ -1,52 +1,37 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Info, User } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
-import { getI18n } from "@/lib/i18n/server";
-import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
-import { OwnerStartPanel } from "@/components/OwnerStartPanel";
+import { messagingDemo } from "@/lib/demo/messaging-copy";
+import { MessagingDemoChrome } from "@/components/demo/messaging/MessagingDemoChrome";
 import {
   SectionHeading,
   BulletList,
   PricingPreview,
-} from "@/components/landing/LandingBlocks";
-import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
+} from "@/components/demo/messaging/LandingBlocks";
+import { SamplePetPassport } from "@/components/demo/messaging/SamplePetPassport";
+import { OwnerStartPanel } from "@/components/OwnerStartPanel";
 import {
   AuroraOrbs,
   MotionPop,
   MotionReveal,
   motionCardHover,
 } from "@/components/motion/aurora";
-import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Pet Owner Health Records & Passport Claims",
-  description:
-    "Free digital health passport for your pet. Track vaccines, weights, and reminders — or scan a passport from your breeder or shop.",
-  path: "/owner",
-});
-
-export default async function OwnerLandingPage() {
-  const user = await getCurrentUser();
-  if (user) redirect(user.orgId ? "/app" : "/me");
-  const { locale, t } = await getI18n();
-  const o = t.landing.owner;
-  const l = t.landing;
+export default function MessagingOwnerDemo() {
+  const o = messagingDemo.owner;
 
   return (
-    <div className="min-h-screen bg-paper">
-      <LandingHeader t={t} locale={locale} />
+    <>
+      <MessagingDemoChrome active="/demo/messaging/owner" />
 
       <main className="relative overflow-hidden">
         <AuroraOrbs subtle className="-z-10" />
         <div className="relative mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
           <MotionPop index={0}>
             <Link
-              href="/"
+              href="/demo/messaging"
               className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-forest"
             >
-              <ArrowLeft size={14} /> {l.backHome}
+              <ArrowLeft size={14} /> Back to overview
             </Link>
           </MotionPop>
 
@@ -68,13 +53,13 @@ export default async function OwnerLandingPage() {
               <MotionPop index={4}>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
-                    href="#start"
+                    href="/owner"
                     className="inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
                   >
                     {o.heroPrimary} <ArrowRight size={15} />
                   </Link>
                   <Link
-                    href="#start"
+                    href="/owner#scan"
                     className="inline-flex items-center gap-2 rounded-2xl border border-border bg-white px-5 py-2.5 text-sm font-semibold text-forest transition hover:border-brand-300"
                   >
                     {o.heroSecondary}
@@ -83,7 +68,11 @@ export default async function OwnerLandingPage() {
               </MotionPop>
 
               <MotionReveal delay={80} className="mt-10">
-                <SectionHeading align="left" eyebrow={o.trackEyebrow} title={o.trackTitle} />
+                <SectionHeading
+                  align="left"
+                  eyebrow={o.trackEyebrow}
+                  title={o.trackTitle}
+                />
                 <div
                   className={`mt-4 rounded-3xl border border-border bg-surface p-6 shadow-soft ${motionCardHover}`}
                 >
@@ -109,7 +98,11 @@ export default async function OwnerLandingPage() {
               </MotionReveal>
 
               <MotionReveal delay={160} className="mt-10">
-                <SectionHeading align="left" eyebrow={o.controlEyebrow} title={o.controlTitle} />
+                <SectionHeading
+                  align="left"
+                  eyebrow={o.controlEyebrow}
+                  title={o.controlTitle}
+                />
                 <ul className="mt-4 space-y-2">
                   {o.controlBullets.map((b) => (
                     <li key={b} className="flex items-start gap-2 text-sm text-ink/75">
@@ -133,15 +126,13 @@ export default async function OwnerLandingPage() {
                   title={o.pricingTitle}
                   desc={o.pricingDesc}
                   cta={o.pricingCta}
-                  href="/owner#start"
-                  seeFullPricing={l.seeFullPricing}
+                  href="/owner"
                 />
               </MotionReveal>
             </div>
 
             <div className="space-y-8">
               <MotionReveal delay={100}>
-                <div id="start">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
                   {o.startEyebrow}
                 </span>
@@ -149,20 +140,19 @@ export default async function OwnerLandingPage() {
                   <OwnerStartPanel />
                 </div>
                 <p className="mt-4 text-center text-xs text-muted">
-                  {l.alreadyMember}{" "}
+                  Already have an account?{" "}
                   <Link href="/login" className="font-semibold text-brand-700 hover:underline">
-                    {l.nav.signIn}
+                    Sign in
                   </Link>
                 </p>
-                </div>
               </MotionReveal>
 
               <MotionReveal delay={180}>
                 <SectionHeading
                   align="left"
-                  eyebrow={l.sampleEyebrow}
-                  title={l.sampleTitle}
-                  subtitle={l.samplePassportOwnerSubtitle}
+                  eyebrow={messagingDemo.home.sampleEyebrow}
+                  title="Example passport after scan"
+                  subtitle="What a new owner might inherit from a breeder or shop."
                 />
                 <div className="mt-4">
                   <SamplePetPassport compact />
@@ -172,8 +162,6 @@ export default async function OwnerLandingPage() {
           </div>
         </div>
       </main>
-
-      <LandingFooter t={t} locale={locale} />
-    </div>
+    </>
   );
 }

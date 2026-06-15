@@ -1,0 +1,312 @@
+/** Copy for the /demo/messaging preview — not wired to production i18n yet. */
+
+export const messagingDemo = {
+  banner: "Messaging preview — not live. Production pages unchanged.",
+  nav: {
+    overview: "Overview",
+    owner: "Owners",
+    shop: "Shops",
+    facility: "Facilities",
+    production: "View live site",
+  },
+  home: {
+    heroEyebrow: "Digital pet health passport",
+    heroTitle: "Every pet should come with a health record people can trust.",
+    heroSubtitle:
+      "PawSure gives each pet a lifelong digital health passport, so breeders, shops, owners, clinics, boarding facilities, and other care providers can share care history without scattered paper, screenshots, or guesswork.",
+    heroPrimary: "Choose your role",
+    heroSecondary: "View sample pet passport",
+    trustBullets: [
+      "Owner-controlled access",
+      "Clear care history",
+      "Tamper-evident handover",
+    ],
+    howEyebrow: "How PawSure works",
+    howTitle: "One passport, shared by everyone who cares for the pet",
+    steps: [
+      {
+        title: "Record care",
+        desc: "Shops, owners, and facilities add records, photos, documents, weights, reminders, and notes.",
+      },
+      {
+        title: "Share by passport",
+        desc: "A pet's history can be shared through a QR code or owner-approved access.",
+      },
+      {
+        title: "Continue the history",
+        desc: "The record follows the pet from shop to owner to future care providers.",
+      },
+    ],
+    sampleEyebrow: "See it concretely",
+    sampleTitle: "Sample pet passport",
+    sampleDesc:
+      "This is a mock profile — it shows what a real PawSure passport looks like after a shop handover and owner updates.",
+    chooseEyebrow: "Choose your role",
+    chooseTitle: "Who are you signing up as?",
+    chooseSubtitle:
+      "PawSure is one shared health passport with different workspaces for owners, shops, and care providers.",
+    ownerCardTitle: "Pet owners",
+    ownerCardDesc:
+      "Keep your pet's records, reminders, weights, photos, symptoms, and care history in one place.",
+    ownerCardCta: "Create free owner account",
+    shopCardTitle: "Breeders, shops, and shelters",
+    shopCardDesc:
+      "Build trust with buyers by handing over a digital health passport backed by real care history.",
+    shopCardCta: "Create shop workspace",
+    facilityCardTitle: "Clinics, boarding, groomers & carers",
+    facilityCardDesc:
+      "Check pets in, view owner-approved history, log care, and hand back a clear report.",
+    facilityCardCta: "Create facility workspace",
+    trustEyebrow: "Trust & safety",
+    trustTitle: "Built for better care conversations",
+    trustItems: [
+      {
+        title: "Owner-controlled access",
+        desc: "Owners decide who can see their pet's record and when access ends.",
+      },
+      {
+        title: "Clear care history",
+        desc: "Notes, weights, documents, and handovers stay in one timeline — not lost in chats.",
+      },
+      {
+        title: "Tamper-evident handover",
+        desc: "Shop-issued passports freeze history at handover with a record seal buyers can verify.",
+      },
+      {
+        title: "Not a replacement for a vet",
+        desc: "PawSure supports care conversations — it does not diagnose or prescribe.",
+      },
+      {
+        title: "Privacy-conscious",
+        desc: "Facilities only see information the owner chooses to share during a stay.",
+      },
+      {
+        title: "AI is optional",
+        desc: "AI helpers are informational only and should not replace professional veterinary advice.",
+      },
+    ],
+  },
+  owner: {
+    eyebrow: "For pet owners",
+    title: "Your pet's records, reminders, and health history in one place.",
+    subtitle:
+      "Create a free health record for your pet, or scan a PawSure passport from your breeder, shop, or shelter to inherit its existing care history.",
+    heroPrimary: "Create free owner account",
+    heroSecondary: "Scan a pet passport",
+    startEyebrow: "Two ways to start",
+    trackEyebrow: "What you can track",
+    trackTitle: "Everything important, in one timeline",
+    trackItems: [
+      "Vaccines, medication, and deworming",
+      "Weight trends and growth",
+      "Photos, symptoms, and daily notes",
+      "Reminders for vaccines, medication, and checkups",
+      "Documents like certificates and lab results",
+      "A long-term health timeline you can revisit anytime",
+    ],
+    shareEyebrow: "When your pet needs care",
+    shareTitle: "Share records with clinics, boarding, groomers, or carers",
+    shareDesc:
+      "Show a check-in QR when your pet stays somewhere new. The provider sees the history you approve, logs care during the stay, and hands back a clear report.",
+    shareBullets: [
+      "You control who has access",
+      "Access ends when you take your pet back",
+      "Past stay records stay visible to you",
+    ],
+    controlEyebrow: "Your data stays under your control",
+    controlTitle: "Your pet's passport belongs to you",
+    controlBullets: [
+      "Only you decide who can view or add to the record",
+      "Facilities see what you share during an active stay",
+      "Export and review history whenever you need it",
+    ],
+    aiNote:
+      "Optional AI helper: ask questions based on your pet's records, but always consult a vet for medical decisions.",
+    pricingEyebrow: "Pricing",
+    pricingTitle: "Start free",
+    pricingDesc:
+      "Free for your first pet. Upgrade only when you need more pet slots or advanced features.",
+    pricingCta: "Create free owner account",
+  },
+  shop: {
+    eyebrow: "For breeders, shops & shelters",
+    title: "Give every pet you sell or rehome a trusted digital health passport.",
+    subtitle:
+      "PawSure helps breeders, shops, and shelters record care before handover, then transfer a clear health history to the new owner with one passport QR.",
+    heroPrimary: "Create shop workspace",
+    heroSecondary: "View sample passport",
+    whyEyebrow: "Why shops and breeders use PawSure",
+    whyTitle: "Prove care — don't just claim it",
+    whyItems: [
+      "Build buyer trust before purchase",
+      "Keep vaccines, weights, and documents organized",
+      "Reduce repeated questions after handover",
+      "Make the handover feel more professional",
+      "Give every pet a better start with their new owner",
+    ],
+    recordEyebrow: "What you can record",
+    recordTitle: "A complete pre-handover history",
+    recordItems: [
+      "Weights",
+      "Vaccines",
+      "Deworming",
+      "Medication",
+      "Photos",
+      "Lineage",
+      "Certificates",
+      "Lab results",
+      "Daily care notes",
+      "Handover notes",
+    ],
+    handoverEyebrow: "How passport handover works",
+    handoverTitle: "From your workspace to the owner's phone",
+    handoverSteps: [
+      "Create a pet profile in your shop workspace",
+      "Add records, photos, and documents over time",
+      "Generate a passport QR when the pet is ready to go",
+      "The buyer scans and claims the pet",
+      "The owner continues the same record for life",
+    ],
+    diffTitle: "Owner vs Shop workspace",
+    diffSubtitle:
+      "A shop account is for managing many pets before handover and issuing passports. An owner account is for keeping one pet's record after adoption.",
+    pricingEyebrow: "Pricing",
+    pricingTitle: "Start free",
+    pricingDesc:
+      "Start free with up to 5 pets. Upgrade when you need more capacity, team features, or higher-volume passport issuing.",
+    pricingCta: "Create shop workspace",
+    loginTitle: "Create shop workspace",
+  },
+  facility: {
+    eyebrow: "For clinics, boarding & care providers",
+    title: "Check pets in and out with a clear care record.",
+    subtitle:
+      "PawSure helps care providers scan an owner-approved pet passport, view relevant history, log care during the stay, and hand back a transparent report when the pet goes home.",
+    heroPrimary: "Create facility workspace",
+    heroSecondary: "View sample stay report",
+    builtEyebrow: "Built for care providers",
+    builtTitle: "For anyone who looks after pets temporarily",
+    builtItems: [
+      "Vet clinics",
+      "Boarding facilities",
+      "Pet hotels",
+      "Groomers",
+      "Daycare",
+      "Sitters",
+    ],
+    accessEyebrow: "How facility access works",
+    accessTitle: "Owner-approved, time-boxed access",
+    accessSteps: [
+      "Owner shares their pet by QR or invite",
+      "Your facility gets approved access for the stay",
+      "Staff view relevant pet history",
+      "Staff log notes, photos, medication, weight, and care updates",
+      "Owner receives a stay/care report",
+      "Access ends after checkout",
+    ],
+    logEyebrow: "What your team can log",
+    logTitle: "Clear notes during the stay",
+    logItems: [
+      "Feeding and appetite notes",
+      "Medication given on site",
+      "Weight checks",
+      "Photos for owner reassurance",
+      "Behavior and comfort observations",
+      "Staff notes tagged with your facility name",
+    ],
+    trustEyebrow: "Why owners trust it",
+    trustTitle: "Transparency, not surprises",
+    trustItems: [
+      "Owners see exactly what was logged during the stay",
+      "Temporary access — no hidden ongoing access after take-back",
+      "Fewer misunderstandings at handover",
+      "Better context before your team handles the pet",
+    ],
+    sampleEyebrow: "Sample stay report",
+    sampleTitle: "What owners receive after checkout",
+    sampleDesc:
+      "A mock report showing how feeding, medication, and staff notes appear after a boarding stay.",
+    pricingEyebrow: "Pricing",
+    pricingTitle: "Start free",
+    pricingDesc:
+      "Start free with up to 5 pets in care. Upgrade when your facility needs more capacity or team features.",
+    pricingCta: "Create facility workspace",
+    loginTitle: "Create facility workspace",
+  },
+  samplePassport: {
+    orgName: "Sunrise Cattery",
+    issuedOn: "May 12, 2026",
+    certNo: "PS-7K2M-9FQ1",
+    seal: "A3F9-8B2C-1D4E",
+    entryCount: 12,
+    spanLabel: "4 months",
+    transferNote:
+      "First vaccines complete. Dewormed on schedule. Calm temperament, good appetite — ready for handover.",
+    guaranteeDaysRemaining: 18,
+    guaranteeTerms: "Covers congenital issues reported within 14 days of handover.",
+    vetCheckedOn: "May 11, 2026",
+    vetCheckNote: "Healthy puppy exam — no concerns noted.",
+    pet: {
+      name: "Mochi",
+      species: "DOG" as const,
+      breed: "Toy Poodle",
+      sex: "FEMALE" as const,
+      age: "8 months",
+      weightKg: "3.2",
+      color: "Apricot",
+      microchip: "—",
+      intakeAt: "Feb 1, 2026",
+      dam: "Luna",
+    },
+    attachments: [
+      { kind: "VACCINE_CERT" as const, label: "DHPP round 2" },
+      { kind: "PEDIGREE" as const, label: "Registration certificate" },
+    ],
+    reminders: [
+      { category: "VACCINE" as const, title: "Booster due", dueAt: "Jul 15, 2026" },
+      { category: "DEWORMING" as const, title: "Next deworming", dueAt: "Aug 1, 2026" },
+    ],
+    logs: [
+      {
+        type: "VET_VISIT" as const,
+        title: "Pre-handover vet check",
+        severity: "NONE" as const,
+        text: "Healthy puppy exam. Weight 3.2 kg. Cleared for handover.",
+        occurredAt: "May 11, 2026 · 10:30",
+        loggedAgo: "2 days ago",
+      },
+      {
+        type: "MEDICATION" as const,
+        title: "Deworming",
+        severity: "NONE" as const,
+        text: "Routine deworming dose given per schedule.",
+        occurredAt: "May 5, 2026 · 09:00",
+        loggedAgo: "1 week ago",
+      },
+      {
+        type: "MILESTONE" as const,
+        title: "Weight check",
+        severity: "NONE" as const,
+        text: "3.2 kg — steady gain, good appetite.",
+        occurredAt: "May 1, 2026 · 14:00",
+        loggedAgo: "11 days ago",
+      },
+    ],
+  },
+  sampleStay: {
+    petName: "Mochi",
+    facility: "Green Paws Boarding",
+    checkIn: "Jun 1, 2026",
+    checkOut: "Jun 4, 2026",
+    feeding: "Breakfast and dinner on schedule. Ate full portions day 2–4.",
+    medication: "Apoquel 5.4mg — given with dinner on Jun 2 & 3.",
+    weight: "3.1 kg on check-out (stable)",
+    photos: 3,
+    staffNotes:
+      "Playful in yard, slept well overnight. No signs of distress. Owner pickup smooth.",
+    summary:
+      "Four-day stay completed without issues. Medication given as directed. Clear handover summary for the owner.",
+  },
+};
+
+export type MessagingDemoCopy = typeof messagingDemo;

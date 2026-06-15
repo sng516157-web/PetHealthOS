@@ -1,64 +1,49 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Store } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
-import { getI18n } from "@/lib/i18n/server";
+import { messagingDemo } from "@/lib/demo/messaging-copy";
 import { SHOP_BILLING, USER_PLANS } from "@/lib/plans";
 import { formatUsd } from "@/lib/money";
-import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
-import { AuthCard } from "@/components/AuthCard";
+import { MessagingDemoChrome } from "@/components/demo/messaging/MessagingDemoChrome";
 import {
   SectionHeading,
   PricingPreview,
-} from "@/components/landing/LandingBlocks";
-import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
+} from "@/components/demo/messaging/LandingBlocks";
+import { SamplePetPassport } from "@/components/demo/messaging/SamplePetPassport";
+import { AuthCard } from "@/components/AuthCard";
 import {
   AuroraOrbs,
   MotionPop,
   MotionReveal,
   motionCardHover,
 } from "@/components/motion/aurora";
-import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Breeder & Pet Shop Health Record Software",
-  description:
-    "Give every pet a trusted digital health passport. Record care before handover and transfer history to new owners with one QR.",
-  path: "/shop",
-});
-
-export default async function ShopLandingPage() {
-  const user = await getCurrentUser();
-  if (user) redirect(user.orgId ? "/app" : "/me");
-  const { locale, t } = await getI18n();
-  const s = t.landing.shop;
-  const l = t.landing;
+export default function MessagingShopDemo() {
+  const s = messagingDemo.shop;
 
   const diffRows = [
-    s.diffPets,
-    s.diffPassport,
-    s.diffLineage,
+    { label: "Pets", owner: "1 free, up to 10", shop: "Many — plan based" },
+    { label: "Issue passports", owner: "No", shop: "Yes (once verified)" },
+    { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
     {
-      label: s.diffPrice.label,
-      owner: s.diffPrice.owner(USER_PLANS.FREE.extraPetPriceUsd),
-      shop: s.diffPrice.shop(SHOP_BILLING.month, SHOP_BILLING.year),
+      label: "Price",
+      owner: `Free + ${formatUsd(USER_PLANS.FREE.extraPetPriceUsd)}/mo per extra pet`,
+      shop: `${formatUsd(SHOP_BILLING.month)}/mo · ${formatUsd(SHOP_BILLING.year)}/yr`,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-paper">
-      <LandingHeader t={t} locale={locale} />
+    <>
+      <MessagingDemoChrome active="/demo/messaging/shop" />
 
       <main className="relative overflow-hidden">
         <AuroraOrbs subtle className="-z-10" />
         <div className="relative mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
           <MotionPop index={0}>
             <Link
-              href="/"
+              href="/demo/messaging"
               className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-forest"
             >
-              <ArrowLeft size={14} /> {l.backHome}
+              <ArrowLeft size={14} /> Back to overview
             </Link>
           </MotionPop>
 
@@ -80,7 +65,7 @@ export default async function ShopLandingPage() {
               <MotionPop index={4}>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
-                    href="#signup"
+                    href="/shop"
                     className="inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
                   >
                     {s.heroPrimary} <ArrowRight size={15} />
@@ -121,7 +106,11 @@ export default async function ShopLandingPage() {
               </MotionReveal>
 
               <MotionReveal delay={160} className="mt-10">
-                <SectionHeading align="left" eyebrow={s.handoverEyebrow} title={s.handoverTitle} />
+                <SectionHeading
+                  align="left"
+                  eyebrow={s.handoverEyebrow}
+                  title={s.handoverTitle}
+                />
                 <ol className="mt-4 space-y-3">
                   {s.handoverSteps.map((step, i) => (
                     <li key={step} className="flex gap-3 text-sm text-ink/75">
@@ -135,14 +124,18 @@ export default async function ShopLandingPage() {
               </MotionReveal>
 
               <MotionReveal delay={200} className="mt-10">
-                <SectionHeading align="left" eyebrow={s.diffTitle} title={s.diffSubtitle} />
+                <SectionHeading
+                  align="left"
+                  eyebrow={s.diffTitle}
+                  title={s.diffSubtitle}
+                />
                 <div
                   className={`mt-4 overflow-hidden rounded-3xl border border-border bg-surface shadow-soft ${motionCardHover}`}
                 >
                   <div className="grid grid-cols-3 bg-forest/5 px-4 py-3 text-xs font-semibold text-forest">
-                    <span>{s.diffFeatureCol}</span>
-                    <span className="text-center">{s.ownerCol}</span>
-                    <span className="text-center">{s.shopCol}</span>
+                    <span>Feature</span>
+                    <span className="text-center">Owner</span>
+                    <span className="text-center">Shop</span>
                   </div>
                   {diffRows.map((r, i) => (
                     <div
@@ -165,15 +158,13 @@ export default async function ShopLandingPage() {
                   title={s.pricingTitle}
                   desc={s.pricingDesc}
                   cta={s.pricingCta}
-                  href="/shop#signup"
-                  seeFullPricing={l.seeFullPricing}
+                  href="/shop"
                 />
               </MotionReveal>
             </div>
 
             <div className="space-y-8">
               <MotionReveal delay={100}>
-                <div id="signup">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
                   {s.loginTitle}
                 </span>
@@ -181,21 +172,20 @@ export default async function ShopLandingPage() {
                   <AuthCard accountType="shop" defaultTab="register" />
                 </div>
                 <p className="mt-4 text-center text-xs text-muted">
-                  {l.alreadyMember}{" "}
+                  Already have an account?{" "}
                   <Link href="/login" className="font-semibold text-brand-700 hover:underline">
-                    {l.nav.signIn}
+                    Sign in
                   </Link>
                 </p>
-                </div>
               </MotionReveal>
 
               <MotionReveal delay={180}>
                 <div id="sample-passport">
                   <SectionHeading
                     align="left"
-                    eyebrow={l.sampleEyebrow}
-                    title={l.sampleTitle}
-                    subtitle={l.samplePassportShopSubtitle}
+                    eyebrow={messagingDemo.home.sampleEyebrow}
+                    title={messagingDemo.home.sampleTitle}
+                    subtitle="What buyers receive when you issue a passport at handover."
                   />
                   <div className="mt-4">
                     <SamplePetPassport compact />
@@ -206,8 +196,6 @@ export default async function ShopLandingPage() {
           </div>
         </div>
       </main>
-
-      <LandingFooter t={t} locale={locale} />
-    </div>
+    </>
   );
 }

@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Passport-first marketing pages.** Homepage and owner, shop, and facility
+  landing pages now lead with the digital health passport — what it is, who issues it, and
+  how handover works — instead of ecosystem/AI-first messaging. Sample passport mock matches
+  the real issued passport layout.
+
 - **2026-06-09 — Close or archive a pet's record.** Owners can permanently remove a pet or
   archive it to Memorial after passing (with optional condolence credit after admin review).
   Shops can delete unclaimed pets before a passport is issued.

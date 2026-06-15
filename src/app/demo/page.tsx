@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Sparkles,
   LayoutDashboard,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { DEMO_VARIANTS } from "@/components/demo/content";
@@ -32,6 +33,24 @@ export default function DemoHubPage() {
 
         <MotionReveal delay={120} className="mt-10">
           <Link
+            href="/demo/messaging"
+            className="group flex items-center gap-4 rounded-3xl border border-brand-300 bg-brand-50/50 p-6 shadow-soft transition hover:border-brand-400"
+          >
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white">
+              <MessageSquare size={22} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-extrabold text-forest">Messaging preview</h2>
+              <p className="text-sm text-ink/70">
+                Updated homepage, owner, shop & facility copy — passport-first, not live
+              </p>
+            </div>
+            <ArrowRight size={18} className="shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+          </Link>
+        </MotionReveal>
+
+        <MotionReveal delay={200} className="mt-6">
+          <Link
             href="/demo/dashboard"
             className="group flex items-center gap-4 rounded-3xl border border-brand-300 bg-brand-50/50 p-6 shadow-soft transition hover:border-brand-400"
           >
@@ -48,7 +67,7 @@ export default function DemoHubPage() {
           </Link>
         </MotionReveal>
 
-        <MotionReveal delay={200}>
+        <MotionReveal delay={280}>
           <h2 className="mt-12 text-sm font-semibold uppercase tracking-[0.18em] text-sage">
             Landing page motion
           </h2>
@@ -56,7 +75,7 @@ export default function DemoHubPage() {
 
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {DEMO_VARIANTS.map((v, i) => (
-            <MotionReveal key={v.slug} delay={280 + i * 100}>
+            <MotionReveal key={v.slug} delay={360 + i * 100}>
               <Link
                 href={`/demo/${v.slug}`}
                 className="group flex h-full flex-col rounded-3xl border border-border bg-surface p-6 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-200"
@@ -75,7 +94,7 @@ export default function DemoHubPage() {
           ))}
         </div>
 
-        <MotionReveal delay={560} className="mt-12 text-center">
+        <MotionReveal delay={640} className="mt-12 text-center">
           <Link href="/" className="text-sm font-medium text-muted hover:text-forest">
             ← Back to production homepage
           </Link>

@@ -1,51 +1,36 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Hospital } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
-import { getI18n } from "@/lib/i18n/server";
-import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
-import { AuthCard } from "@/components/AuthCard";
+import { messagingDemo } from "@/lib/demo/messaging-copy";
+import { MessagingDemoChrome } from "@/components/demo/messaging/MessagingDemoChrome";
 import {
   SectionHeading,
   PricingPreview,
-} from "@/components/landing/LandingBlocks";
-import { SampleStayReport } from "@/components/landing/SampleStayReport";
+} from "@/components/demo/messaging/LandingBlocks";
+import { SampleStayReport } from "@/components/demo/messaging/SampleStayReport";
+import { AuthCard } from "@/components/AuthCard";
 import {
   AuroraOrbs,
   MotionPop,
   MotionReveal,
   motionCardHover,
 } from "@/components/motion/aurora";
-import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Veterinary & Boarding Pet Care Records",
-  description:
-    "Check pets in with owner-approved access, log care during the stay, and hand back a transparent report when they go home.",
-  path: "/facility",
-});
-
-export default async function FacilityLandingPage() {
-  const user = await getCurrentUser();
-  if (user) redirect(user.orgId ? "/app" : "/me");
-  const { locale, t } = await getI18n();
-  const f = t.landing.facility;
-  const l = t.landing;
+export default function MessagingFacilityDemo() {
+  const f = messagingDemo.facility;
 
   return (
-    <div className="min-h-screen bg-paper">
-      <LandingHeader t={t} locale={locale} />
+    <>
+      <MessagingDemoChrome active="/demo/messaging/facility" />
 
       <main className="relative overflow-hidden">
         <AuroraOrbs subtle className="-z-10" />
         <div className="relative mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
           <MotionPop index={0}>
             <Link
-              href="/"
+              href="/demo/messaging"
               className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-forest"
             >
-              <ArrowLeft size={14} /> {l.backHome}
+              <ArrowLeft size={14} /> Back to overview
             </Link>
           </MotionPop>
 
@@ -67,7 +52,7 @@ export default async function FacilityLandingPage() {
               <MotionPop index={4}>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
-                    href="#signup"
+                    href="/facility"
                     className="inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
                   >
                     {f.heroPrimary} <ArrowRight size={15} />
@@ -143,15 +128,13 @@ export default async function FacilityLandingPage() {
                   title={f.pricingTitle}
                   desc={f.pricingDesc}
                   cta={f.pricingCta}
-                  href="/facility#signup"
-                  seeFullPricing={l.seeFullPricing}
+                  href="/facility"
                 />
               </MotionReveal>
             </div>
 
             <div className="space-y-8">
               <MotionReveal delay={100}>
-                <div id="signup">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
                   {f.loginTitle}
                 </span>
@@ -159,12 +142,11 @@ export default async function FacilityLandingPage() {
                   <AuthCard accountType="facility" defaultTab="register" />
                 </div>
                 <p className="mt-4 text-center text-xs text-muted">
-                  {l.alreadyMember}{" "}
+                  Already have an account?{" "}
                   <Link href="/login" className="font-semibold text-brand-700 hover:underline">
-                    {l.nav.signIn}
+                    Sign in
                   </Link>
                 </p>
-                </div>
               </MotionReveal>
 
               <MotionReveal delay={180}>
@@ -182,8 +164,6 @@ export default async function FacilityLandingPage() {
           </div>
         </div>
       </main>
-
-      <LandingFooter t={t} locale={locale} />
-    </div>
+    </>
   );
 }

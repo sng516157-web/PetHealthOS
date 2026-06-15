@@ -230,6 +230,17 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Passport-first marketing pages (production).** Why (user approved deploy
+  after `/demo/messaging` review). Replaced `/`, `/owner`, `/shop`, `/facility` copy with
+  passport-first messaging; extracted landing i18n to `landing-en.ts` / `landing-zh.ts` and
+  shared components under `components/landing/` (sample passport mirrors real
+  `/passport/[token]`; removed "exportable records" claim). `/demo/messaging/*` kept as
+  noindex preview archive.
+- **2026-06-09** — **Messaging preview demo (`/demo/messaging/*`).** Why (user request):
+  review passport-first landing copy before replacing production `/`, `/owner`, `/shop`,
+  `/facility`. Demo routes only (noindex) — sample passport mock mirrors real
+  `/passport/[token]` layout; trust copy avoids unimplemented "exportable records".
+  Production pages unchanged until explicit deploy request.
 - **2026-06-09** — **Pet closure (owner memorial + shop delete).** Why (user request). Owners
   can **remove** a pet (hard-delete self-added pets; claimed breeder pets → `ownerUserId: null`)
   or **archive after passing** (`status: DECEASED` → Memorial tab on `/me`, read-only, never
