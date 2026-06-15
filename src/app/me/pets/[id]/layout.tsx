@@ -4,6 +4,7 @@ import { getOwnedPet, getPetEntitlements } from "@/lib/data";
 import { OwnerPetChrome } from "@/components/dashboard/OwnerPetChrome";
 import { petAge } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
+import { prisma } from "@/lib/prisma";
 
 export default async function MePetLayout({
   children,
@@ -18,9 +19,21 @@ export default async function MePetLayout({
   const { t } = await getI18n();
   const pet = await getOwnedPet(user.id, id);
   if (!pet) notFound();
+  const deathClaim = await prisma.petDeathClaim.findUnique({
+    where: { petId: id },
+    select: { status: true },
+  });
   const ent = await getPetEntitlements(id);
-  const readOnly = ent?.tier === "readonly";
-  const canEditPhoto = ent?.canLog ?? true;
+  const isMemorial = pet.status === "DECEASED";
+  const readOnly = isMemorial || ent?.tier === "readonly";
+  const canEditPhoto = !isMemorial && (ent?.canLog ?? true);
+
+  let claimBanner: string | null = null;
+  if (isMemorial && deathClaim) {
+    if (deathClaim.status === "PENDING") claimBanner = t.petClosure.claimPending;
+    else if (deathClaim.status === "APPROVED") claimBanner = t.petClosure.claimApproved;
+    else if (deathClaim.status === "REJECTED") claimBanner = t.petClosure.claimRejected;
+  }
 
   return (
     <OwnerPetChrome
@@ -31,12 +44,18 @@ export default async function MePetLayout({
       photoUrl={pet.photoUrl}
       birthDateLabel={pet.birthDate ? (petAge(pet.birthDate) ?? "") : ""}
       ownershipNote={
-        pet.org ? t.me.continueNote(pet.org.name) : t.me.selfPetNote
+        isMemorial
+          ? t.petClosure.memorialBanner(pet.name)
+          : pet.org
+            ? t.me.continueNote(pet.org.name)
+            : t.me.selfPetNote
       }
       readOnly={readOnly}
       canEditPhoto={canEditPhoto}
-      backLabel={t.me.backToPets}
+      backLabel={isMemorial ? t.me.tabMemorial : t.me.backToPets}
+      backHref={isMemorial ? "/me?tab=memorial" : "/me"}
       readOnlyBanner={t.account.petReadOnly}
+      claimBanner={claimBanner}
     >
       {children}
     </OwnerPetChrome>

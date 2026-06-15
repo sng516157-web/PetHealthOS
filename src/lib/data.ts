@@ -228,12 +228,30 @@ export async function getUpcomingReminders() {
 
 export async function getOwnedPets(userId: string) {
   return prisma.pet.findMany({
-    where: { ownerUserId: userId },
+    where: { ownerUserId: userId, status: { not: "DECEASED" } },
     orderBy: { updatedAt: "desc" },
     include: {
       logs: { orderBy: { occurredAt: "desc" }, take: 1 },
       _count: { select: { logs: true } },
     },
+  });
+}
+
+export async function getOwnedMemorialPets(userId: string) {
+  return prisma.pet.findMany({
+    where: { ownerUserId: userId, status: "DECEASED" },
+    orderBy: { deceasedAt: "desc" },
+    include: {
+      logs: { orderBy: { occurredAt: "desc" }, take: 1 },
+      _count: { select: { logs: true } },
+      deathClaim: { select: { status: true, submittedAt: true } },
+    },
+  });
+}
+
+export async function countOwnedMemorialPets(userId: string): Promise<number> {
+  return prisma.pet.count({
+    where: { ownerUserId: userId, status: "DECEASED" },
   });
 }
 

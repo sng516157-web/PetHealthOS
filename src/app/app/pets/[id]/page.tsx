@@ -13,11 +13,13 @@ import { LogTimeline } from "@/components/LogTimeline";
 import { RemindersPanel } from "@/components/RemindersPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { WeightPanel } from "@/components/WeightPanel";
+import { DeleteShopPetPanel } from "@/components/DeleteShopPetPanel";
 import { PetOverviewGrid } from "@/components/dashboard/PetOverviewMotion";
 import { MotionStagger } from "@/components/dashboard/DashboardMotion";
 import { safeTags } from "@/lib/ai";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
+import { prisma } from "@/lib/prisma";
 
 function serializeLogs(
   logs: {
@@ -161,6 +163,20 @@ export default async function PetOverview({
   const canLog = ent?.canLog ?? true;
   const canUseAI = ent?.canUseAI ?? true;
 
+  const deleteMeta = await prisma.pet.findUnique({
+    where: { id },
+    select: {
+      ownerUserId: true,
+      status: true,
+      _count: { select: { transfers: true } },
+    },
+  });
+  const showDelete =
+    deleteMeta &&
+    !deleteMeta.ownerUserId &&
+    deleteMeta._count.transfers === 0 &&
+    ["ACTIVE", "UNDER_OBSERVATION"].includes(deleteMeta.status);
+
   const main = [
     flagged.length > 0 && canUseAI ? (
       <Link
@@ -219,6 +235,9 @@ export default async function PetOverview({
         <h3 className="text-sm font-semibold text-foreground">{t.petDetail.profileNotes}</h3>
         <p className="mt-2 text-sm text-slate-600">{pet.notes}</p>
       </div>
+    ) : null,
+    showDelete ? (
+      <DeleteShopPetPanel key="delete" petId={pet.id} petName={pet.name} />
     ) : null,
   ].filter(Boolean);
 

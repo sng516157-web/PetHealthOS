@@ -230,6 +230,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-09** — **Pet closure (owner memorial + shop delete).** Why (user request). Owners
+  can **remove** a pet (hard-delete self-added pets; claimed breeder pets → `ownerUserId: null`)
+  or **archive after passing** (`status: DECEASED` → Memorial tab on `/me`, read-only, never
+  deleted). Death archive requires tenure (6+ mo paid extra slot OR 2+ yr free account) + ≥2
+  proof docs → `PetDeathClaim` PENDING; admin approves → Stripe customer balance credit ≈ 3×
+  extra-pet slot fee (`deathCondolenceCreditUsd`). Memorial tab hidden when empty. Shops get
+  regular delete only (blocked if passport issued or owner claimed). UI: `ClosePetPanel`,
+  `DeleteShopPetPanel`, admin death-claim queue + private doc API.
 - **2026-06-09** — **GSC canonical detection fix.** Why (user: Search Console showed no
   user-declared canonical). Next.js 16 streams metadata after the HTML shell — GSC can miss
   late `<link rel="canonical">`; set `htmlLimitedBots: /.*/` to render metadata synchronously

@@ -37,12 +37,14 @@ export const en = {
     UNDER_OBSERVATION: "Under observation",
     TRANSFERRED: "Transferred",
     ARCHIVED: "Archived",
+    DECEASED: "In memorial",
   },
   statusShort: {
     ACTIVE: "Active",
     UNDER_OBSERVATION: "Observation",
     TRANSFERRED: "Transferred",
     ARCHIVED: "Archived",
+    DECEASED: "Memorial",
   },
   logType: {
     ILLNESS: "Illness",
@@ -429,6 +431,64 @@ export const en = {
     takingBack: "Updating…",
     takenBack: "Access revoked. Their view is now frozen until you check in again.",
     noActiveStays: "Not currently shared with any facility.",
+    tabActive: "Your pets",
+    tabMemorial: "Memorial",
+    noMemorialTitle: "No memorial records",
+    noMemorialDesc:
+      "When you archive a pet after passing, their health log is preserved here — read-only, never deleted.",
+  },
+  petClosure: {
+    title: "Close this pet's record",
+    subtitle: "Remove from your account, or archive after passing.",
+    regularTitle: "Remove from my account",
+    regularDesc:
+      "Permanently removes this pet from your account. Use if you no longer care for them or for other reasons.",
+    deceasedTitle: "Record a passing",
+    deceasedDesc:
+      "Moves the health log to Memorial (read-only). You may request a condolence credit after document review.",
+    regularWarning: (name: string) =>
+      `This permanently removes ${name} from your account. Type CLOSE to confirm.`,
+    deceasedWarning: (name: string) =>
+      `${name}'s health log will move to Memorial — preserved read-only, never deleted.`,
+    deceasedNotEligible:
+      "Condolence credit requires 6+ months on a paid extra-pet slot, or 2+ years on a free account.",
+    deceasedRefundHint: (usd: number) =>
+      `If approved, we credit about 3 months of extra-pet fees (${formatUsd(usd)}) to your billing account.`,
+    notePlaceholder: "Optional note for our review team",
+    proofLabel: "Proof of passing (at least 2 documents)",
+    proofHint: "Upload clear photos or PDFs — e.g. vet certificate, cremation receipt, death certificate.",
+    confirmClosePlaceholder: 'Type CLOSE to confirm',
+    confirmDeletePlaceholder: 'Type DELETE to confirm',
+    regularSubmit: "Remove permanently",
+    deceasedSubmit: "Archive to Memorial",
+    shopDeleteTitle: "Delete pet record",
+    shopDeleteSubtitle: "Permanently remove this pet from your shop workspace.",
+    shopDeleteWarning: (name: string) =>
+      `This permanently deletes ${name} and all logs. Type DELETE to confirm. Only available before a passport is issued.`,
+    shopDeleteSubmit: "Delete permanently",
+    memorialBanner: (name: string) =>
+      `${name} is in your Memorial archive — their health history is preserved read-only.`,
+    claimPending: "Your condolence credit request is being reviewed.",
+    claimApproved: "Condolence credit approved — applied to your billing account.",
+    claimRejected: "Your condolence credit request was not approved.",
+    errors: {
+      CONFIRM_MISMATCH: "Confirmation text didn't match.",
+      ALREADY_MEMORIAL: "This pet is already in Memorial.",
+      DEATH_NOT_ELIGIBLE: "You don't meet the tenure requirement for condolence credit.",
+      PROOF_REQUIRED: "Upload at least two proof documents.",
+      PROOF_TOO_BIG: "Each document must be under 10 MB.",
+      CLAIM_EXISTS: "A claim was already submitted for this pet.",
+      PET_CLAIMED: "This pet has been claimed by an owner — it can't be deleted.",
+      PASSPORT_ISSUED: "A passport was issued — this pet can't be deleted.",
+      NOT_DELETABLE: "This pet can't be deleted in its current state.",
+      Forbidden: "You don't have permission to do that.",
+      "Not found": "Pet not found.",
+      NOT_SHOP: "Facilities can't delete pets this way.",
+      BAD_REQUEST: "Invalid request.",
+      FORBIDDEN: "Admin access required.",
+      ALREADY_REVIEWED: "This claim was already reviewed.",
+      REFUND_FAILED: "Couldn't apply the credit — try again or contact support.",
+    },
   },
   notifications: {
     title: "Notifications",
@@ -890,6 +950,14 @@ export const en = {
     docsTitle: "Documentation",
     docsDesc: "Read-only view of everything in the project /docs folder.",
     docsEmpty: "No documents found.",
+    deathClaimTitle: "Memorial / condolence claims",
+    deathClaimDesc:
+      "Review proof-of-passing documents. Approving grants ~3 months of extra-pet slot fees as account credit.",
+    deathClaimProof: (n: number) => `Document ${n}`,
+    deathClaimApprove: "Approve credit",
+    deathClaimReject: "Reject",
+    deathClaimConfirmApprove: "Grant condolence credit to this owner?",
+    deathClaimEmpty: "No memorial claims waiting for review.",
   },
   facility: {
     admitTitle: "Admit a pet",

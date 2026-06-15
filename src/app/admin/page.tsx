@@ -9,6 +9,7 @@ import { getTimezone } from "@/lib/timezone/server";
 import { LandingHeader } from "@/components/LandingHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminReviewItem, type AdminOrg } from "@/components/AdminReviewItem";
+import { AdminDeathClaimItem, type AdminDeathClaim } from "@/components/AdminDeathClaimItem";
 import { AdminDocs } from "@/components/AdminDocs";
 import { readAllDocs } from "@/lib/docs";
 
@@ -70,6 +71,28 @@ export default async function AdminPage() {
   const pending = orgs.filter((o) => o.verificationStatus === "PENDING");
   const reviewed = orgs.filter((o) => o.verificationStatus !== "PENDING");
 
+  const deathClaimsRaw = await prisma.petDeathClaim.findMany({
+    orderBy: { submittedAt: "desc" },
+    include: {
+      pet: { select: { id: true, name: true } },
+      user: { select: { name: true } },
+    },
+  });
+  const pendingClaims = deathClaimsRaw.filter((c) => c.status === "PENDING");
+  const reviewedClaims = deathClaimsRaw.filter((c) => c.status !== "PENDING");
+
+  const toDeathClaim = (c: (typeof deathClaimsRaw)[number]): AdminDeathClaim => ({
+    id: c.id,
+    petId: c.pet.id,
+    petName: c.pet.name,
+    ownerName: c.user.name,
+    status: c.status,
+    proofDocUrls: c.proofDocUrls,
+    applicantNote: c.applicantNote,
+    reviewNote: c.reviewNote,
+    submittedAt: c.submittedAt ? formatDate(c.submittedAt, fmt) : null,
+  });
+
   const docs = await readAllDocs();
 
   return (
@@ -114,6 +137,35 @@ export default async function AdminPage() {
             <div className="mt-3 space-y-3">
               {reviewed.map((o) => (
                 <AdminReviewItem key={o.id} org={toAdminOrg(o)} />
+              ))}
+            </div>
+          </>
+        )}
+
+        <h2 className="mt-10 text-sm font-semibold text-forest">
+          {t.admin.deathClaimTitle} ({pendingClaims.length})
+        </h2>
+        <p className="mt-1 text-xs text-muted">{t.admin.deathClaimDesc}</p>
+        {pendingClaims.length === 0 ? (
+          <p className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-8 text-center text-sm text-muted">
+            {t.admin.deathClaimEmpty}
+          </p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {pendingClaims.map((c) => (
+              <AdminDeathClaimItem key={c.id} claim={toDeathClaim(c)} />
+            ))}
+          </div>
+        )}
+
+        {reviewedClaims.length > 0 && (
+          <>
+            <h2 className="mt-10 text-sm font-semibold text-forest">
+              {t.admin.deathClaimTitle} — {t.admin.allTab}
+            </h2>
+            <div className="mt-3 space-y-3">
+              {reviewedClaims.map((c) => (
+                <AdminDeathClaimItem key={c.id} claim={toDeathClaim(c)} />
               ))}
             </div>
           </>

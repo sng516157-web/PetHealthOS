@@ -135,7 +135,8 @@ export async function assignOwnerPetSlot(userId: string, petId: string): Promise
   });
   const plan = getUserPlan(user?.plan);
   const countRows = await prisma.$queryRaw<{ c: bigint }[]>`
-    SELECT COUNT(*)::bigint AS c FROM "Pet" WHERE "ownerUserId" = ${userId}
+    SELECT COUNT(*)::bigint AS c FROM "Pet"
+    WHERE "ownerUserId" = ${userId} AND status <> 'DECEASED'
   `;
   const petCount = Number(countRows[0]?.c ?? 0);
   if (petCount <= plan.includedPets) return;
@@ -164,6 +165,14 @@ export async function getOwnerPetEntitlements(
     canUseAI: false,
   } as const;
 
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { status: true },
+  });
+  if (pet?.status === "DECEASED") {
+    return { tier: "readonly", ...readonly };
+  }
+
   const slotRows = await prisma.$queryRaw<{ status: string; userId: string }[]>`
     SELECT status, "userId" FROM "OwnerPetSlot" WHERE "petId" = ${petId} LIMIT 1
   `;
@@ -185,7 +194,7 @@ export async function getOwnerPetEntitlements(
   });
   const plan = getUserPlan(user?.plan);
   const pets = await prisma.pet.findMany({
-    where: { ownerUserId: userId },
+    where: { ownerUserId: userId, status: { not: "DECEASED" } },
     orderBy: { createdAt: "asc" },
     select: { id: true },
   });

@@ -56,6 +56,13 @@ import {
   countActiveOrgCareSlots,
 } from "@/lib/org-slots";
 import { checkoutBaseUrl } from "@/lib/site-url";
+import {
+  checkDeathClosureEligibility,
+  releaseOwnerSlotForPet,
+  releaseShopSlotForPet,
+} from "@/lib/pet-closure";
+import { markDeathClaimReviewed } from "@/lib/death-claim-refund";
+import { syncOwnerSlotCount } from "@/lib/owner-slots";
 import { legalAcceptanceFromForm } from "@/lib/legal-policies";
 import {
   startCheckout,
@@ -1533,5 +1540,144 @@ export async function reviewOrg(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/verify");
   revalidatePath("/app");
+  return { ok: true };
+}
+
+// ---- Pet closure (owner memorial / shop delete) ----
+
+export async function getOwnerDeathClosureEligibility() {
+  const user = await getCurrentUser();
+  if (!user || user.orgId) return { eligible: false, reason: "INSUFFICIENT_TENURE" as const };
+  return checkDeathClosureEligibility(user.id);
+}
+
+export async function closeOwnerPetRegular(petId: string, formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.orgId) return { error: "Forbidden" };
+  const confirm = String(formData.get("confirm") || "").trim();
+  if (confirm !== "CLOSE") return { error: "CONFIRM_MISMATCH" };
+
+  const pet = await prisma.pet.findFirst({
+    where: { id: petId, ownerUserId: user.id },
+    select: { id: true, orgId: true, status: true },
+  });
+  if (!pet) return { error: "Not found" };
+  if (pet.status === "DECEASED") return { error: "ALREADY_MEMORIAL" };
+
+  await releaseOwnerSlotForPet(petId);
+  await syncOwnerSlotCount(user.id);
+
+  if (pet.orgId) {
+    await prisma.pet.update({
+      where: { id: petId },
+      data: { ownerUserId: null },
+    });
+  } else {
+    await prisma.pet.delete({ where: { id: petId } });
+  }
+
+  revalidatePath("/me");
+  revalidatePath(`/me/pets/${petId}`);
+  return { ok: true };
+}
+
+export async function closeOwnerPetDeceased(petId: string, formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.orgId) return { error: "Forbidden" };
+
+  const eligibility = await checkDeathClosureEligibility(user.id);
+  if (!eligibility.eligible) return { error: "DEATH_NOT_ELIGIBLE" };
+
+  const pet = await prisma.pet.findFirst({
+    where: { id: petId, ownerUserId: user.id },
+    select: { id: true, status: true, deathClaim: { select: { id: true } } },
+  });
+  if (!pet) return { error: "Not found" };
+  if (pet.status === "DECEASED") return { error: "ALREADY_MEMORIAL" };
+  if (pet.deathClaim) return { error: "CLAIM_EXISTS" };
+
+  const files = formData.getAll("proof").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length < 2) return { error: "PROOF_REQUIRED" };
+  for (const file of files) {
+    if (file.size > 10 * 1024 * 1024) return { error: "PROOF_TOO_BIG" };
+  }
+
+  const proofDocUrls: string[] = [];
+  for (const file of files.slice(0, 5)) {
+    proofDocUrls.push(await saveVerificationDoc(file));
+  }
+
+  const note = String(formData.get("note") || "").trim();
+  if (note.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  await releaseOwnerSlotForPet(petId);
+  await syncOwnerSlotCount(user.id);
+
+  await prisma.pet.update({
+    where: { id: petId },
+    data: { status: "DECEASED", deceasedAt: new Date() },
+  });
+
+  await prisma.petDeathClaim.create({
+    data: {
+      petId,
+      userId: user.id,
+      proofDocUrls: JSON.stringify(proofDocUrls),
+      applicantNote: note || null,
+    },
+  });
+
+  await notifyAdmins(
+    `Memorial claim: pet record archived`,
+    `An owner submitted proof-of-passing documents for admin review.\nReview at /admin.`,
+  );
+
+  revalidatePath("/me");
+  revalidatePath(`/me/pets/${petId}`);
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+export async function deleteShopPet(petId: string, formData: FormData) {
+  const org = await requireActiveOrg();
+  if (isFacilityKind(org.kind)) return { error: "NOT_SHOP" };
+
+  const confirm = String(formData.get("confirm") || "").trim();
+  if (confirm !== "DELETE") return { error: "CONFIRM_MISMATCH" };
+
+  const pet = await prisma.pet.findFirst({
+    where: { id: petId, orgId: org.id },
+    include: { transfers: { select: { id: true, claimedAt: true } } },
+  });
+  if (!pet) return { error: "Not found" };
+  if (pet.ownerUserId) return { error: "PET_CLAIMED" };
+  if (pet.transfers.length > 0) return { error: "PASSPORT_ISSUED" };
+  if (!["ACTIVE", "UNDER_OBSERVATION"].includes(pet.status)) {
+    return { error: "NOT_DELETABLE" };
+  }
+
+  await releaseShopSlotForPet(petId);
+  await prisma.pet.delete({ where: { id: petId } });
+
+  revalidatePath("/app/pets");
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath("/app");
+  return { ok: true };
+}
+
+export async function reviewDeathClaim(formData: FormData) {
+  if (!(await isAdmin())) return { error: "FORBIDDEN" };
+  const claimId = String(formData.get("claimId") || "");
+  const decision = String(formData.get("decision") || "");
+  const note = String(formData.get("note") || "").trim() || null;
+  if (!claimId || (decision !== "APPROVED" && decision !== "REJECTED")) {
+    return { error: "BAD_REQUEST" };
+  }
+
+  const res = await markDeathClaimReviewed(claimId, decision, note ?? "");
+  if ("error" in res && res.error) return { error: res.error };
+
+  revalidatePath("/admin");
+  revalidatePath("/me");
   return { ok: true };
 }

@@ -103,6 +103,7 @@ model User {
 
   pets               Pet[]               @relation("OwnerUser")
   ownerPetSlots      OwnerPetSlot[]
+  deathClaims        PetDeathClaim[]
   claims             Transfer[]
   notifications      Notification[]
   emailVerifications EmailVerification[]
@@ -194,6 +195,8 @@ model Pet {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  // Set when the owner archives a pet after passing (read-only memorial).
+  deceasedAt DateTime?
 
   logs          LogEntry[]
   reminders     Reminder[]
@@ -206,6 +209,7 @@ model Pet {
   stays         PetStay[]
   ownerSlot     OwnerPetSlot?
   orgSlot       OrgSlot?
+  deathClaim    PetDeathClaim?
 
   @@index([orgId])
   @@index([ownerUserId])
@@ -391,6 +395,27 @@ model Transfer {
   claimedByUser   User?   @relation(fields: [claimedByUserId], references: [id])
 
   @@index([petId])
+}
+
+// Owner-submitted proof when archiving a pet after passing. Admin review unlocks
+// a 3-month condolence billing credit when approved.
+model PetDeathClaim {
+  id              String    @id @default(cuid())
+  petId           String    @unique
+  pet             Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  proofDocUrls    String    // JSON string[] of private doc refs (min 2 on submit)
+  applicantNote   String?
+  reviewNote      String?
+  refundMonths    Int       @default(3)
+  submittedAt     DateTime  @default(now())
+  reviewedAt      DateTime?
+  refundGrantedAt DateTime?
+
+  @@index([status, submittedAt])
+  @@index([userId])
 }
 
 // In-app notification (e.g. a reminder coming due). Recipient is exactly one of

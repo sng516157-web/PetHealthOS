@@ -11,6 +11,7 @@ export const PET_STATUS = [
   "UNDER_OBSERVATION",
   "TRANSFERRED",
   "ARCHIVED",
+  "DECEASED",
 ] as const;
 export type PetStatus = (typeof PET_STATUS)[number];
 

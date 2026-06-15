@@ -22,7 +22,9 @@ export function OwnerPetChrome({
   readOnly,
   canEditPhoto,
   backLabel,
+  backHref = "/me",
   readOnlyBanner,
+  claimBanner,
   children,
 }: {
   petId: string;
@@ -35,7 +37,9 @@ export function OwnerPetChrome({
   readOnly: boolean;
   canEditPhoto: boolean;
   backLabel: string;
+  backHref?: string;
   readOnlyBanner: string;
+  claimBanner?: string | null;
   children: React.ReactNode;
 }) {
   const subtitle = [breed, birthDateLabel].filter(Boolean).join(" · ");
@@ -44,7 +48,7 @@ export function OwnerPetChrome({
     <div className="space-y-6 py-8">
       <MotionPop index={0}>
         <Link
-          href="/me"
+          href={backHref}
           className="inline-flex items-center gap-1 text-sm font-medium text-muted transition hover:text-brand-700"
         >
           <ChevronLeft size={15} /> {backLabel}
@@ -83,6 +87,14 @@ export function OwnerPetChrome({
         <MotionReveal delay={120}>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-soft">
             {readOnlyBanner}
+          </div>
+        </MotionReveal>
+      )}
+
+      {claimBanner && (
+        <MotionReveal delay={140}>
+          <div className="rounded-2xl border border-brand-200 bg-brand-50/60 px-4 py-3 text-sm text-brand-900 shadow-soft">
+            {claimBanner}
           </div>
         </MotionReveal>
       )}

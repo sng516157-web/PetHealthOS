@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-09 — Close or archive a pet's record.** Owners can permanently remove a pet or
+  archive it to Memorial after passing (with optional condolence credit after admin review).
+  Shops can delete unclaimed pets before a passport is issued.
+
 - **2026-06-09 — Canonical URLs for Google Search Console.** Marketing pages now declare
   absolute canonical links in the HTML head (not streamed), and www redirects to the main
   domain so Google picks one preferred URL.
