@@ -12,6 +12,11 @@ import { AdminReviewItem, type AdminOrg } from "@/components/AdminReviewItem";
 import { AdminDeathClaimItem, type AdminDeathClaim } from "@/components/AdminDeathClaimItem";
 import { AdminDocs } from "@/components/AdminDocs";
 import { AdminGrantPanel } from "@/components/AdminGrantPanel";
+import {
+  AdminUnverifiedItem,
+  type AdminUnverifiedUser,
+} from "@/components/AdminUnverifiedItem";
+import { listUnverifiedSignups } from "@/lib/email-verify";
 import { readAllDocs } from "@/lib/docs";
 
 export const dynamic = "force-dynamic";
@@ -96,6 +101,20 @@ export default async function AdminPage() {
 
   const docs = await readAllDocs();
 
+  const unverifiedRaw = await listUnverifiedSignups(50);
+  const unverified: AdminUnverifiedUser[] = unverifiedRaw.map((u) => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    createdAt: formatDate(u.createdAt, fmt),
+    accountLabel: !u.orgId
+      ? t.admin.unverifiedOwner
+      : u.org?.kind === "HOSPITAL" || u.org?.kind === "BOARDING"
+        ? t.admin.unverifiedFacility
+        : t.admin.unverifiedShop,
+    emailsSent: u._count.emailVerifications,
+  }));
+
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       <LandingHeader t={t} />
@@ -170,6 +189,22 @@ export default async function AdminPage() {
               ))}
             </div>
           </>
+        )}
+
+        <h2 className="mt-10 text-sm font-semibold text-forest">
+          {t.admin.unverifiedTitle} ({unverified.length})
+        </h2>
+        <p className="mt-1 text-xs text-muted">{t.admin.unverifiedDesc}</p>
+        {unverified.length === 0 ? (
+          <p className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-8 text-center text-sm text-muted">
+            {t.admin.unverifiedEmpty}
+          </p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {unverified.map((u) => (
+              <AdminUnverifiedItem key={u.id} user={u} />
+            ))}
+          </div>
         )}
 
         <AdminGrantPanel />

@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Email verification hardening.** Sign-up emails now include a 6-digit code
+  plus an HTML button/link; `/verify-email` accepts the code; clearer spam/QQ/163 hints;
+  `/admin` lists unverified sign-ups with one-click mark verified.
+
 - **2026-06-16 — Admin entitlement grants.** `/admin` can comp an owner extra pet slot,
   facility care slot, or SHOP plan by account email; comped slots survive Stripe billing sync.
 

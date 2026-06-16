@@ -20,23 +20,31 @@ export async function sendEmail(msg: {
   to: string | string[];
   subject: string;
   text: string;
+  html?: string;
 }): Promise<SendEmailResult> {
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key) return { ok: false, error: "RESEND_API_KEY not set" };
   const from = normalizeResendFrom(process.env.RESEND_FROM);
   try {
+    const payload: Record<string, unknown> = {
+      from,
+      to: msg.to,
+      subject: msg.subject,
+      text: msg.text,
+    };
+    if (msg.html) payload.html = msg.html;
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to: msg.to, subject: msg.subject, text: msg.text }),
+      body: JSON.stringify(payload),
     });
     if (res.ok) return { ok: true };
-    const body = await res.text();
-    console.error("[email] Resend API error", res.status, body);
-    return { ok: false, error: `Resend ${res.status}: ${body.slice(0, 200)}` };
+    const errBody = await res.text();
+    console.error("[email] Resend API error", res.status, errBody);
+    return { ok: false, error: `Resend ${res.status}: ${errBody.slice(0, 200)}` };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("[email] Resend fetch failed", message);

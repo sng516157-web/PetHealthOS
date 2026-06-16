@@ -120,6 +120,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   email (`AdminGrantPanel` → `adminGrantEntitlement` in `src/lib/admin-grants.ts`). Comped
   slots set `OwnerPetSlot.comped` / `OrgSlot.comped = true` so `syncSlotRevocationsFromStripe`
   does not revoke them on billing refresh; SHOP plan uses `activatePlan` (same as demo mode).
+  **Unverified sign-ups:** `/admin` lists accounts with `emailVerifiedAt` null; reviewers can
+  **Mark verified** (`markEmailVerifiedByAdmin`) for support. Verification emails send a **6-digit
+  code** + HTML magic link (`EmailVerification.codeHash`); users can confirm on `/verify-email`
+  without clicking the link.
 
 ---
 
@@ -234,6 +238,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Email verification hardening.** Why (3 sign-ups delivered but never
+  verified): plain magic links alone are fragile in CN inboxes. Added 6-digit code + HTML email
+  (button + monospace code + link fallback), code entry on `/verify-email`, stronger spam/QQ/163
+  copy, register send-failure surfaced, `/admin` unverified queue with manual mark verified.
 - **2026-06-16** — **Admin entitlement grants (`/admin`).** Why (user request): comp slots or
   SHOP plan by email without SQL or Stripe coupons. New `comped` flag on `OwnerPetSlot` /
   `OrgSlot`; Stripe sync only revokes non-comped ACTIVE slots. Grant types: owner extra pet,

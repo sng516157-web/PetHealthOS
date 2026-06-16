@@ -6,6 +6,7 @@ import { needsEmailVerification } from "@/lib/email-verify";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { getI18n } from "@/lib/i18n/server";
 import { ResendVerificationButton } from "@/components/ResendVerificationButton";
+import { VerifyEmailCodeForm } from "@/components/VerifyEmailCodeForm";
 
 export default async function VerifyEmailPage({
   searchParams,
@@ -38,6 +39,9 @@ export default async function VerifyEmailPage({
         <p className="mt-2 text-center text-sm leading-relaxed text-muted">
           {t.verifyEmail.desc(user.email ?? "")}
         </p>
+        <p className="mt-3 text-center text-xs leading-relaxed text-muted">
+          {t.verifyEmail.spamHint}
+        </p>
         {justSent && (
           <p className="mt-4 rounded-xl bg-brand-50 px-3 py-2 text-center text-xs text-brand-800">
             {t.verifyEmail.sentAgain}
@@ -49,8 +53,17 @@ export default async function VerifyEmailPage({
               t.verifyEmail.errors.TOKEN_INVALID}
           </p>
         )}
+
+        <VerifyEmailCodeForm />
+
         <div className="mt-6 flex flex-col gap-3">
           <ResendVerificationButton label={t.verifyEmail.resend} />
+          <Link
+            href="/login"
+            className="text-center text-xs text-muted underline hover:text-forest"
+          >
+            {t.verifyEmail.signInAgain}
+          </Link>
           <Link
             href="/"
             className="text-center text-xs text-muted underline hover:text-forest"

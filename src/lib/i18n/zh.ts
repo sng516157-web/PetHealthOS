@@ -387,18 +387,28 @@ export const zh: Dictionary = {
   verifyEmail: {
     title: "请查收邮件",
     desc: (email: string) =>
-      `我们已向 ${email} 发送验证链接。点击链接即可激活账号。`,
-    sentAgain: "已重新发送 —— 请查收收件箱（以及垃圾邮件文件夹）。",
+      `我们已向 ${email} 发送 6 位验证码和验证链接。在下方输入验证码，或点击邮件中的链接。`,
+    spamHint:
+      "找不到邮件？请查看垃圾邮件或推广文件夹 —— QQ 邮箱、163、Gmail 尤其常见。链接 24 小时内有效。",
+    sentAgain: "已重新发送验证码和链接 —— 请查收收件箱（以及垃圾邮件文件夹）。",
+    codeTitle: "或输入验证码",
+    codeDesc: "输入邮件中的 6 位数字（无需空格）。",
+    codeLabel: "验证码",
+    codeSubmit: "验证码确认",
     resend: "重新发送验证邮件",
+    signInAgain: "已退出？重新登录后可再次发送",
     backHome: "返回首页",
-    hint: "链接 24 小时内有效。验证完成后可关闭此页面。",
+    hint: "关闭了此页面？用密码重新登录 —— 验证完成前我们会带你回到这里。",
     confirmedBanner: "邮箱已验证 —— 欢迎使用 PawSure！",
     errors: {
       TOKEN_MISSING: "链接不完整，请在下方重新获取。",
       TOKEN_INVALID: "链接无效或已过期，请在下方重新获取。",
+      CODE_INVALID: "验证码不正确 —— 请核对最新邮件或重新发送。",
+      TOO_MANY_ATTEMPTS: "错误次数过多，请重新发送邮件。",
       TOO_MANY_REQUESTS: "发送过于频繁，请稍后再试。",
       EMAIL_NOT_CONFIGURED: "邮件服务尚未配置，请联系支持。",
       SEND_FAILED: "邮件发送失败，请稍后再试。",
+      NOT_SIGNED_IN: "请重新登录后再输入验证码。",
     },
   },
   me: {
@@ -819,6 +829,18 @@ export const zh: Dictionary = {
     grantNotFacility: "该机构是商家而非医院/寄养——商家请使用 SHOP 套餐。",
     grantCapReached: "该主人已达到当前套餐的额外宠物位上限。",
     grantBadRequest: "无效的赠送类型。",
+    unverifiedTitle: "未完成邮箱验证的注册",
+    unverifiedDesc:
+      "卡在邮箱验证之前的账号。若已线下确认邮箱，可手动标记为已验证。",
+    unverifiedEmpty: "暂无待验证的注册。",
+    unverifiedOwner: "主人",
+    unverifiedShop: "商家",
+    unverifiedFacility: "机构",
+    unverifiedEmailsSent: (n: number) =>
+      n === 1 ? "已发送 1 封验证邮件" : `已发送 ${n} 封验证邮件`,
+    unverifiedMarkVerified: "标记已验证",
+    unverifiedConfirm: (email: string) =>
+      `确认将 ${email} 标记为邮箱已验证？对方可立即登录。`,
   },
   facility: {
     admitTitle: "接收宠物",

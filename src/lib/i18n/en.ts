@@ -394,18 +394,28 @@ export const en = {
   verifyEmail: {
     title: "Check your email",
     desc: (email: string) =>
-      `We sent a verification link to ${email}. Click it to activate your account.`,
-    sentAgain: "We sent a fresh link — check your inbox (and spam folder).",
+      `We sent a 6-digit code and a verification link to ${email}. Enter the code below or tap the link in the email.`,
+    spamHint:
+      "Can't find it? Check spam or promotions — especially on QQ Mail, 163, or Gmail. The link expires in 24 hours.",
+    sentAgain: "We sent a fresh code and link — check your inbox (and spam folder).",
+    codeTitle: "Or enter your code",
+    codeDesc: "Type the 6-digit code from the email (no spaces).",
+    codeLabel: "Verification code",
+    codeSubmit: "Verify with code",
     resend: "Resend verification email",
+    signInAgain: "Signed out? Sign in again to resend",
     backHome: "Back to home",
-    hint: "The link expires in 24 hours. You can close this tab once you've verified.",
+    hint: "Lost this tab? Sign in with your password — we'll bring you back here until you're verified.",
     confirmedBanner: "Your email is verified — welcome to PawSure!",
     errors: {
       TOKEN_MISSING: "That link is incomplete. Request a new one below.",
       TOKEN_INVALID: "That link is invalid or expired. Request a new one below.",
+      CODE_INVALID: "That code isn't right — check the latest email or resend.",
+      TOO_MANY_ATTEMPTS: "Too many wrong codes. Resend a fresh email.",
       TOO_MANY_REQUESTS: "Too many emails sent. Wait a bit, then try again.",
       EMAIL_NOT_CONFIGURED: "Email delivery isn't configured yet. Contact support.",
       SEND_FAILED: "Couldn't send the email. Try again in a moment.",
+      NOT_SIGNED_IN: "Please sign in again, then enter your code.",
     },
   },
   me: {
@@ -835,6 +845,18 @@ export const en = {
     grantNotFacility: "That org is a shop, not a facility — use SHOP plan for shops.",
     grantCapReached: "Owner is already at the max extra pet slots for their plan.",
     grantBadRequest: "Invalid grant type.",
+    unverifiedTitle: "Unverified sign-ups",
+    unverifiedDesc:
+      "Accounts stuck before email verification. Mark verified manually if you confirmed the address out of band.",
+    unverifiedEmpty: "No pending email verifications.",
+    unverifiedOwner: "Owner",
+    unverifiedShop: "Shop",
+    unverifiedFacility: "Facility",
+    unverifiedEmailsSent: (n: number) =>
+      n === 1 ? "1 verification email sent" : `${n} verification emails sent`,
+    unverifiedMarkVerified: "Mark verified",
+    unverifiedConfirm: (email: string) =>
+      `Mark ${email} as email-verified? They can sign in immediately.`,
   },
   facility: {
     admitTitle: "Admit a pet",

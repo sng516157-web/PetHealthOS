@@ -237,6 +237,12 @@ function RegisterTab({
         if (res.devVerifyLink) {
           console.log("[email:dev] Verification link:", res.devVerifyLink);
         }
+        if (res.verifyError) {
+          setError(
+            t.verifyEmail.errors[res.verifyError as keyof typeof t.verifyEmail.errors] ??
+              t.verifyEmail.errors.SEND_FAILED,
+          );
+        }
         const segment: AccountSegment =
           accountType === "facility"
             ? "facility"
@@ -244,7 +250,8 @@ function RegisterTab({
               ? "shop"
               : "owner";
         trackSignUp(segment);
-        router.push(dest(res?.accountType, res?.needsVerification));
+        const q = res.verifyError ? `?error=${encodeURIComponent(res.verifyError)}` : "";
+        router.push(`${dest(res?.accountType, res?.needsVerification)}${q}`);
       }
     });
   }

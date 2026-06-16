@@ -22,6 +22,8 @@ import { notifyAdmins } from "@/lib/email";
 import {
   sendVerificationEmail,
   needsEmailVerification,
+  confirmEmailVerificationByCode,
+  markEmailVerifiedByAdmin,
 } from "@/lib/email-verify";
 import {
   structureLogEntry,
@@ -920,7 +922,42 @@ export async function resendVerificationEmail() {
     isLocale(locale) ? locale : "en",
   );
   if ("error" in res) return { error: res.error };
-  return { ok: true as const, devLink: "devLink" in res ? res.devLink : undefined };
+  return {
+    ok: true as const,
+    devLink: "devLink" in res ? res.devLink : undefined,
+    devCode: "devCode" in res ? res.devCode : undefined,
+  };
+}
+
+export async function confirmVerificationCode(code: string) {
+  const user = await getCurrentUser();
+  if (!user?.email) return { error: "NOT_SIGNED_IN" };
+  if (!needsEmailVerification(user)) {
+    return { ok: true as const, accountType: !user.orgId ? ("owner" as const) : ("shop" as const) };
+  }
+
+  const res = await confirmEmailVerificationByCode(user.id, code);
+  if ("error" in res) return { error: res.error };
+
+  revalidatePath("/verify-email");
+  revalidatePath("/me");
+  revalidatePath("/app");
+  return { ok: true as const, accountType: res.accountType };
+}
+
+export async function adminMarkEmailVerified(formData: FormData) {
+  if (!(await isAdmin())) return { error: "FORBIDDEN" };
+  const userId = String(formData.get("userId") || "");
+  if (!userId) return { error: "BAD_REQUEST" };
+
+  const res = await markEmailVerifiedByAdmin(userId);
+  if ("error" in res) return { error: res.error };
+
+  revalidatePath("/admin");
+  revalidatePath("/verify-email");
+  revalidatePath("/me");
+  revalidatePath("/app");
+  return { ok: true as const };
 }
 
 export async function signOut() {

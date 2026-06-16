@@ -36,10 +36,13 @@ landing auth on `/owner`, `/shop`, `/facility`.
 | Step | Action | Expected |
 |------|--------|----------|
 | 1 | Register new account | Redirect `/verify-email`; `/me` blocked |
-| 2 | Resend | Rate-limited; new link emailed |
-| 3 | Expired/invalid link | Error on page; can resend |
-| 4 | Sign in unverified | Redirect `/verify-email` |
-| 5 | Existing accounts (pre-migration) | Already verified (`emailVerifiedAt` backfilled) |
+| 2 | Enter 6-digit code from email | Verified; redirect `/me` or `/app` |
+| 3 | Click link in email | `emailVerifiedAt` set; redirect `/me` |
+| 4 | Resend | Rate-limited; new code + link emailed (HTML + text) |
+| 5 | Expired/invalid link or code | Error on page; can resend |
+| 6 | Sign in unverified | Redirect `/verify-email` |
+| 7 | `/admin` unverified list | Mark verified manually for support |
+| 8 | Existing accounts (pre-migration) | Already verified (`emailVerifiedAt` backfilled) |
 
 ---
 

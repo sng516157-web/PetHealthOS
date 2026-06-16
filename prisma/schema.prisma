@@ -118,6 +118,8 @@ model EmailVerification {
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tokenHash  String
+  codeHash   String?   // HMAC of 6-digit code (optional on legacy rows)
+  codeAttempts Int     @default(0)
   expiresAt  DateTime
   consumedAt DateTime?
   createdAt  DateTime  @default(now())

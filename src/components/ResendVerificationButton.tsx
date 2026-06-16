@@ -14,7 +14,9 @@ export function ResendVerificationButton({ label }: { label: string }) {
       const res = await resendVerificationEmail();
       if (res?.devLink) {
         console.log("[email:dev] Verification link:", res.devLink);
-        window.prompt("Dev mode — copy verification link:", res.devLink);
+      }
+      if (res?.devCode) {
+        console.log("[email:dev] Verification code:", res.devCode);
       }
       if (res?.error) {
         router.replace(`/verify-email?error=${res.error}`);
