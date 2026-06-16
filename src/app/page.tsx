@@ -20,6 +20,7 @@ import {
   StepGrid,
 } from "@/components/landing/LandingBlocks";
 import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
+import { LandingMiniDashboards } from "@/components/landing/LandingMiniDashboards";
 import {
   AuroraOrbs,
   MotionPop,
@@ -99,6 +100,18 @@ export default async function HomePage() {
           <StepGrid steps={l.steps} />
         </MotionReveal>
       </section>
+
+      <div className="bg-sand/20">
+        <LandingMiniDashboards
+          copy={{
+            showcaseEyebrow: l.showcaseEyebrow,
+            showcaseTitle: l.showcaseTitle,
+            showcaseSubtitle: l.showcaseSubtitle,
+            showcaseInteractiveHint: l.showcaseInteractiveHint,
+            showcaseScreens: l.showcaseScreens,
+          }}
+        />
+      </div>
 
       <section className="bg-sand/30 py-14">
         <div className="mx-auto max-w-6xl px-5 md:px-8">

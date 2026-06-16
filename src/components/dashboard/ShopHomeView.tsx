@@ -51,11 +51,13 @@ export function ShopHomeView({
   pets,
   attention,
   reminders,
+  preview,
 }: {
   orgName: string;
   pets: ShopPet[];
   attention: ShopPet[];
   reminders: ShopReminder[];
+  preview?: { onPetSelect: (petId: string) => void };
 }) {
   const { t } = useI18n();
   const now = Date.now();
@@ -74,12 +76,18 @@ export function ShopHomeView({
           </h1>
         </MotionPop>
         <MotionPop index={1} className="shrink-0">
-          <Link
-            href="/app/pets/new"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700 sm:w-auto"
-          >
-            <Plus size={16} /> {t.common.addPet}
-          </Link>
+          {preview ? (
+            <span className="inline-flex w-full cursor-default items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button sm:w-auto">
+              <Plus size={16} /> {t.common.addPet}
+            </span>
+          ) : (
+            <Link
+              href="/app/pets/new"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700 sm:w-auto"
+            >
+              <Plus size={16} /> {t.common.addPet}
+            </Link>
+          )}
         </MotionPop>
       </header>
 
@@ -133,9 +141,11 @@ export function ShopHomeView({
             <div className="space-y-3">
               {attention.map((p, i) => (
                 <MotionReveal key={p.id} delay={i * 100}>
-                  <Link href={`/app/pets/${p.id}`}>
-                    <div
-                      className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft sm:gap-4 ${motionCardHover}`}
+                  {preview ? (
+                    <button
+                      type="button"
+                      onClick={() => preview.onPetSelect(p.id)}
+                      className={`flex min-w-0 w-full items-center gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-soft sm:gap-4 ${motionCardHover}`}
                     >
                       <div className="shrink-0">
                         <PetAvatar species={p.species} name={p.name} photoUrl={p.photoUrl} />
@@ -163,8 +173,41 @@ export function ShopHomeView({
                           <ArrowRight size={16} className="hidden shrink-0 text-slate-300 sm:block" />
                         </div>
                       )}
-                    </div>
-                  </Link>
+                    </button>
+                  ) : (
+                    <Link href={`/app/pets/${p.id}`}>
+                      <div
+                        className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft sm:gap-4 ${motionCardHover}`}
+                      >
+                        <div className="shrink-0">
+                          <PetAvatar species={p.species} name={p.name} photoUrl={p.photoUrl} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <span className="truncate font-semibold text-forest">{p.name}</span>
+                            {p.status === "UNDER_OBSERVATION" && (
+                              <Badge tone="amber" dot>
+                                {t.statusShort.UNDER_OBSERVATION}
+                              </Badge>
+                            )}
+                          </div>
+                          {p.last && (
+                            <p className="mt-0.5 truncate text-sm text-muted">
+                              {p.last.title || p.last.rawText}
+                            </p>
+                          )}
+                        </div>
+                        {p.last && (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <Badge tone={SEVERITY_META[p.last.severity as Severity].color as Tone}>
+                              {t.severity[p.last.severity as Severity]}
+                            </Badge>
+                            <ArrowRight size={16} className="hidden shrink-0 text-slate-300 sm:block" />
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  )}
                 </MotionReveal>
               ))}
             </div>
@@ -173,21 +216,25 @@ export function ShopHomeView({
           <MotionReveal delay={200}>
             <div className="flex items-center justify-between pt-2">
               <h2 className="text-sm font-semibold text-forest">{t.dashboard.allPets}</h2>
-              <Link
-                href="/app/pets"
-                className="text-sm font-medium text-brand-600 hover:text-brand-700"
-              >
-                {t.dashboard.viewAll}
-              </Link>
+              {!preview && (
+                <Link
+                  href="/app/pets"
+                  className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                >
+                  {t.dashboard.viewAll}
+                </Link>
+              )}
             </div>
           </MotionReveal>
 
           <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {pets.slice(0, 6).map((p, i) => (
               <MotionReveal key={p.id} delay={240 + i * 60}>
-                <Link href={`/app/pets/${p.id}`}>
-                  <div
-                    className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
+                {preview ? (
+                  <button
+                    type="button"
+                    onClick={() => preview.onPetSelect(p.id)}
+                    className={`flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-soft ${motionCardHover}`}
                   >
                     <PetAvatar species={p.species} name={p.name} size="sm" photoUrl={p.photoUrl} />
                     <div className="min-w-0 flex-1">
@@ -205,8 +252,31 @@ export function ShopHomeView({
                         {LOG_TYPE_META[p.last.type as LogType]?.emoji}
                       </span>
                     )}
-                  </div>
-                </Link>
+                  </button>
+                ) : (
+                  <Link href={`/app/pets/${p.id}`}>
+                    <div
+                      className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
+                    >
+                      <PetAvatar species={p.species} name={p.name} size="sm" photoUrl={p.photoUrl} />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-forest">{p.name}</div>
+                        <div className="truncate text-xs text-muted">
+                          {p.breed || (p.species === "DOG" ? t.species.DOG : t.species.CAT)}
+                          {petAge(p.birthDate) ? ` · ${petAge(p.birthDate)}` : ""}
+                        </div>
+                      </div>
+                      {p.last && (
+                        <span
+                          className="text-base"
+                          title={LOG_TYPE_META[p.last.type as LogType]?.label}
+                        >
+                          {LOG_TYPE_META[p.last.type as LogType]?.emoji}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                )}
               </MotionReveal>
             ))}
           </div>
@@ -232,21 +302,40 @@ export function ShopHomeView({
                     const overdue = new Date(r.dueAt).getTime() < now;
                     return (
                       <li key={r.id}>
-                        <Link
-                          href={`/app/pets/${r.petId}`}
-                          className="flex min-w-0 items-center gap-3 px-4 py-3.5 transition hover:bg-brand-50/30"
-                        >
-                          <span className="shrink-0 text-lg">{meta?.emoji}</span>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium text-foreground">
-                              {r.title}
+                        {preview ? (
+                          <button
+                            type="button"
+                            onClick={() => preview.onPetSelect(r.petId)}
+                            className="flex min-w-0 w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-brand-50/30"
+                          >
+                            <span className="shrink-0 text-lg">{meta?.emoji}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-foreground">
+                                {r.title}
+                              </div>
+                              <div className="truncate text-xs text-muted">{r.pet.name}</div>
                             </div>
-                            <div className="truncate text-xs text-muted">{r.pet.name}</div>
-                          </div>
-                          <Badge tone={overdue ? "rose" : "slate"} className="shrink-0">
-                            {relativeTime(r.dueAt)}
-                          </Badge>
-                        </Link>
+                            <Badge tone={overdue ? "rose" : "slate"} className="shrink-0">
+                              {relativeTime(r.dueAt)}
+                            </Badge>
+                          </button>
+                        ) : (
+                          <Link
+                            href={`/app/pets/${r.petId}`}
+                            className="flex min-w-0 items-center gap-3 px-4 py-3.5 transition hover:bg-brand-50/30"
+                          >
+                            <span className="shrink-0 text-lg">{meta?.emoji}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-foreground">
+                                {r.title}
+                              </div>
+                              <div className="truncate text-xs text-muted">{r.pet.name}</div>
+                            </div>
+                            <Badge tone={overdue ? "rose" : "slate"} className="shrink-0">
+                              {relativeTime(r.dueAt)}
+                            </Badge>
+                          </Link>
+                        )}
                       </li>
                     );
                   })}

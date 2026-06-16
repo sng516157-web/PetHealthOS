@@ -34,6 +34,47 @@ export const landingEn = {
   sampleTitle: "Sample pet passport",
   sampleDesc:
     "This sample uses the same layout as a real issued passport — certificate band, care history, and QR.",
+  showcaseEyebrow: "See the product",
+  showcaseTitle: "Dashboards that explain themselves",
+  showcaseSubtitle:
+    "Three workspaces — owner, shop, and clinic — each focused on what that role needs to do. Click around in the live preview.",
+  showcaseInteractiveHint:
+    "Switch roles above, then open pets and tabs inside the frame — nothing is saved; it mirrors the real app.",
+  showcaseScreens: [
+    {
+      role: "Pet owners",
+      urlLabel: "pethealthos.online/me",
+      title: "Your pets, alerts, and passports in one home",
+      desc: "The owner dashboard shows every pet at a glance, surfaces reminders before they slip, and lets you scan a breeder passport to inherit a full history.",
+      bullets: [
+        "Pet cards with status — active, under observation, or memorial",
+        "Alerts for vaccines, weight checks, and follow-ups",
+        "Scan a passport QR when you adopt from a verified shop",
+      ],
+    },
+    {
+      role: "Breeders & shops",
+      urlLabel: "pethealthos.online/app",
+      title: "Record care before handover, issue passports at sale",
+      desc: "The shop workspace tracks every pet in your care, flags what needs attention, and prepares a tamper-evident passport when the pet goes to a new owner.",
+      bullets: [
+        "Overview stats — pets in care, attention items, due reminders",
+        "Attention feed for high-severity logs and under-observation pets",
+        "Issue a passport QR that freezes your records at handover",
+      ],
+    },
+    {
+      role: "Clinics & boarding",
+      urlLabel: "pethealthos.online/app",
+      title: "Admit by QR, log during the stay, archive on take-back",
+      desc: "Facilities scan the owner's check-in code to open a time-boxed stay. While active you see full history; after take-back the view freezes and the old QR dies.",
+      bullets: [
+        "Admit pet from owner QR — capacity meter shows slots in use",
+        "Log care, weight, and documents during an active stay",
+        "Archived stays stay read-only — no new owner data leaks in",
+      ],
+    },
+  ],
   samplePassportShopSubtitle: "What buyers receive when you issue a passport at handover.",
   samplePassportOwnerSubtitle: "What a new owner might inherit from a breeder or shop.",
   chooseEyebrow: "Choose your role",
@@ -148,6 +189,7 @@ export const landingEn = {
     pasteCta: "Open passport",
     invalid: "That doesn't look like a passport link or code.",
     detected: "Passport found — opening…",
+    previewHint: "Preview only — camera and claim flow open in the real app.",
   },
   shop: {
     eyebrow: "For breeders, shops & shelters",

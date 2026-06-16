@@ -7,6 +7,7 @@ import {
   MessageSquare,
   FileText,
   LayoutList,
+  Monitor,
 } from "lucide-react";
 import Link from "next/link";
 import { DEMO_VARIANTS } from "@/components/demo/content";
@@ -63,6 +64,24 @@ export default function DemoHubPage() {
               <h2 className="text-lg font-extrabold text-forest">Dashboard demos</h2>
               <p className="text-sm text-ink/70">
                 Owner, shop & facility — full-width desktop + Aurora motion
+              </p>
+            </div>
+            <ArrowRight size={18} className="shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+          </Link>
+        </MotionReveal>
+
+        <MotionReveal delay={200} className="mt-6">
+          <Link
+            href="/demo/landing-dashboards"
+            className="group flex items-center gap-4 rounded-3xl border-2 border-brand-400 bg-brand-50/80 p-6 shadow-soft transition hover:border-brand-500"
+          >
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white">
+              <Monitor size={22} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-extrabold text-forest">Homepage mini dashboards</h2>
+              <p className="text-sm text-ink/70">
+                Clickable owner, shop, and facility previews — open pets and tabs inside the frame
               </p>
             </div>
             <ArrowRight size={18} className="shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />

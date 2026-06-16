@@ -30,6 +30,45 @@ export const landingZh: typeof landingEn = {
   sampleEyebrow: "具体示例",
   sampleTitle: "示例宠物护照",
   sampleDesc: "此示例与真实签发的护照布局相同——证书栏、护理历史和二维码。",
+  showcaseEyebrow: "产品一览",
+  showcaseTitle: "一目了然的工作区",
+  showcaseSubtitle: "三个工作区——主人、商家与医院/寄养——各自聚焦该角色需要完成的事。可在下方预览中点击体验。",
+  showcaseInteractiveHint: "先切换角色，再在框内打开宠物与标签页——仅为演示，不会保存数据。",
+  showcaseScreens: [
+    {
+      role: "宠物主人",
+      urlLabel: "pethealthos.online/me",
+      title: "宠物、提醒与护照，集中在一个主页",
+      desc: "主人仪表盘一览所有宠物，提前显示提醒，还可扫描繁育者护照继承完整历史。",
+      bullets: [
+        "宠物卡片显示状态——活跃、观察中或纪念",
+        "疫苗、体重与随访提醒",
+        "从认证商家领养时扫描护照二维码",
+      ],
+    },
+    {
+      role: "猫舍犬舍与商家",
+      urlLabel: "pethealthos.online/app",
+      title: "交接前记录护理，出售时签发护照",
+      desc: "商家工作区追踪照护中的每只宠物，标记需关注事项，并在宠物交给新主人时准备防篡改护照。",
+      bullets: [
+        "总览数据——照护中宠物、需关注项、到期提醒",
+        "高严重度记录与观察中宠物的关注 feed",
+        "签发护照二维码，在交接时冻结您的记录",
+      ],
+    },
+    {
+      role: "医院与寄养",
+      urlLabel: "pethealthos.online/app",
+      title: "扫码入住、在住期间记录、接回后归档",
+      desc: "机构扫描主人的入住二维码开启限时照护。在住期间可查看完整历史；接回后视图冻结，旧二维码失效。",
+      bullets: [
+        "扫描主人二维码入住——容量条显示已用槽位",
+        "在住期间记录护理、体重与文件",
+        "归档后只读——不会继续看到主人的新数据",
+      ],
+    },
+  ],
   samplePassportShopSubtitle: "交接时买家收到的护照样式。",
   samplePassportOwnerSubtitle: "新主人从猫舍或商家继承的记录示例。",
   chooseEyebrow: "选择您的身份",
@@ -119,6 +158,7 @@ export const landingZh: typeof landingEn = {
     pasteCta: "打开护照",
     invalid: "这不像有效的护照链接或代码。",
     detected: "已找到护照 — 正在打开…",
+    previewHint: "仅为预览 — 相机与认领流程请在正式应用中使用。",
   },
   shop: {
     eyebrow: "面向猫舍犬舍与商家",

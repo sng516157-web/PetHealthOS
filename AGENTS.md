@@ -47,4 +47,10 @@ Treat documentation as part of "done" — a change isn't complete until `docs/CO
 - Secrets are gitignored. A fresh clone needs `vercel link` then `vercel env pull` (see `.env.example` for the variable inventory).
 - Commands: `npm run dev` · `npx next build` · `npm run db:migrate` · `npm run db:studio`.
 - **Regression tests:** manual SOPs + checklists in **`Tests/`** ([README](Tests/README.md)). No automated
-  test suite yet — update `Tests/` when adding flows or gates.
+ test suite yet — update `Tests/` when adding flows or gates.
+- **Homepage dashboard preview:** `/` embeds interactive mini dashboards (`LandingMiniDashboards`) built from
+  real `OwnerHomeView` / `ShopHomeView` / `FacilityHomeView` + `preview` props. When changing account-type
+  home dashboards, layouts usually sync automatically; when adding pet tabs update `src/components/pet-tab-model.ts`
+  (shared with `PetTabs` + `PetTabsInteractive`); when changing tab panel UI update
+  `src/components/dashboard/preview/PreviewPetTabPanels.tsx`; refresh sample data in `src/lib/dashboard-preview-data.ts`
+  if props change. See `Tests/change-impact.md`.

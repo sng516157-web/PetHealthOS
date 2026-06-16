@@ -19,6 +19,7 @@ Run **Recommended** tests for risky or cross-cutting edits.
 | `src/lib/ai.ts`, `/api/pets/*/chat`, triage pages | 08, 12 | 02, 03, 04 |
 | `src/lib/i18n/**`, locale cookie, `Dictionary` type | **09, 12** | 10, all workspaces |
 | `src/components/pawsure/**`, `globals.css`, `/brand` | 10, 12 | workspace using changed component |
+| `OwnerHomeView`, `ShopHomeView`, `FacilityHomeView`, `pet-tab-model`, `dashboard-preview-data`, `LandingMiniDashboards`, `/` homepage | 10, 12 | `/` + `/demo/landing-dashboards` — click all three roles, open a pet, switch tabs |
 | `next.config.ts`, `src/lib/img.ts`, `/api/img`, `deploy/Caddyfile` | 11, 12 | 06 (admin doc proxy) |
 | `prisma/schema.prisma`, migrations | 12 | all subsystems using affected models |
 | `src/lib/plans.ts`, pricing copy | 07, 09, 10 | `/pricing`, billing pages |

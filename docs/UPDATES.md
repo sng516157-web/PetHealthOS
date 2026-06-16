@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Homepage mini dashboards.** The public `/` page now has clickable owner, shop,
+  and facility dashboard previews (open pets, switch tabs) using the same UI components as the
+  real app — no sign-in required.
+
 - **2026-06-16 — Pet page tabs + food/activity logs.** Pet detail pages use major tabs
   (Quick Log, Food, Activity, Reminders, Weight, Documents, Check-in or Transfer) instead
   of a sidebar; weight shows a trend chart; documents filter by category; owners can

@@ -52,12 +52,15 @@ export function OwnerHomeView({
   memorialPets,
   memorialTab,
   notifications,
+  preview,
 }: {
   userName: string;
   pets: OwnerPet[];
   memorialPets: OwnerPet[];
   memorialTab: boolean;
   notifications: OwnerNotif[];
+  /** Landing preview — same layout, in-frame navigation only. */
+  preview?: { onPetSelect: (petId: string) => void };
 }) {
   const { t } = useI18n();
   const unread = notifications.filter((n) => !n.readAt).length;
@@ -91,19 +94,31 @@ export function OwnerHomeView({
         </MotionPop>
         <MotionPop index={1} className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
           {!memorialTab && (
+            preview ? (
+              <span className="inline-flex w-full cursor-default items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button sm:w-auto">
+                <Plus size={16} /> {t.me.addPet}
+              </span>
+            ) : (
+              <Link
+                href="/me/pets/new"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700 sm:w-auto"
+              >
+                <Plus size={16} /> {t.me.addPet}
+              </Link>
+            )
+          )}
+          {preview ? (
+            <span className="inline-flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-forest sm:w-auto">
+              <UserCircle size={16} /> {t.account.nav}
+            </span>
+          ) : (
             <Link
-              href="/me/pets/new"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700 sm:w-auto"
+              href="/me/account"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-forest transition hover:border-brand-300 sm:w-auto"
             >
-              <Plus size={16} /> {t.me.addPet}
+              <UserCircle size={16} /> {t.account.nav}
             </Link>
           )}
-          <Link
-            href="/me/account"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-forest transition hover:border-brand-300 sm:w-auto"
-          >
-            <UserCircle size={16} /> {t.account.nav}
-          </Link>
         </MotionPop>
       </div>
 
@@ -140,7 +155,7 @@ export function OwnerHomeView({
               <h2 className="text-sm font-semibold text-forest">
                 {memorialTab ? t.me.tabMemorial : t.me.yourPets}
               </h2>
-              {!memorialTab && pets.length > 0 && (
+              {!memorialTab && pets.length > 0 && !preview && (
                 <Link
                   href="/me/pets/new"
                   className="text-xs font-medium text-brand-700 hover:text-brand-800"
@@ -149,7 +164,7 @@ export function OwnerHomeView({
                 </Link>
               )}
             </div>
-            {showMemorialTab && (
+            {showMemorialTab && !preview && (
               <div className="mt-3 flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-surface p-1">
                 <Link href="/me" className={tabCls(!memorialTab)}>
                   <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -179,9 +194,11 @@ export function OwnerHomeView({
                 const claimNote = memorialTab ? claimLabel(pet.claimStatus) : null;
                 return (
                   <MotionReveal key={pet.id} delay={i * 90}>
-                    <Link href={`/me/pets/${pet.id}`} className="block min-w-0 max-w-full">
-                      <div
-                        className={`flex h-full min-w-0 max-w-full flex-col rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
+                    {preview ? (
+                      <button
+                        type="button"
+                        onClick={() => preview.onPetSelect(pet.id)}
+                        className={`flex h-full min-w-0 max-w-full flex-col rounded-2xl border border-border bg-surface p-4 text-left shadow-soft ${motionCardHover}`}
                       >
                         <div className="flex items-center gap-3">
                           <PetAvatar
@@ -207,8 +224,39 @@ export function OwnerHomeView({
                         {claimNote && (
                           <p className="mt-2 text-[11px] leading-snug text-muted">{claimNote}</p>
                         )}
-                      </div>
-                    </Link>
+                      </button>
+                    ) : (
+                      <Link href={`/me/pets/${pet.id}`} className="block min-w-0 max-w-full">
+                        <div
+                          className={`flex h-full min-w-0 max-w-full flex-col rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <PetAvatar
+                              species={pet.species}
+                              name={pet.name}
+                              photoUrl={pet.photoUrl}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-semibold text-forest">{pet.name}</p>
+                              <p className="truncate text-xs text-muted">
+                                {pet.breed ||
+                                  (pet.species === "DOG" ? t.species.DOG : t.species.CAT)}
+                                {pet.birthDate ? ` · ${petAge(pet.birthDate)}` : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge
+                            tone={STATUS_TONE[pet.status] ?? "slate"}
+                            className="mt-3 w-fit"
+                          >
+                            {t.status[pet.status as PetStatus]}
+                          </Badge>
+                          {claimNote && (
+                            <p className="mt-2 text-[11px] leading-snug text-muted">{claimNote}</p>
+                          )}
+                        </div>
+                      </Link>
+                    )}
                   </MotionReveal>
                 );
               })}
@@ -222,7 +270,7 @@ export function OwnerHomeView({
               <div
                 className={`min-w-0 max-w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft ${motionCardHover}`}
               >
-                <OwnerScanCard embedded />
+                <OwnerScanCard embedded preview={!!preview} />
               </div>
             </MotionReveal>
           )}
@@ -233,7 +281,11 @@ export function OwnerHomeView({
                 <h2 className="text-sm font-semibold text-forest">{t.notifications.title}</h2>
               </div>
               <div className="min-w-0 p-4 pt-0">
-                <NotificationList notifications={notifications} basePetHref="/me/pets" />
+                <NotificationList
+                  notifications={notifications}
+                  basePetHref="/me/pets"
+                  onPetClick={preview?.onPetSelect}
+                />
               </div>
             </div>
           </MotionReveal>

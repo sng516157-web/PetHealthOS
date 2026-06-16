@@ -5,7 +5,13 @@ import { QrCode, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { PassportScanner } from "@/components/PassportScanner";
 
-export function OwnerScanCard({ embedded = false }: { embedded?: boolean }) {
+export function OwnerScanCard({
+  embedded = false,
+  preview = false,
+}: {
+  embedded?: boolean;
+  preview?: boolean;
+}) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
@@ -40,7 +46,11 @@ export function OwnerScanCard({ embedded = false }: { embedded?: boolean }) {
       </button>
       {open && (
         <div className="min-w-0 border-t border-border p-4">
-          <PassportScanner />
+          {preview ? (
+            <p className="text-xs text-muted">{t.landing.scan.previewHint}</p>
+          ) : (
+            <PassportScanner />
+          )}
         </div>
       )}
     </div>

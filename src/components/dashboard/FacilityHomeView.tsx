@@ -36,11 +36,13 @@ export function FacilityHomeView({
   inCare,
   capacityLimit,
   pets,
+  preview,
 }: {
   orgName: string;
   inCare: number;
   capacityLimit: number;
   pets: FacilityPet[];
+  preview?: { onPetSelect: (petId: string) => void };
 }) {
   const { t } = useI18n();
   const pct = capacityLimit > 0 ? Math.min(100, (inCare / capacityLimit) * 100) : 0;
@@ -57,7 +59,16 @@ export function FacilityHomeView({
             <p className="mt-1 max-w-lg text-sm text-muted">{t.facility.admitDesc}</p>
           </div>
           <div className="w-full shrink-0 lg:w-auto lg:max-w-sm">
-            <AdmitScanner />
+            {preview ? (
+              <button
+                type="button"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-ps-button"
+              >
+                <QrCode size={18} /> {t.facility.admitCta}
+              </button>
+            ) : (
+              <AdmitScanner />
+            )}
           </div>
         </div>
       </MotionPop>
@@ -98,9 +109,11 @@ export function FacilityHomeView({
         <div className="mt-4 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {pets.map((pet, i) => (
             <MotionReveal key={pet.id} delay={200 + i * 80}>
-              <Link href={`/app/pets/${pet.id}`}>
-                <div
-                  className={`flex h-full flex-col rounded-2xl border border-border bg-surface p-5 shadow-soft ${motionCardHover}`}
+              {preview ? (
+                <button
+                  type="button"
+                  onClick={() => preview.onPetSelect(pet.id)}
+                  className={`flex h-full w-full flex-col rounded-2xl border border-border bg-surface p-5 text-left shadow-soft ${motionCardHover}`}
                 >
                   <div className="flex items-center gap-3">
                     <PetAvatar species={pet.species} name={pet.name} photoUrl={pet.photoUrl} />
@@ -120,7 +133,7 @@ export function FacilityHomeView({
                       >
                         {t.severity[pet.last.severity as Severity]}
                       </Badge>
-                      <p className="text-sm leading-relaxed text-ink/70 line-clamp-2">
+                      <p className="line-clamp-2 text-sm leading-relaxed text-ink/70">
                         {pet.last.title || pet.last.rawText}
                       </p>
                     </div>
@@ -135,20 +148,64 @@ export function FacilityHomeView({
                       Open <ArrowRight size={12} />
                     </span>
                   </div>
-                </div>
-              </Link>
+                </button>
+              ) : (
+                <Link href={`/app/pets/${pet.id}`}>
+                  <div
+                    className={`flex h-full flex-col rounded-2xl border border-border bg-surface p-5 shadow-soft ${motionCardHover}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <PetAvatar species={pet.species} name={pet.name} photoUrl={pet.photoUrl} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-forest">{pet.name}</p>
+                        <p className="truncate text-xs text-muted">
+                          {pet.breed ||
+                            (pet.species === "DOG" ? t.species.DOG : t.species.CAT)}
+                          {pet.birthDate ? ` · ${petAge(pet.birthDate)}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    {pet.last ? (
+                      <div className="mt-4 flex-1 space-y-2">
+                        <Badge
+                          tone={SEVERITY_META[pet.last.severity as Severity].color as Tone}
+                        >
+                          {t.severity[pet.last.severity as Severity]}
+                        </Badge>
+                        <p className="text-sm leading-relaxed text-ink/70 line-clamp-2">
+                          {pet.last.title || pet.last.rawText}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-4 flex-1 text-sm text-muted">{t.pets.noEntriesYet}</p>
+                    )}
+                    <div className="mt-4 flex items-center justify-between text-xs">
+                      <span className="text-muted">
+                        {pet.logCount} {t.dashboard.statLogs.toLowerCase()}
+                      </span>
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-brand-700">
+                        Open <ArrowRight size={12} />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              )}
             </MotionReveal>
           ))}
         </div>
       )}
 
       <MotionReveal delay={400} className="mt-8">
-        <Link
-          href="/app/pets?tab=archived"
-          className="text-sm font-medium text-brand-700 hover:text-brand-800"
-        >
-          {t.facility.tabArchived} →
-        </Link>
+        {preview ? (
+          <span className="text-sm font-medium text-brand-700">{t.facility.tabArchived} →</span>
+        ) : (
+          <Link
+            href="/app/pets?tab=archived"
+            className="text-sm font-medium text-brand-700 hover:text-brand-800"
+          >
+            {t.facility.tabArchived} →
+          </Link>
+        )}
       </MotionReveal>
     </DashboardCanvas>
   );

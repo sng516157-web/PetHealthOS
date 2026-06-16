@@ -26,9 +26,12 @@ type Notif = {
 export function NotificationList({
   notifications,
   basePetHref,
+  onPetClick,
 }: {
   notifications: Notif[];
   basePetHref: string;
+  /** Landing preview — open pet in-frame instead of navigating. */
+  onPetClick?: (petId: string) => void;
 }) {
   const { t, locale } = useI18n();
   const timeZone = useTimezone();
@@ -39,6 +42,10 @@ export function NotificationList({
   const hasUnread = notifications.some((n) => !n.readAt);
 
   function open(n: Notif) {
+    if (onPetClick && n.pet) {
+      onPetClick(n.pet.id);
+      return;
+    }
     startTransition(async () => {
       if (!n.readAt) await markNotificationRead(n.id);
       if (n.pet) router.push(`${basePetHref}/${n.pet.id}`);
@@ -47,6 +54,7 @@ export function NotificationList({
   }
 
   function readAll() {
+    if (onPetClick) return;
     startTransition(async () => {
       await markAllNotificationsRead();
       router.refresh();
@@ -65,7 +73,7 @@ export function NotificationList({
 
   return (
     <div className="space-y-3">
-      {hasUnread && (
+      {hasUnread && !onPetClick && (
         <div className="flex justify-end">
           <button
             onClick={readAll}

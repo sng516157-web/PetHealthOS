@@ -68,9 +68,11 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
     device / cancel" choice that resubmits with `force=1`. Phone OTP pre-checks with
     `verifyOtp(..., { consume:false })` so the code survives the forced retry.
 - **Routes:**
-  - `/` = **public landing** (marketing + choose owner/shop + log in). `/owner`,
-    `/shop` = per-type landing pages (explain + login/create). Logged-in users are
-    redirected away from these to their workspace.
+  - `/` = **public landing** (marketing + choose owner/shop + log in). Between “How it
+    works” and the sample passport: **interactive mini dashboards** (`LandingMiniDashboards`)
+    — real `*HomeView` components in preview mode + in-frame pet tabs. Maintained via
+    `pet-tab-model.ts`, `dashboard-preview-data.ts`, `PreviewPetTabPanels.tsx` (see
+    `AGENTS.md`). `/owner`, `/shop` = per-type landing pages (explain + login/create).
   - `/app/*` = **shop/breeder workspace** (sidebar; moved here from `/`). Gated by
     `requireActiveOrg()` → redirects non-shop / logged-out users to `/shop`.
   - `/me/*` = owner workspace. `/passport/[token]` = public passport.
@@ -246,6 +248,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Homepage interactive mini dashboards (production).** Why (user request):
+  replace static screenshot mocks with clickable previews on `/` between “How it works” and the
+  sample passport. Reuses real `*HomeView` components via optional `preview` props; pet drill-in
+  uses `pet-tab-model.ts` + `PetTabsInteractive` + `PreviewPetTabPanels`. Sample data in
+  `lib/dashboard-preview-data.ts`. `/demo/landing-dashboards` mirrors the live block.
 - **2026-06-16** — **Pet page navigation + logging expansion.** Why (user approved
   `/demo/pet-nav` preview). Replaced the single-page sidebar layout with major tabs on
   all account types: Logs (Quick Log / Food / Activity sub-tabs), AI, Triage, Reminders,
