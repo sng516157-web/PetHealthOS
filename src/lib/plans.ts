@@ -1,5 +1,3 @@
-import { formatUsd } from "@/lib/money";
-
 export type Plan = {
   key: string;
   audience: "org" | "user";
@@ -28,8 +26,8 @@ export const ORG_PLANS: Record<string, Plan> = {
     key: "SHOP",
     audience: "org",
     includedPets: 50,
-    priceUsd: 29.99,
-    extraPetPriceUsd: 4.99,
+    priceUsd: 14.99,
+    extraPetPriceUsd: 2.49,
     petCap: null,
     canIssuePassport: true,
     multiSeat: true,
@@ -40,8 +38,8 @@ export type BillingInterval = "month" | "year";
 
 /** Paid SHOP plan — monthly or yearly (USD). */
 export const SHOP_BILLING: Record<BillingInterval, number> = {
-  month: 29.99,
-  year: 299,
+  month: 14.99,
+  year: 149,
 };
 
 export function isBillingInterval(v: string | null | undefined): v is BillingInterval {
@@ -53,7 +51,7 @@ export function shopPriceUsd(interval: BillingInterval): number {
 }
 
 export const FACILITY_BASE_CAPACITY = 50;
-export const FACILITY_EXTRA_SLOT_PRICE_USD = 4.99;
+export const FACILITY_EXTRA_SLOT_PRICE_USD = 2.49;
 
 export function facilityCapacity(extraSlots: number): number {
   return FACILITY_BASE_CAPACITY + Math.max(0, extraSlots);
@@ -67,7 +65,7 @@ export const USER_PLANS: Record<string, Plan> = {
     audience: "user",
     includedPets: 1,
     priceUsd: 0,
-    extraPetPriceUsd: 2.99,
+    extraPetPriceUsd: 1.49,
     petCap: OWNER_EXTRA_PET_CAP,
     canIssuePassport: false,
     multiSeat: false,

@@ -23,7 +23,9 @@ export function DashboardCanvas({
   className?: string;
 }) {
   return (
-    <div className={`relative py-8 lg:py-10 ${className}`}>{children}</div>
+    <div className={`relative min-w-0 max-w-full overflow-x-hidden py-8 lg:py-10 ${className}`}>
+      {children}
+    </div>
   );
 }
 

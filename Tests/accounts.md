@@ -57,11 +57,11 @@ Verify UI copy matches these numbers when testing billing/pricing:
 
 | Audience | Included | Extra price | Cap |
 |----------|----------|-------------|-----|
-| Owner | 1 pet | ¥15/mo per extra | 10 pets total |
+| Owner | 1 pet | $1.49/mo per extra | 10 pets total |
 | Shop STARTER | 5 pets | — | — |
-| Shop SHOP | 50 pets | ¥30/mo per extra pet slot | — |
-| Shop SHOP plan price | — | $29.99/mo or $299/yr | — |
-| Facility in-care | 50 slots | ¥30/mo per care slot | no hard cap |
+| Shop SHOP | 50 pets | $2.49/mo per extra pet slot | — |
+| Shop SHOP plan price | — | $14.99/mo or $149/yr | — |
+| Facility in-care | 50 slots | $2.49/mo per care slot | no hard cap |
 
 ---
 

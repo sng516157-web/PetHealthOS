@@ -9,6 +9,12 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — 50% price cut.** All plans and add-ons are half the previous USD price
+  (e.g. shop plan $14.99/mo or $149/yr; extra slots $2.49/mo; owner extra pets $1.49/mo).
+
+- **2026-06-16 — Mobile dashboard layout.** Shop, facility, and owner home dashboards no longer
+  overflow on phones — bottom nav, headers, and action buttons stay reachable on small screens.
+
 - **2026-06-09 — Passport-first marketing pages.** Homepage and owner, shop, and facility
   landing pages now lead with the digital health passport — what it is, who issues it, and
   how handover works — instead of ecosystem/AI-first messaging. Sample passport mock matches

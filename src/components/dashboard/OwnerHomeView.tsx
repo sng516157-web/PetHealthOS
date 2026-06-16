@@ -79,33 +79,31 @@ export function OwnerHomeView({
 
   return (
     <DashboardCanvas>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <MotionPop index={0}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <MotionPop index={0} className="min-w-0">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white/90 px-3 py-1 text-xs font-medium text-forest">
             <Sparkles size={13} /> {t.me.subtitle}
           </span>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-forest lg:text-4xl">
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-forest sm:text-3xl lg:text-4xl">
             {t.me.greeting(userName)}
           </h1>
           <p className="mt-1 text-sm text-muted">{t.me.subtitle}</p>
         </MotionPop>
-        <MotionPop index={1}>
-          <div className="flex flex-wrap gap-2">
-            {!memorialTab && (
-              <Link
-                href="/me/pets/new"
-                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
-              >
-                <Plus size={16} /> {t.me.addPet}
-              </Link>
-            )}
+        <MotionPop index={1} className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
+          {!memorialTab && (
             <Link
-              href="/me/account"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-forest transition hover:border-brand-300"
+              href="/me/pets/new"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700 sm:w-auto"
             >
-              <UserCircle size={16} /> {t.account.nav}
+              <Plus size={16} /> {t.me.addPet}
             </Link>
-          </div>
+          )}
+          <Link
+            href="/me/account"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-forest transition hover:border-brand-300 sm:w-auto"
+          >
+            <UserCircle size={16} /> {t.account.nav}
+          </Link>
         </MotionPop>
       </div>
 
@@ -152,14 +150,14 @@ export function OwnerHomeView({
               )}
             </div>
             {showMemorialTab && (
-              <div className="mt-3 flex w-fit rounded-xl border border-border bg-surface p-1">
+              <div className="mt-3 flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-surface p-1">
                 <Link href="/me" className={tabCls(!memorialTab)}>
-                  <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                     <PawPrint size={14} /> {t.me.tabActive} ({pets.length})
                   </span>
                 </Link>
                 <Link href="/me?tab=memorial" className={tabCls(memorialTab)}>
-                  <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                     <Heart size={14} /> {t.me.tabMemorial} ({memorialPets.length})
                   </span>
                 </Link>

@@ -65,8 +65,8 @@ Build runs `prisma migrate deploy` — ensures `OwnerPetSlot`, `OrgSlot`, `strip
 
 Browse **https://pethealthos.online** only.
 
-1. **Owner extra pet slot** — $2.99/mo subscription; confirm `slotId` in Stripe session metadata.
-2. **Shop SHOP monthly** ($29.99/mo per `SHOP_BILLING`) — confirm subscription + org plan upgrade.
+1. **Owner extra pet slot** — $1.49/mo subscription; confirm `slotId` in Stripe session metadata.
+2. **Shop SHOP monthly** ($14.99/mo per `SHOP_BILLING`) — confirm subscription + org plan upgrade.
 3. **Facility care slot** — confirm `org_slot` + `slotId` metadata.
 4. **Account → Manage subscription** — portal opens; cancel test sub.
 5. **Webhook log** — all events return **200**.

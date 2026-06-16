@@ -1411,7 +1411,7 @@ export async function addOwnerPetSlot(formData: FormData) {
   return { ok: true, demo: result.demo ?? false };
 }
 
-// Facility buys one extra care slot (¥15/mo). Demo-grants when no provider set.
+// Facility buys one extra care slot ($2.49/mo). Demo-grants when no provider set.
 export async function addFacilitySlot(formData: FormData) {
   const org = await requireActiveOrg();
   const provider = String(formData.get("provider") || "stripe") as Provider;

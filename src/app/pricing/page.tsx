@@ -21,11 +21,11 @@ import {
   motionCardHover,
 } from "@/components/motion/aurora";
 import { pageMetadata } from "@/lib/seo";
+import { formatUsd } from "@/lib/money";
 
 export const metadata: Metadata = pageMetadata({
   title: "Plans & Pricing (USD)",
-  description:
-    "Pet owners: 1 pet free, extra pets from $2.99/mo. Breeders & shops: from $29.99/mo. Facilities: care-slot pricing for hospitals and boarding.",
+  description: `Pet owners: 1 pet free, extra pets from ${formatUsd(USER_PLANS.FREE.extraPetPriceUsd)}/mo. Breeders & shops: from ${formatUsd(SHOP_BILLING.month)}/mo. Facilities: care-slot pricing for hospitals and boarding.`,
   path: "/pricing",
 });
 

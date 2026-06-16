@@ -66,17 +66,17 @@ export function ShopHomeView({
 
   return (
     <DashboardCanvas>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <MotionPop index={0}>
+      <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <MotionPop index={0} className="min-w-0">
           <p className="text-sm text-muted">{orgName}</p>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-forest">
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-forest sm:text-3xl">
             {t.dashboard.overview}
           </h1>
         </MotionPop>
-        <MotionPop index={1}>
+        <MotionPop index={1} className="shrink-0">
           <Link
             href="/app/pets/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700 sm:w-auto"
           >
             <Plus size={16} /> {t.common.addPet}
           </Link>
@@ -135,12 +135,14 @@ export function ShopHomeView({
                 <MotionReveal key={p.id} delay={i * 100}>
                   <Link href={`/app/pets/${p.id}`}>
                     <div
-                      className={`flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
+                      className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft sm:gap-4 ${motionCardHover}`}
                     >
-                      <PetAvatar species={p.species} name={p.name} photoUrl={p.photoUrl} />
+                      <div className="shrink-0">
+                        <PetAvatar species={p.species} name={p.name} photoUrl={p.photoUrl} />
+                      </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-forest">{p.name}</span>
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          <span className="truncate font-semibold text-forest">{p.name}</span>
                           {p.status === "UNDER_OBSERVATION" && (
                             <Badge tone="amber" dot>
                               {t.statusShort.UNDER_OBSERVATION}
@@ -154,11 +156,13 @@ export function ShopHomeView({
                         )}
                       </div>
                       {p.last && (
-                        <Badge tone={SEVERITY_META[p.last.severity as Severity].color as Tone}>
-                          {t.severity[p.last.severity as Severity]}
-                        </Badge>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Badge tone={SEVERITY_META[p.last.severity as Severity].color as Tone}>
+                            {t.severity[p.last.severity as Severity]}
+                          </Badge>
+                          <ArrowRight size={16} className="hidden shrink-0 text-slate-300 sm:block" />
+                        </div>
                       )}
-                      <ArrowRight size={16} className="text-slate-300" />
                     </div>
                   </Link>
                 </MotionReveal>
@@ -230,16 +234,16 @@ export function ShopHomeView({
                       <li key={r.id}>
                         <Link
                           href={`/app/pets/${r.petId}`}
-                          className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-brand-50/30"
+                          className="flex min-w-0 items-center gap-3 px-4 py-3.5 transition hover:bg-brand-50/30"
                         >
-                          <span className="text-lg">{meta?.emoji}</span>
+                          <span className="shrink-0 text-lg">{meta?.emoji}</span>
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium text-foreground">
                               {r.title}
                             </div>
                             <div className="truncate text-xs text-muted">{r.pet.name}</div>
                           </div>
-                          <Badge tone={overdue ? "rose" : "slate"}>
+                          <Badge tone={overdue ? "rose" : "slate"} className="shrink-0">
                             {relativeTime(r.dueAt)}
                           </Badge>
                         </Link>

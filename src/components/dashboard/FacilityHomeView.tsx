@@ -48,21 +48,23 @@ export function FacilityHomeView({
   return (
     <DashboardCanvas>
       <MotionPop index={0}>
-        <div className="flex flex-wrap items-end justify-between gap-6 rounded-3xl border border-brand-200 bg-gradient-to-r from-brand-50/90 via-surface to-sand/30 p-6 shadow-soft lg:p-8">
-          <div>
+        <div className="flex flex-col gap-6 rounded-3xl border border-brand-200 bg-gradient-to-r from-brand-50/90 via-surface to-sand/30 p-5 shadow-soft sm:p-6 lg:flex-row lg:items-end lg:justify-between lg:p-8">
+          <div className="min-w-0">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-medium text-forest">
               <Sparkles size={13} /> {t.facility.inCareTitle}
             </span>
-            <h1 className="mt-3 text-3xl font-extrabold text-forest">{orgName}</h1>
+            <h1 className="mt-3 text-2xl font-extrabold text-forest sm:text-3xl">{orgName}</h1>
             <p className="mt-1 max-w-lg text-sm text-muted">{t.facility.admitDesc}</p>
           </div>
-          <AdmitScanner />
+          <div className="w-full shrink-0 lg:w-auto lg:max-w-sm">
+            <AdmitScanner />
+          </div>
         </div>
       </MotionPop>
 
       <MotionReveal delay={100} className="mt-6">
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 shadow-soft">
-          <div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface px-4 py-4 shadow-soft sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:px-5">
+          <div className="min-w-0 shrink-0">
             <p className="text-2xl font-bold text-forest">
               {inCare}{" "}
               <span className="text-base font-normal text-muted">/ {capacityLimit}</span>
@@ -71,7 +73,7 @@ export function FacilityHomeView({
               {t.facility.slotsStatus(inCare, capacityLimit)}
             </p>
           </div>
-          <div className="h-2 min-w-[200px] flex-1 overflow-hidden rounded-full bg-brand-100">
+          <div className="h-2 w-full min-w-0 overflow-hidden rounded-full bg-brand-100 sm:min-w-[120px] sm:flex-1">
             <div
               className="h-full rounded-full bg-brand-600 transition-all duration-700"
               style={{ width: `${pct}%` }}

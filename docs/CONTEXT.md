@@ -87,7 +87,7 @@ Defined in `src/lib/plans.ts`. Quotas are **hard-enforced** on pet creation.
 
 **Organisations (breeders/shops)** — `ORG_PLANS`, **can issue passports** (once verified):
 - `STARTER` — free, 5 pets.
-- `SHOP` — **$29.99/mo or $299/yr** (`SHOP_BILLING`), 50 pets (+**$4.99/mo** per extra slot), multi-seat.
+- `SHOP` — **$14.99/mo or $149/yr** (`SHOP_BILLING`), 50 pets (+**$2.49/mo** per extra slot), multi-seat.
 
 **Owners (consumers)** — `USER_PLANS`, **cannot issue passports**:
 - `FREE` = the **"Owner's Account"** (zh: 主人账户) — the only owner tier. Free,
@@ -230,6 +230,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **50% pricing reduction + mobile dashboard fixes.** Why (2-day ad
+  campaign learnings): halved all USD prices in `plans.ts` — SHOP $14.99/mo · $149/yr;
+  extra slots $2.49/mo; owner extra pet $1.49/mo. Stripe Checkout reads from same constants.
+  Mobile: bottom tab bar uses shorter labels + no duplicate locale toggle; dashboard cards/headers
+  stack on narrow screens; attention rows truncate instead of overflowing.
 - **2026-06-09** — **Passport-first marketing pages (production).** Why (user approved deploy
   after `/demo/messaging` review). Replaced `/`, `/owner`, `/shop`, `/facility` copy with
   passport-first messaging; extracted landing i18n to `landing-en.ts` / `landing-zh.ts` and

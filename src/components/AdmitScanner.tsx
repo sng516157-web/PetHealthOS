@@ -117,7 +117,7 @@ export function AdmitScanner() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 sm:w-auto"
       >
         <QrCode size={16} /> {t.facility.admitCta}
       </button>
@@ -125,7 +125,7 @@ export function AdmitScanner() {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5">
+    <div className="w-full min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-5">
       <h3 className="text-sm font-semibold text-foreground">{t.facility.admitTitle}</h3>
       <p className="mt-1 text-xs text-muted">{t.facility.admitDesc}</p>
 

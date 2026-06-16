@@ -64,7 +64,7 @@ Full flow: [05-passport-transfer-claim.md](./05-passport-transfer-claim.md).
 
 | Step | Action | Expected |
 |------|--------|----------|
-| 1 | STARTER shop sees upgrade CTA | Monthly $29.99 / yearly $299 |
+| 1 | STARTER shop sees upgrade CTA | Monthly $14.99 / yearly $149 |
 | 2 | Upgrade to SHOP (demo or Stripe) | `org.plan` SHOP; limits increase |
 | 3 | Cancel subscription | Downgrade to STARTER; read-only over-quota pets |
 | 4 | Extra shop pet slot (¥30/mo) if over 50 | `OrgSlot` shop_pet ACTIVE |

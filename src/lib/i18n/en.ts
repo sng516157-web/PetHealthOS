@@ -30,6 +30,15 @@ export const en = {
     account: "Account",
     tagline: "Every pet comes with confidence.",
     organization: "Organization",
+    /** Shorter labels for the mobile bottom tab bar. */
+    mobile: {
+      dashboard: "Home",
+      pets: "Pets",
+      reminders: "Reminders",
+      notifications: "Alerts",
+      billing: "Billing",
+      account: "Account",
+    },
   },
   species: { DOG: "Dog", CAT: "Cat", dogs: "Dogs", cats: "Cats", all: "All" },
   sex: { MALE: "Male", FEMALE: "Female", UNKNOWN: "Unknown" },

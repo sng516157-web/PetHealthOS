@@ -277,7 +277,7 @@ export async function startCheckout(opts: {
   });
 }
 
-// Buy one extra pet slot for an owner (¥15/mo). Demo-increments the slot count
+// Buy one extra pet slot for an owner ($1.49/mo). Demo-increments the slot count
 // when no provider is configured; otherwise routes through Stripe and the slot
 // is granted on return (see finalizeStripeSession). Hard-capped by the plan.
 export async function buyOwnerPetSlot(opts: {
@@ -314,7 +314,7 @@ export async function buyOwnerPetSlot(opts: {
   });
 }
 
-// Buy one extra facility "care slot" (¥30/mo). Demo-grants the slot when no
+// Buy one extra facility "care slot" ($2.49/mo). Demo-grants the slot when no
 // provider is configured; otherwise routes through Stripe and the slot is
 // granted on return. The slot persists (org.extraPetSlots) until cancelled.
 export async function buyFacilitySlot(opts: {

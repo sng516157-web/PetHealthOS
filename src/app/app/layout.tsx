@@ -41,25 +41,26 @@ export default async function AppLayout({
   const pendingReview = org.verificationStatus === "PENDING";
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen min-w-0">
       <Sidebar unread={unread} />
       <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
         {/* Mobile-only top bar: the sidebar (with sign-out) is hidden on mobile. */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-surface/95 px-5 py-3 backdrop-blur md:hidden">
-          <Link href="/app/account" className="flex min-w-0 items-center gap-2">
+        <header className="sticky top-0 z-30 flex min-w-0 items-center gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur sm:gap-3 sm:px-5 md:hidden">
+          <Link href="/app/account" className="flex min-w-0 flex-1 items-center gap-2">
             <PawSureMarkTile className="h-8 w-8 shrink-0" />
             <span className="truncate text-sm font-extrabold text-forest">
               {org.name}
             </span>
           </Link>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <LocaleToggle compact />
             <form action={signOut}>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-rose-300 hover:text-rose-600"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2 py-1.5 text-xs font-medium text-slate-600 transition hover:border-rose-300 hover:text-rose-600 sm:px-2.5"
+                aria-label={t.auth.signOut}
               >
-                <LogOut size={13} /> {t.auth.signOut}
+                <LogOut size={13} /> <span className="hidden sm:inline">{t.auth.signOut}</span>
               </button>
             </form>
           </div>
@@ -67,10 +68,12 @@ export default async function AppLayout({
         {pendingReview && (
           <Link
             href="/verify"
-            className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-5 py-2.5 text-xs font-medium text-amber-800 transition hover:bg-amber-100"
+            className="flex items-start gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800 transition hover:bg-amber-100 sm:items-center sm:px-5"
           >
-            <Clock size={14} className="shrink-0" />
-            {t.verify.pendingTitle} — {t.verify.pendingDesc}
+            <Clock size={14} className="mt-0.5 shrink-0 sm:mt-0" />
+            <span className="min-w-0 leading-snug">
+              {t.verify.pendingTitle} — {t.verify.pendingDesc}
+            </span>
           </Link>
         )}
         <WorkspaceMotionShell>
