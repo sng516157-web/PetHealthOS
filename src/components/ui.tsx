@@ -116,7 +116,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface/60 px-6 py-12 text-center">
+    <div className="flex w-full min-w-0 max-w-full flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface/60 px-4 py-12 text-center sm:px-6">
       {icon && (
         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/12 text-brand-700">
           {icon}
@@ -124,7 +124,7 @@ export function EmptyState({
       )}
       <p className="text-sm font-medium text-foreground">{title}</p>
       {description && (
-        <p className="mt-1 max-w-sm text-sm text-muted">{description}</p>
+        <p className="mt-1 max-w-sm break-words text-sm text-muted">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>

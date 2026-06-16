@@ -11,13 +11,13 @@ export function PetOverviewGrid({
   sidebar: ReactNode[];
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <MotionStagger className="space-y-5 lg:col-span-2" step={90} itemClassName="">
+    <div className="grid w-full min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
+      <MotionStagger className="min-w-0 space-y-5 lg:col-span-2" step={90} itemClassName="">
         {main.map((node, i) => (
           <div key={i}>{node}</div>
         ))}
       </MotionStagger>
-      <MotionStagger className="space-y-5" step={90} itemClassName="">
+      <MotionStagger className="min-w-0 space-y-5" step={90} itemClassName="">
         {sidebar.map((node, i) => (
           <div key={i}>{node}</div>
         ))}

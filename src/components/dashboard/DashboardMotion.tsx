@@ -8,7 +8,7 @@ export { MotionPop, MotionReveal, motionCardHover };
 /** Workspace page wrapper — flat paper background; motion is on cards, not ambient orbs. */
 export function WorkspaceMotionShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-[calc(100vh-3.5rem)] bg-paper">
+    <div className="relative w-full min-w-0 max-w-full overflow-x-clip bg-paper min-h-[calc(100vh-3.5rem)]">
       {children}
     </div>
   );
@@ -88,7 +88,7 @@ export function DashboardStatCard({
   return (
     <MotionReveal delay={delay}>
       <div
-        className={`rounded-2xl border border-border bg-surface/90 p-5 shadow-soft backdrop-blur ${motionCardHover}`}
+        className={`w-full min-w-0 max-w-full rounded-2xl border border-border bg-surface/90 p-5 shadow-soft backdrop-blur ${motionCardHover}`}
       >
         <div
           className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${toneClass}`}

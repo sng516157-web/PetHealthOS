@@ -65,7 +65,7 @@ export function ShopHomeView({
   const totalLogs = pets.reduce((s, p) => s + p.logCount, 0);
 
   return (
-    <DashboardCanvas>
+    <DashboardCanvas className="w-full">
       <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <MotionPop index={0} className="min-w-0">
           <p className="text-sm text-muted">{orgName}</p>
@@ -83,7 +83,7 @@ export function ShopHomeView({
         </MotionPop>
       </header>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardStatCard
           delay={0}
           icon={<PawPrint size={18} />}
@@ -118,8 +118,8 @@ export function ShopHomeView({
         />
       </div>
 
-      <div className="mt-10 grid gap-8 xl:grid-cols-12">
-        <div className="space-y-6 xl:col-span-8">
+      <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">
+        <div className="min-w-0 space-y-6 xl:col-span-8">
           <MotionReveal>
             <h2 className="text-sm font-semibold text-forest">{t.dashboard.needsAttention}</h2>
             <p className="text-xs text-muted">{t.dashboard.needsAttentionSub}</p>
@@ -182,7 +182,7 @@ export function ShopHomeView({
             </div>
           </MotionReveal>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {pets.slice(0, 6).map((p, i) => (
               <MotionReveal key={p.id} delay={240 + i * 60}>
                 <Link href={`/app/pets/${p.id}`}>
@@ -212,9 +212,9 @@ export function ShopHomeView({
           </div>
         </div>
 
-        <div className="xl:col-span-4">
+        <div className="min-w-0 xl:col-span-4">
           <MotionReveal delay={120}>
-            <div className="rounded-2xl border border-border bg-surface shadow-soft">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-soft">
               <div className="border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-forest">
                   {t.dashboard.upcomingReminders}

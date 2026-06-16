@@ -78,13 +78,13 @@ export function OwnerHomeView({
   }
 
   return (
-    <DashboardCanvas>
+    <DashboardCanvas className="w-full">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <MotionPop index={0} className="min-w-0">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white/90 px-3 py-1 text-xs font-medium text-forest">
             <Sparkles size={13} /> {t.me.subtitle}
           </span>
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-forest sm:text-3xl lg:text-4xl">
+          <h1 className="mt-3 break-words text-2xl font-extrabold tracking-tight text-forest sm:text-3xl lg:text-4xl">
             {t.me.greeting(userName)}
           </h1>
           <p className="mt-1 text-sm text-muted">{t.me.subtitle}</p>
@@ -108,7 +108,7 @@ export function OwnerHomeView({
       </div>
 
       {!memorialTab && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
           <DashboardStatCard
             delay={0}
             icon={<PawPrint size={18} />}
@@ -133,8 +133,8 @@ export function OwnerHomeView({
         </div>
       )}
 
-      <div className="mt-10 grid gap-8 xl:grid-cols-12">
-        <div className="space-y-4 xl:col-span-8">
+      <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">
+        <div className="min-w-0 space-y-4 xl:col-span-8">
           <MotionReveal>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-forest">
@@ -174,14 +174,14 @@ export function OwnerHomeView({
               />
             </MotionReveal>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((pet, i) => {
                 const claimNote = memorialTab ? claimLabel(pet.claimStatus) : null;
                 return (
                   <MotionReveal key={pet.id} delay={i * 90}>
-                    <Link href={`/me/pets/${pet.id}`}>
+                    <Link href={`/me/pets/${pet.id}`} className="block min-w-0 max-w-full">
                       <div
-                        className={`flex h-full flex-col rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
+                        className={`flex h-full min-w-0 max-w-full flex-col rounded-2xl border border-border bg-surface p-4 shadow-soft ${motionCardHover}`}
                       >
                         <div className="flex items-center gap-3">
                           <PetAvatar
@@ -216,11 +216,11 @@ export function OwnerHomeView({
           )}
         </div>
 
-        <div className="space-y-4 xl:col-span-4">
+        <div className="min-w-0 space-y-4 xl:col-span-4">
           {!memorialTab && (
             <MotionReveal delay={120}>
               <div
-                className={`overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft ${motionCardHover}`}
+                className={`min-w-0 max-w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft ${motionCardHover}`}
               >
                 <OwnerScanCard embedded />
               </div>
@@ -228,11 +228,11 @@ export function OwnerHomeView({
           )}
 
           <MotionReveal delay={memorialTab ? 120 : 180}>
-            <div className="rounded-2xl border border-border bg-surface shadow-soft">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-soft">
               <div className="border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-forest">{t.notifications.title}</h2>
               </div>
-              <div className="p-4 pt-0">
+              <div className="min-w-0 p-4 pt-0">
                 <NotificationList notifications={notifications} basePetHref="/me/pets" />
               </div>
             </div>

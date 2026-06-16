@@ -46,7 +46,7 @@ export function FacilityHomeView({
   const pct = capacityLimit > 0 ? Math.min(100, (inCare / capacityLimit) * 100) : 0;
 
   return (
-    <DashboardCanvas>
+    <DashboardCanvas className="w-full">
       <MotionPop index={0}>
         <div className="flex flex-col gap-6 rounded-3xl border border-brand-200 bg-gradient-to-r from-brand-50/90 via-surface to-sand/30 p-5 shadow-soft sm:p-6 lg:flex-row lg:items-end lg:justify-between lg:p-8">
           <div className="min-w-0">
@@ -95,7 +95,7 @@ export function FacilityHomeView({
           />
         </MotionReveal>
       ) : (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-4 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {pets.map((pet, i) => (
             <MotionReveal key={pet.id} delay={200 + i * 80}>
               <Link href={`/app/pets/${pet.id}`}>

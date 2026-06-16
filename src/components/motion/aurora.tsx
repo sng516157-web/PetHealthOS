@@ -91,7 +91,7 @@ export function MotionReveal({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+      className={`min-w-0 max-w-full transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
         visible || reduced
           ? "translate-y-0 opacity-100"
           : "translate-y-8 opacity-0"
@@ -118,7 +118,7 @@ export function MotionPop({
   const reduced = usePrefersReducedMotion();
   return (
     <div
-      className={`${reduced ? "" : "ps-aurora-pop-in"} ${className}`}
+      className={`min-w-0 max-w-full ${reduced ? "" : "ps-aurora-pop-in"} ${className}`}
       style={reduced ? undefined : { animationDelay: `${index * stepMs}ms` }}
     >
       {children}

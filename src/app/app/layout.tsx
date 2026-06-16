@@ -41,9 +41,9 @@ export default async function AppLayout({
   const pendingReview = org.verificationStatus === "PENDING";
 
   return (
-    <div className="flex min-h-screen min-w-0">
+    <div className="flex min-h-screen w-full min-w-0 max-w-full">
       <Sidebar unread={unread} />
-      <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
+      <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0">
         {/* Mobile-only top bar: the sidebar (with sign-out) is hidden on mobile. */}
         <header className="sticky top-0 z-30 flex min-w-0 items-center gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur sm:gap-3 sm:px-5 md:hidden">
           <Link href="/app/account" className="flex min-w-0 flex-1 items-center gap-2">
@@ -77,7 +77,7 @@ export default async function AppLayout({
           </Link>
         )}
         <WorkspaceMotionShell>
-          <div className="px-5 md:px-8 lg:px-10">{children}</div>
+          <div className="w-full min-w-0 max-w-full px-4 sm:px-5 md:px-8 lg:px-10">{children}</div>
         </WorkspaceMotionShell>
       </main>
       <MobileNav unread={unread} />

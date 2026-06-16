@@ -230,6 +230,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Mobile dashboard viewport clamp (follow-up).** Why (owner `/me`
+  still clipped on iPhone): long flex text (scan passport copy) was expanding layout width
+  past the viewport while `overflow-x-hidden` clipped the right edge. Fix: `overflow-x: clip`
+  + `max-width: 100%` on html/body/workspace shells; explicit `grid-cols-1` + `min-w-0`
+  on dashboard grids/cards; scan card description uses `break-words` instead of nowrap truncate.
 - **2026-06-16** — **50% pricing reduction + mobile dashboard fixes.** Why (2-day ad
   campaign learnings): halved all USD prices in `plans.ts` — SHOP $14.99/mo · $149/yr;
   extra slots $2.49/mo; owner extra pet $1.49/mo. Stripe Checkout reads from same constants.

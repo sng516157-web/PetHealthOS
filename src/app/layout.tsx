@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getLocale } from "@/lib/i18n/server";
@@ -28,6 +28,12 @@ const geistMono = Geist_Mono({
 // src/app/icon.png and src/app/apple-icon.png.
 export const metadata: Metadata = defaultSiteMetadata;
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -42,7 +48,7 @@ export default async function RootLayout({
       className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
       {...(forBot ? { "data-seo-bot": "true" } : {})}
     >
-      <body className="min-h-full">
+      <body className="min-h-full w-full max-w-full overflow-x-clip">
         <GoogleAnalytics />
         <AnalyticsListener />
         <I18nProvider initialLocale={locale}>

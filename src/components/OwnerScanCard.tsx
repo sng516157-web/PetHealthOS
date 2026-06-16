@@ -12,22 +12,26 @@ export function OwnerScanCard({ embedded = false }: { embedded?: boolean }) {
   return (
     <div
       className={
-        embedded ? "bg-transparent" : "rounded-2xl border border-border bg-surface"
+        embedded
+          ? "min-w-0 max-w-full bg-transparent"
+          : "min-w-0 max-w-full rounded-2xl border border-border bg-surface"
       }
     >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 p-4 text-left"
+        className="flex w-full min-w-0 max-w-full items-center gap-3 p-4 text-left"
       >
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
           <QrCode size={16} />
         </span>
-        <span className="min-w-0 flex-1">
+        <span className="min-w-0 flex-1 overflow-hidden">
           <span className="block text-sm font-semibold text-foreground">
             {t.me.scanTitle}
           </span>
-          <span className="block truncate text-xs text-muted">{t.me.scanDesc}</span>
+          <span className="block break-words text-xs leading-snug text-muted">
+            {t.me.scanDesc}
+          </span>
         </span>
         <ChevronDown
           size={18}
@@ -35,7 +39,7 @@ export function OwnerScanCard({ embedded = false }: { embedded?: boolean }) {
         />
       </button>
       {open && (
-        <div className="border-t border-border p-4">
+        <div className="min-w-0 border-t border-border p-4">
           <PassportScanner />
         </div>
       )}

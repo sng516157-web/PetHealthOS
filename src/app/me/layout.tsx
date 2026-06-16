@@ -24,7 +24,7 @@ export default async function MeLayout({
   const { t } = await getI18n();
 
   return (
-    <div className="min-h-screen min-w-0 overflow-x-hidden">
+    <div className="flex min-h-screen w-full min-w-0 max-w-full flex-col overflow-x-clip">
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex min-w-0 max-w-[1600px] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-5 md:px-8 lg:px-10">
           <Link href="/me" className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -60,7 +60,7 @@ export default async function MeLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto min-w-0 max-w-[1600px] overflow-x-hidden px-5 md:px-8 lg:px-10">
+      <main className="mx-auto w-full min-w-0 max-w-[1600px] flex-1 overflow-x-clip px-4 sm:px-5 md:px-8 lg:px-10">
         <WorkspaceMotionShell>{children}</WorkspaceMotionShell>
       </main>
     </div>
