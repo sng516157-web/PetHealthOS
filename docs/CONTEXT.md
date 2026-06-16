@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-06-09
+Last updated: 2026-06-16
 
 ---
 
@@ -115,7 +115,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 - Admin area **`/admin`** (`src/lib/admin.ts`): gated by `ADMIN_PASSWORD` (shared
   password → signed `ph_admin` cookie) and/or `ADMIN_EMAILS` (logged-in user match).
   Reviewers approve/reject (`reviewOrg`) with a reason. New submissions email the team
-  via `notifyAdmins` when `RESEND_API_KEY` + `ADMIN_EMAILS` are set.
+  via `notifyAdmins` when `RESEND_API_KEY` + `ADMIN_EMAILS` are set. **Entitlement grants:**
+  reviewers can comp an owner extra pet slot, facility care slot, or SHOP plan by account
+  email (`AdminGrantPanel` → `adminGrantEntitlement` in `src/lib/admin-grants.ts`). Comped
+  slots set `OwnerPetSlot.comped` / `OrgSlot.comped = true` so `syncSlotRevocationsFromStripe`
+  does not revoke them on billing refresh; SHOP plan uses `activatePlan` (same as demo mode).
 
 ---
 
@@ -230,6 +234,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Admin entitlement grants (`/admin`).** Why (user request): comp slots or
+  SHOP plan by email without SQL or Stripe coupons. New `comped` flag on `OwnerPetSlot` /
+  `OrgSlot`; Stripe sync only revokes non-comped ACTIVE slots. Grant types: owner extra pet,
+  facility care slot, org SHOP plan (monthly).
 - **2026-06-16** — **Mobile dashboard viewport clamp (follow-up).** Why (owner `/me`
   still clipped on iPhone): long flex text (scan passport copy) was expanding layout width
   past the viewport while `overflow-x-hidden` clipped the right edge. Fix: `overflow-x: clip`

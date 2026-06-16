@@ -68,13 +68,14 @@ export async function syncOwnerSlotCount(userId: string): Promise<void> {
 
 export async function createOwnerPetSlot(
   userId: string,
-  opts?: { pending?: boolean },
+  opts?: { pending?: boolean; comped?: boolean },
 ): Promise<string> {
   const id = newSlotId();
   const status = opts?.pending ? "PENDING" : "ACTIVE";
+  const comped = opts?.comped ?? false;
   await prisma.$executeRaw`
-    INSERT INTO "OwnerPetSlot" (id, "userId", status, "createdAt")
-    VALUES (${id}, ${userId}, ${status}, NOW())
+    INSERT INTO "OwnerPetSlot" (id, "userId", status, comped, "createdAt")
+    VALUES (${id}, ${userId}, ${status}, ${comped}, NOW())
   `;
   if (!opts?.pending) await syncOwnerSlotCount(userId);
   return id;
@@ -97,8 +98,8 @@ export async function ensureOwnerPetSlotActive(
     }
   } else {
     await prisma.$executeRaw`
-      INSERT INTO "OwnerPetSlot" (id, "userId", status, "createdAt")
-      VALUES (${slotId}, ${userId}, 'ACTIVE', NOW())
+      INSERT INTO "OwnerPetSlot" (id, "userId", status, comped, "createdAt")
+      VALUES (${slotId}, ${userId}, 'ACTIVE', false, NOW())
     `;
   }
   await syncOwnerSlotCount(userId);
@@ -152,6 +153,40 @@ export async function assignOwnerPetSlot(userId: string, petId: string): Promise
   await prisma.$executeRaw`
     UPDATE "OwnerPetSlot" SET "petId" = ${petId} WHERE id = ${open[0].id}
   `;
+}
+
+/** Link unassigned ACTIVE slots to pets beyond the free tier (e.g. after admin grant). */
+export async function reconcileOwnerPetSlotAssignments(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { plan: true },
+  });
+  const plan = getUserPlan(user?.plan);
+  const pets = await prisma.pet.findMany({
+    where: { ownerUserId: userId, status: { not: "DECEASED" } },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+
+  for (let i = plan.includedPets; i < pets.length; i++) {
+    const petId = pets[i].id;
+    const linked = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "OwnerPetSlot" WHERE "petId" = ${petId} LIMIT 1
+    `;
+    if (linked[0]) continue;
+
+    const open = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "OwnerPetSlot"
+      WHERE "userId" = ${userId} AND status = 'ACTIVE' AND "petId" IS NULL
+      ORDER BY "createdAt" ASC
+      LIMIT 1
+    `;
+    if (!open[0]) break;
+
+    await prisma.$executeRaw`
+      UPDATE "OwnerPetSlot" SET "petId" = ${petId} WHERE id = ${open[0].id}
+    `;
+  }
 }
 
 export async function getOwnerPetEntitlements(

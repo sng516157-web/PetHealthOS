@@ -71,8 +71,9 @@ See `docs/LIVE_STRIPE.md`. Minimum set:
    `fulfillCheckoutSession`.
 3. **Never un-revoke slots** — `ensureOrgSlotActive` / `ensureOwnerPetSlotActive` only promote
    `PENDING` → `ACTIVE`. `REVOKED` stays revoked unless a **new** purchase creates a new slot.
+   Admin comped slots (`comped = true`) are excluded from `syncSlotRevocationsFromStripe`.
 4. **Sync order** — expire stale `PENDING` → `syncSlotRevocationsFromStripe` (revoke slots
-   without active sub) → activate from active subs → repair unfulfilled checkouts (skip slots
+   without active sub **and `comped = false`**) → activate from active subs → repair unfulfilled checkouts (skip slots
    whose sub is dead).
 5. **Webhook parity** — Any new fulfillment path needs a matching reversal path and an entry
    in this doc. Test: pay → fulfill → cancel → revoke → refund → stay revoked after billing

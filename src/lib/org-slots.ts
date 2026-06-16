@@ -46,13 +46,14 @@ export async function syncOrgCareSlotCount(orgId: string): Promise<void> {
 export async function createOrgSlot(
   orgId: string,
   kind: OrgSlotKind,
-  opts?: { pending?: boolean },
+  opts?: { pending?: boolean; comped?: boolean },
 ): Promise<string> {
   const id = newSlotId();
   const status = opts?.pending ? "PENDING" : "ACTIVE";
+  const comped = opts?.comped ?? false;
   await prisma.$executeRaw`
-    INSERT INTO "OrgSlot" (id, "orgId", kind, status, "createdAt")
-    VALUES (${id}, ${orgId}, ${kind}, ${status}, NOW())
+    INSERT INTO "OrgSlot" (id, "orgId", kind, status, comped, "createdAt")
+    VALUES (${id}, ${orgId}, ${kind}, ${status}, ${comped}, NOW())
   `;
   if (kind === "care" && !opts?.pending) await syncOrgCareSlotCount(orgId);
   return id;
@@ -77,8 +78,8 @@ export async function ensureOrgSlotActive(
     }
   } else {
     await prisma.$executeRaw`
-      INSERT INTO "OrgSlot" (id, "orgId", kind, status, "createdAt")
-      VALUES (${slotId}, ${orgId}, ${kind}, 'ACTIVE', NOW())
+      INSERT INTO "OrgSlot" (id, "orgId", kind, status, comped, "createdAt")
+      VALUES (${slotId}, ${orgId}, ${kind}, 'ACTIVE', false, NOW())
     `;
   }
   if (kind === "care") await syncOrgCareSlotCount(orgId);

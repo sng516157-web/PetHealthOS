@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Admin entitlement grants.** `/admin` can comp an owner extra pet slot,
+  facility care slot, or SHOP plan by account email; comped slots survive Stripe billing sync.
+
 - **2026-06-16 — Owner dashboard mobile clip (fix).** `/me` no longer cuts off cards on
   iPhone — content stays within the screen width and long Chinese labels wrap instead of
   pushing the layout sideways.

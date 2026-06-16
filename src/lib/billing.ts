@@ -513,7 +513,7 @@ async function syncSlotRevocationsFromStripe(scope: CheckoutScope): Promise<void
     const active = await activeStripeSlotIds(stripe, customerId, scope, "org_slot");
     const rows = await prisma.$queryRaw<{ id: string }[]>`
       SELECT id FROM "OrgSlot"
-      WHERE "orgId" = ${scope.id} AND kind = 'care' AND status = 'ACTIVE'
+      WHERE "orgId" = ${scope.id} AND kind = 'care' AND status = 'ACTIVE' AND comped = false
     `;
     for (const row of rows) {
       if (!active.has(row.id)) await revokeOrgSlot(row.id);
@@ -522,7 +522,7 @@ async function syncSlotRevocationsFromStripe(scope: CheckoutScope): Promise<void
     const active = await activeStripeSlotIds(stripe, customerId, scope, "user_slot");
     const rows = await prisma.$queryRaw<{ id: string }[]>`
       SELECT id FROM "OwnerPetSlot"
-      WHERE "userId" = ${scope.id} AND status = 'ACTIVE'
+      WHERE "userId" = ${scope.id} AND status = 'ACTIVE' AND comped = false
     `;
     for (const row of rows) {
       if (!active.has(row.id)) await revokeOwnerPetSlot(row.id);

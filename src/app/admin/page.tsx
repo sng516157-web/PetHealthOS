@@ -11,6 +11,7 @@ import { AdminLogin } from "@/components/AdminLogin";
 import { AdminReviewItem, type AdminOrg } from "@/components/AdminReviewItem";
 import { AdminDeathClaimItem, type AdminDeathClaim } from "@/components/AdminDeathClaimItem";
 import { AdminDocs } from "@/components/AdminDocs";
+import { AdminGrantPanel } from "@/components/AdminGrantPanel";
 import { readAllDocs } from "@/lib/docs";
 
 export const dynamic = "force-dynamic";
@@ -170,6 +171,8 @@ export default async function AdminPage() {
             </div>
           </>
         )}
+
+        <AdminGrantPanel />
 
         <hr className="my-10 border-border" />
         <AdminDocs docs={docs} />

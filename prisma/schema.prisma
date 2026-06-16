@@ -66,6 +66,7 @@ model OrgSlot {
   petStayId  String?   @unique
   petStay    PetStay?  @relation(fields: [petStayId], references: [id], onDelete: SetNull)
   status     String    @default("ACTIVE") // ACTIVE | PENDING | REVOKED
+  comped     Boolean   @default(false) // admin grant — not revoked by Stripe sync
   createdAt  DateTime  @default(now())
   revokedAt  DateTime?
 
@@ -133,7 +134,8 @@ model OwnerPetSlot {
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   petId                String?   @unique
   pet                  Pet?      @relation(fields: [petId], references: [id], onDelete: SetNull)
-  status               String    @default("ACTIVE") // ACTIVE | REVOKED
+  status               String    @default("ACTIVE") // ACTIVE | PENDING | REVOKED
+  comped               Boolean   @default(false) // admin grant — not revoked by Stripe sync
   stripeSubscriptionId String?
   createdAt            DateTime  @default(now())
   revokedAt            DateTime?

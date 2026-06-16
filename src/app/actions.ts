@@ -17,6 +17,7 @@ import {
   currentActorIsFacility,
 } from "@/lib/data";
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
+import type { AdminGrantKind } from "@/lib/admin-grants";
 import { notifyAdmins } from "@/lib/email";
 import {
   sendVerificationEmail,
@@ -1517,6 +1518,30 @@ export async function adminLogin(formData: FormData) {
 export async function adminLogout() {
   await adminSignOut();
   redirect("/admin");
+}
+
+export async function adminGrantEntitlement(formData: FormData) {
+  if (!(await isAdmin())) return { error: "FORBIDDEN" };
+  const email = String(formData.get("email") || "");
+  const kind = String(formData.get("kind") || "") as AdminGrantKind;
+  if (
+    kind !== "owner_slot" &&
+    kind !== "care_slot" &&
+    kind !== "shop_plan"
+  ) {
+    return { error: "BAD_REQUEST" };
+  }
+
+  const { adminGrantEntitlement: grant } = await import("@/lib/admin-grants");
+  const res = await grant(email, kind);
+  if ("error" in res) return { error: res.error };
+
+  revalidatePath("/admin");
+  revalidatePath("/me");
+  revalidatePath("/me/billing");
+  revalidatePath("/app");
+  revalidatePath("/app/billing");
+  return { ok: true, message: res.message };
 }
 
 export async function reviewOrg(formData: FormData) {
