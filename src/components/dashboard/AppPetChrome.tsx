@@ -23,7 +23,8 @@ export function AppPetChrome({
   readOnly,
   slotReadOnly,
   includeTransfer,
-  onlyHealthLog,
+  includeAI = true,
+  includeTriage = true,
   sire,
   dam,
   sireLabel,
@@ -44,7 +45,8 @@ export function AppPetChrome({
   readOnly: boolean;
   slotReadOnly: boolean;
   includeTransfer: boolean;
-  onlyHealthLog: boolean;
+  includeAI?: boolean;
+  includeTriage?: boolean;
   sire: { id: string; name: string } | null;
   dam: { id: string; name: string } | null;
   sireLabel: string;
@@ -129,8 +131,8 @@ export function AppPetChrome({
         <PetTabs
           petId={petId}
           includeTransfer={includeTransfer}
-          onlyHealthLog={onlyHealthLog}
-          readOnly={readOnly}
+          includeAI={includeAI}
+          includeTriage={includeTriage}
         />
       </MotionReveal>
 

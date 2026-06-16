@@ -155,6 +155,8 @@ export async function getFacilityPetView(petId: string) {
       dam: { select: { id: true, name: true, breed: true } },
       attachments: { where: timeFilter, orderBy: { createdAt: "desc" } },
       logs: { where: timeFilter, orderBy: { occurredAt: "desc" } },
+      foodLogs: { where: timeFilter, orderBy: { occurredAt: "desc" } },
+      activityLogs: { where: timeFilter, orderBy: { occurredAt: "desc" } },
       weights: { where: timeFilter, orderBy: { measuredAt: "asc" } },
       reminders: { orderBy: { dueAt: "asc" } },
       reports: { orderBy: { createdAt: "desc" } },
@@ -183,6 +185,8 @@ export async function getPet(id: string) {
       dam: { select: { id: true, name: true, breed: true } },
       attachments: { orderBy: { createdAt: "desc" } },
       logs: { orderBy: { occurredAt: "desc" } },
+      foodLogs: { orderBy: { occurredAt: "desc" } },
+      activityLogs: { orderBy: { occurredAt: "desc" } },
       weights: { orderBy: { measuredAt: "asc" } },
       reminders: { orderBy: { dueAt: "asc" } },
       reports: { orderBy: { createdAt: "desc" } },
@@ -210,6 +214,8 @@ export async function getPetForAI(id: string) {
     where: { id },
     include: {
       logs: { orderBy: { occurredAt: "desc" } },
+      foodLogs: { orderBy: { occurredAt: "desc" } },
+      activityLogs: { orderBy: { occurredAt: "desc" } },
       attachments: { orderBy: { createdAt: "desc" } },
     },
   });

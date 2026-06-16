@@ -46,6 +46,8 @@ export default async function PetLayout({
   const ent = await getPetEntitlements(id);
   const slotReadOnly = ent?.tier === "readonly";
   const readOnly = (facility && !facilityActive) || slotReadOnly;
+  const includeAI = !facility || facilityActive;
+  const includeTriage = !facility || facilityActive;
 
   const meta = [
     pet.breed,
@@ -80,7 +82,8 @@ export default async function PetLayout({
       readOnly={readOnly}
       slotReadOnly={slotReadOnly}
       includeTransfer={!facility && !readOnly}
-      onlyHealthLog={readOnly}
+      includeAI={includeAI}
+      includeTriage={includeTriage}
       sire={pet.sire}
       dam={pet.dam}
       sireLabel={t.petDetail.sire}

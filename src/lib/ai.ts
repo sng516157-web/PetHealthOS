@@ -59,6 +59,24 @@ type LogLike = {
   tags: string;
 };
 
+export type FoodLogLike = {
+  occurredAt: Date;
+  mealType: string;
+  foodName?: string | null;
+  amount?: string | null;
+  appetite?: string | null;
+  notes?: string | null;
+};
+
+export type ActivityLogLike = {
+  occurredAt: Date;
+  activityType: string;
+  durationMin?: number | null;
+  distanceKm?: number | null;
+  intensity?: string | null;
+  notes?: string | null;
+};
+
 export type AttachmentLike = {
   kind: string;
   label: string;
@@ -92,7 +110,10 @@ export function buildPetContext(
   pet: PetLike,
   logs: LogLike[],
   attachments: AttachmentLike[] = [],
-  opts: BuildContextOpts = {},
+  opts: BuildContextOpts & {
+    foodLogs?: FoodLogLike[];
+    activityLogs?: ActivityLogLike[];
+  } = {},
 ): string {
   const header = petSummaryLine(pet);
   const notes = pet.notes ? `\nGeneral notes: ${pet.notes}` : "";
@@ -108,6 +129,41 @@ export function buildPetContext(
       return `- ${date} · ${l.type} · severity:${l.severity}${title}${tagStr}\n    ${l.rawText.replace(/\n/g, " ")}`;
     })
     .join("\n");
+
+  const foodLogs = opts.foodLogs ?? [];
+  const foodLines = foodLogs
+    .slice()
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .map((f) => {
+      const date = formatDateTime(f.occurredAt, fmtOpts);
+      const bits = [
+        f.mealType,
+        f.foodName,
+        f.amount,
+        f.appetite ? `appetite:${f.appetite}` : null,
+        f.notes,
+      ].filter(Boolean);
+      return `- ${date} · ${bits.join(" · ")}`;
+    })
+    .join("\n");
+
+  const activityLogs = opts.activityLogs ?? [];
+  const activityLines = activityLogs
+    .slice()
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .map((a) => {
+      const date = formatDateTime(a.occurredAt, fmtOpts);
+      const bits = [
+        a.activityType,
+        a.durationMin != null ? `${a.durationMin} min` : null,
+        a.distanceKm != null ? `${a.distanceKm} km` : null,
+        a.intensity ? `intensity:${a.intensity}` : null,
+        a.notes,
+      ].filter(Boolean);
+      return `- ${date} · ${bits.join(" · ")}`;
+    })
+    .join("\n");
+
   const docLines = attachments
     .slice()
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -120,7 +176,17 @@ export function buildPetContext(
   const docsBlock = docLines
     ? `\n\nREFERENCE DOCUMENTS (vaccine certs, lab results, pedigree, etc. — metadata; image/PDF files may also be attached for vision):\n${docLines}`
     : "";
-  return `PET PROFILE\n${header}${notes}\n\nHEALTH LOG (most recent first):\n${logLines || "(no entries yet)"}${docsBlock}`;
+  const foodBlock = foodLines
+    ? `\n\nFOOD / NUTRITION LOG (most recent first):\n${foodLines}`
+    : "";
+  const activityBlock = activityLines
+    ? `\n\nACTIVITY / WALKS LOG (most recent first):\n${activityLines}`
+    : "";
+  const crossHint =
+    foodLines || activityLines
+      ? "\n\nWhen assessing this pet, cross-reference health symptoms with recent appetite changes and activity levels where relevant."
+      : "";
+  return `PET PROFILE\n${header}${notes}\n\nHEALTH LOG (most recent first):\n${logLines || "(no entries yet)"}${foodBlock}${activityBlock}${docsBlock}${crossHint}`;
 }
 
 const MAX_VISION_ATTACHMENTS = 4;
@@ -296,6 +362,11 @@ const TriageSchema = z.object({
     .array(z.string())
     .describe("Specific questions / facts to share with the vet"),
   positiveSigns: z.array(z.string()).describe("Reassuring observations, if any"),
+  crossLogInsights: z
+    .array(z.string())
+    .describe(
+      "0-3 brief observations connecting health, food/nutrition, and activity logs (e.g. reduced appetite after low activity). Empty if not applicable.",
+    ),
 });
 
 export type TriageResult = z.infer<typeof TriageSchema>;
@@ -305,12 +376,15 @@ export async function generateTriage(
   logs: LogLike[],
   locale: Locale = DEFAULT_LOCALE,
   attachments: AttachmentLike[] = [],
-  opts: BuildContextOpts = {},
+  opts: BuildContextOpts & {
+    foodLogs?: FoodLogLike[];
+    activityLogs?: ActivityLogLike[];
+  } = {},
 ): Promise<TriageResult> {
-  if (!hasAI()) return heuristicTriage(pet, logs, locale);
+  if (!hasAI()) return heuristicTriage(pet, logs, locale, opts.foodLogs, opts.activityLogs);
   const context = buildPetContext(pet, logs, attachments, { ...opts, locale });
   const system =
-    "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log and reference documents. Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the log or documents. " +
+    "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log, food/nutrition log, activity/walks log, and reference documents. Cross-reference the three log types when patterns are visible (e.g. lethargy + skipped meals + shorter walks). Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the logs or documents. " +
     languageInstruction(locale);
   const prompt = `${context}\n\nProduce a triage assessment for communicating with a veterinarian.`;
   try {
@@ -345,7 +419,7 @@ export async function generateTriage(
     return object;
   } catch (e) {
     console.error("generateTriage failed, using heuristic", e);
-    return heuristicTriage(pet, logs, locale);
+    return heuristicTriage(pet, logs, locale, opts.foodLogs, opts.activityLogs);
   }
 }
 
@@ -353,6 +427,8 @@ function heuristicTriage(
   pet: PetLike,
   logs: LogLike[],
   locale: Locale = DEFAULT_LOCALE,
+  foodLogs: FoodLogLike[] = [],
+  activityLogs: ActivityLogLike[] = [],
 ): TriageResult {
   const recent = logs
     .filter((l) => l.occurredAt.getTime() > Date.now() - 1000 * 60 * 60 * 24 * 14)
@@ -373,6 +449,26 @@ function heuristicTriage(
   const urgency: TriageResult["urgency"] =
     maxRank >= 4 ? "EMERGENCY" : maxRank === 3 ? "URGENT" : maxRank === 2 ? "SOON" : concerns.length ? "MONITOR" : "ROUTINE";
 
+  const crossLogInsights: string[] = [];
+  const refusedMeals = foodLogs.filter((f) => f.appetite === "REFUSED").length;
+  const lowActivity = activityLogs.filter(
+    (a) => (a.durationMin ?? 0) < 15 && a.activityType === "WALK",
+  ).length;
+  if (refusedMeals > 0 && concerns.length > 0) {
+    crossLogInsights.push(
+      locale === "zh"
+        ? "近期有拒食记录，且健康日志中有需要关注的事项——请告知兽医食欲变化的时间线。"
+        : "Recent refused meals alongside health concerns — tell your vet when appetite changed.",
+    );
+  }
+  if (lowActivity > 0 && concerns.some((c) => /tired|letharg|fatigue|精神|乏力|没精神/i.test(c.detail))) {
+    crossLogInsights.push(
+      locale === "zh"
+        ? "活动量减少且日志提到精神不振——可能与不适有关。"
+        : "Shorter walks logged alongside tiredness — activity drop may relate to how they feel.",
+    );
+  }
+
   if (locale === "zh") {
     return {
       urgency,
@@ -385,6 +481,7 @@ function heuristicTriage(
         : "继续日常护理并坚持记录。",
       vetQuestions: concerns.map((c) => `可能的原因是什么：${c.issue}？`),
       positiveSigns: [],
+      crossLogInsights,
     };
   }
 
@@ -399,5 +496,6 @@ function heuristicTriage(
       : "Continue routine care and logging.",
     vetQuestions: concerns.map((c) => `What could explain: ${c.issue}?`),
     positiveSigns: [],
+    crossLogInsights,
   };
 }

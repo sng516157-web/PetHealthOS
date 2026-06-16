@@ -39,6 +39,37 @@ export const LOG_TYPES = [
 ] as const;
 export type LogType = (typeof LOG_TYPES)[number];
 
+export const MEAL_TYPES = [
+  "BREAKFAST",
+  "LUNCH",
+  "DINNER",
+  "SNACK",
+  "TREAT",
+  "OTHER",
+] as const;
+export type MealType = (typeof MEAL_TYPES)[number];
+
+export const APPETITE_LEVELS = [
+  "NORMAL",
+  "INCREASED",
+  "DECREASED",
+  "REFUSED",
+] as const;
+export type AppetiteLevel = (typeof APPETITE_LEVELS)[number];
+
+export const ACTIVITY_TYPES = [
+  "WALK",
+  "RUN",
+  "PLAY",
+  "TRAINING",
+  "PARK",
+  "OTHER",
+] as const;
+export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+
+export const ACTIVITY_INTENSITIES = ["LIGHT", "MODERATE", "VIGOROUS"] as const;
+export type ActivityIntensity = (typeof ACTIVITY_INTENSITIES)[number];
+
 export const SEVERITY = ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type Severity = (typeof SEVERITY)[number];
 

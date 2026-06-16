@@ -52,6 +52,7 @@ export default async function MePetLayout({
       }
       readOnly={readOnly}
       canEditPhoto={canEditPhoto}
+      isMemorial={isMemorial}
       backLabel={isMemorial ? t.me.tabMemorial : t.me.backToPets}
       backHref={isMemorial ? "/me?tab=memorial" : "/me"}
       readOnlyBanner={t.account.petReadOnly}

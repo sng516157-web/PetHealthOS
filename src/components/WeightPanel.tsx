@@ -2,13 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Scale, Plus, Trash2, TrendingUp, TrendingDown, Minus, Pencil } from "lucide-react";
+import { Scale, Plus, Trash2, TrendingUp, TrendingDown, Minus, Pencil, ChevronDown } from "lucide-react";
 import { addWeight, deleteWeight, updateWeight } from "@/app/actions";
 import { Card } from "@/components/ui";
+import { WeightLineChart } from "@/components/WeightLineChart";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { useTimezone } from "@/lib/timezone/client";
 import { FieldError } from "@/components/FieldError";
+import { cn } from "@/lib/cn";
 import {
   validateWeightKg,
   validatePastOrToday,
@@ -126,6 +128,8 @@ export function WeightPanel({
   const timeZone = useTimezone();
   const fmt = { timeZone, locale };
   const [open, setOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -198,9 +202,6 @@ export function WeightPanel({
     });
   }
 
-  const max = Math.max(...chrono.map((w) => w.weightKg), 0);
-  const min = Math.min(...chrono.map((w) => w.weightKg), max);
-  const range = max - min || 1;
 
   return (
     <Card className="p-4">
@@ -209,7 +210,7 @@ export function WeightPanel({
         {t.weight.title}
         {latest && (
           <span className="ml-1 font-normal text-muted">
-            · {latest.weightKg} kg
+            · {t.weight.current}: {latest.weightKg} kg
           </span>
         )}
         {prev && (
@@ -263,71 +264,99 @@ export function WeightPanel({
         <p className="mt-3 text-xs text-muted">{t.weight.none}</p>
       ) : (
         <>
-          {chrono.length > 1 && (
-            <div className="mt-3 flex h-16 items-end gap-1">
-              {chrono.map((w) => {
-                const h = 20 + ((w.weightKg - min) / range) * 80;
-                return (
-                  <div
-                    key={w.id}
-                    title={`${w.weightKg} kg · ${formatDate(w.measuredAt, fmt)}`}
-                    className="flex-1 rounded-t bg-brand-200"
-                    style={{ height: `${h}%` }}
-                  />
-                );
-              })}
-            </div>
-          )}
-          <ul className="mt-3 space-y-1.5">
-            {recent.slice(0, 5).map((w) =>
-              editingId === w.id ? (
-                <li key={w.id}>
-                  <WeightForm
-                    entry={w}
-                    submitLabel={t.common.save}
-                    onSubmit={(fd) => saveEdit(w.id, fd)}
-                    pending={pending}
-                    error={error}
-                    fieldErr={fieldErr}
-                    onCancel={() => {
-                      setEditingId(null);
-                      setError(null);
-                    }}
-                  />
-                </li>
-              ) : (
-                <li key={w.id} className="flex items-center gap-2 text-sm">
-                  <span className="font-medium text-foreground">{w.weightKg} kg</span>
-                  <span className="text-xs text-muted">{formatDate(w.measuredAt, fmt)}</span>
-                  {w.note && (
-                    <span className="truncate text-xs text-slate-400">{w.note}</span>
-                  )}
-                  {!readOnly && (
-                    <div className="ml-auto flex shrink-0 items-center gap-0.5">
-                      <button
-                        onClick={() => {
-                          setEditingId(w.id);
-                          setOpen(false);
+          <WeightLineChart weights={chrono} fmt={fmt} />
+          <div className="mt-4 overflow-hidden rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => setListOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-50/80"
+            >
+              <div>
+                <p className="text-sm font-semibold text-forest">{t.weight.historyTitle}</p>
+                <p className="text-xs text-muted">{t.weight.historyDesc(recent.length)}</p>
+              </div>
+              <ChevronDown
+                size={18}
+                className={cn("shrink-0 text-muted transition", listOpen && "rotate-180")}
+              />
+            </button>
+            {listOpen && (
+              <ul className="divide-y divide-border border-t border-border">
+                {recent.map((w) =>
+                  editingId === w.id ? (
+                    <li key={w.id} className="p-3">
+                      <WeightForm
+                        entry={w}
+                        submitLabel={t.common.save}
+                        onSubmit={(fd) => saveEdit(w.id, fd)}
+                        pending={pending}
+                        error={error}
+                        fieldErr={fieldErr}
+                        onCancel={() => {
+                          setEditingId(null);
                           setError(null);
                         }}
-                        className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-brand-600"
-                        aria-label={t.common.edit}
-                      >
-                        <Pencil size={13} />
-                      </button>
+                      />
+                    </li>
+                  ) : (
+                    <li key={w.id} className="list-none">
                       <button
-                        onClick={() => remove(w.id)}
-                        className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-500"
-                        aria-label={t.weight.deleteEntry}
+                        type="button"
+                        onClick={() => setExpandedId((id) => (id === w.id ? null : w.id))}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50/80"
                       >
-                        <Trash2 size={13} />
+                        <span className="text-sm font-semibold text-forest">{w.weightKg} kg</span>
+                        <span className="text-xs text-muted">{formatDate(w.measuredAt, fmt)}</span>
+                        {w.note && expandedId !== w.id && (
+                          <span className="truncate text-xs text-slate-400">{w.note}</span>
+                        )}
+                        <ChevronDown
+                          size={16}
+                          className={cn(
+                            "ml-auto shrink-0 text-muted transition",
+                            expandedId === w.id && "rotate-180",
+                          )}
+                        />
                       </button>
-                    </div>
-                  )}
-                </li>
-              ),
+                      {expandedId === w.id && (
+                        <div className="border-t border-border bg-background px-4 py-3">
+                          {w.note ? (
+                            <p className="text-sm text-slate-600">{w.note}</p>
+                          ) : (
+                            <p className="text-sm text-muted">{t.weight.noNote}</p>
+                          )}
+                          {!readOnly && (
+                            <div className="mt-3 flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingId(w.id);
+                                  setOpen(false);
+                                  setError(null);
+                                }}
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-50 hover:text-brand-600"
+                                aria-label={t.common.edit}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => remove(w.id)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-500"
+                                aria-label={t.weight.deleteEntry}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ),
+                )}
+              </ul>
             )}
-          </ul>
+          </div>
         </>
       )}
     </Card>

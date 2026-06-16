@@ -89,6 +89,19 @@ export function TriageReport({
         </Card>
       )}
 
+      {(report.crossLogInsights?.length ?? 0) > 0 && (
+        <Card className="p-5">
+          <SectionHead icon={<ClipboardList size={16} />} title={t.triage.crossLogTitle} />
+          <ul className="mt-3 space-y-2">
+            {report.crossLogInsights!.map((line, i) => (
+              <li key={i} className="text-sm text-slate-700">
+                {line}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <p className="text-center text-xs text-muted">
         {t.triage.generatedAt} {formatDateTime(createdAt, fmt)} · {t.triage.disclaimer}{" "}
         <Link href="/disclaimer" className="underline hover:text-forest">

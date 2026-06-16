@@ -26,7 +26,9 @@ export default async function TriagePage({
   if (!pet) notFound();
 
   const latest = pet.reports[0];
-  const report: TriageResult | null = latest ? JSON.parse(latest.content) : null;
+  const report: TriageResult | null = latest
+    ? { crossLogInsights: [], ...JSON.parse(latest.content) }
+    : null;
 
   return (
     <div className="space-y-6">

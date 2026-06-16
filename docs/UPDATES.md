@@ -9,6 +9,11 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Pet page tabs + food/activity logs.** Pet detail pages use major tabs
+  (Quick Log, Food, Activity, Reminders, Weight, Documents, Check-in or Transfer) instead
+  of a sidebar; weight shows a trend chart; documents filter by category; owners can
+  edit/delete their health logs; AI triage cross-references all log types.
+
 - **2026-06-16 — Password reset.** Forgot-password flow at `/forgot-password` and
   `/reset-password` — email sends a 6-digit code + HTML link (1-hour TTL); sign-in tab links
   to it; resets clear other owner sessions.

@@ -219,6 +219,8 @@ model Pet {
   deceasedAt DateTime?
 
   logs          LogEntry[]
+  foodLogs      FoodLogEntry[]
+  activityLogs  ActivityLogEntry[]
   reminders     Reminder[]
   conversations Conversation[]
   reports       TriageReport[]
@@ -322,6 +324,42 @@ model LogEntry {
   loggedByName  String?
 
   createdAt  DateTime @default(now())
+
+  @@index([petId, occurredAt])
+}
+
+model FoodLogEntry {
+  id            String    @id @default(cuid())
+  petId         String
+  pet           Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  occurredAt    DateTime  @default(now())
+  mealType      String    // BREAKFAST | LUNCH | DINNER | SNACK | TREAT | OTHER
+  foodName      String?
+  amount        String?
+  appetite      String?   // NORMAL | INCREASED | DECREASED | REFUSED
+  notes         String?
+  lockedAt      DateTime?
+  loggedByOrgId String?
+  loggedByName  String?
+  createdAt     DateTime  @default(now())
+
+  @@index([petId, occurredAt])
+}
+
+model ActivityLogEntry {
+  id            String    @id @default(cuid())
+  petId         String
+  pet           Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  occurredAt    DateTime  @default(now())
+  activityType  String    // WALK | RUN | PLAY | TRAINING | PARK | OTHER
+  durationMin   Int?
+  distanceKm    Float?
+  intensity     String?   // LIGHT | MODERATE | VIGOROUS
+  notes         String?
+  lockedAt      DateTime?
+  loggedByOrgId String?
+  loggedByName  String?
+  createdAt     DateTime  @default(now())
 
   @@index([petId, occurredAt])
 }

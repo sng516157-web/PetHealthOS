@@ -21,6 +21,7 @@ export function OwnerPetChrome({
   ownershipNote,
   readOnly,
   canEditPhoto,
+  isMemorial = false,
   backLabel,
   backHref = "/me",
   readOnlyBanner,
@@ -36,6 +37,7 @@ export function OwnerPetChrome({
   ownershipNote: string;
   readOnly: boolean;
   canEditPhoto: boolean;
+  isMemorial?: boolean;
   backLabel: string;
   backHref?: string;
   readOnlyBanner: string;
@@ -104,7 +106,7 @@ export function OwnerPetChrome({
           petId={petId}
           base={`/me/pets/${petId}`}
           includeTransfer={false}
-          readOnly={readOnly}
+          includeCheckin={!isMemorial}
         />
       </MotionReveal>
 

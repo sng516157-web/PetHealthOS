@@ -444,18 +444,196 @@ export async function addLogEntry(petId: string, formData: FormData) {
 
 export async function deleteLogEntry(petId: string, id: string) {
   if (!(await canAccessPet(petId))) return { error: "Forbidden" };
-  // Facilities may add records during a stay but never delete an owner's logs.
-  if (await currentActorIsFacility()) return { error: "Forbidden" };
+  const user = await getCurrentUser();
+  if (!user) return { error: "Forbidden" };
+  if (user.orgId || (await currentActorIsFacility())) return { error: "Forbidden" };
   const entry = await prisma.logEntry.findUnique({ where: { id } });
-  if (entry?.lockedAt) {
+  if (!entry || entry.petId !== petId) return { error: "Not found" };
+  if (entry.lockedAt) {
     return {
-      error:
-        "This entry is part of a passport that's already been issued and can't be edited.",
+      error: "LOCKED",
     };
   }
   await prisma.logEntry.delete({ where: { id } });
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
+  return { ok: true };
+}
+
+export async function updateLogEntry(petId: string, id: string, formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.orgId) return { error: "Forbidden" };
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+
+  const entry = await prisma.logEntry.findUnique({ where: { id } });
+  if (!entry || entry.petId !== petId) return { error: "Not found" };
+  if (entry.lockedAt) return { error: "LOCKED" };
+
+  const text = String(formData.get("rawText") || "").trim();
+  if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+  if (!text) return { error: "Entry cannot be empty" };
+
+  const pet = await prisma.pet.findUnique({ where: { id: petId } });
+  if (!pet) return { error: "Pet not found" };
+
+  const ent = await getPetEntitlements(petId);
+  if (ent && !ent.canLog) return { error: "SLOT_READONLY" };
+
+  const locale = await resolveLocale(String(formData.get("locale") || ""));
+  let structured = heuristicStructure(text);
+  let aiProcessed = false;
+  if (hasAI()) {
+    try {
+      structured = await structureLogEntry(text, pet, locale);
+      aiProcessed = true;
+    } catch (e) {
+      console.error("log restructure failed, using heuristic", e);
+    }
+  }
+
+  await prisma.logEntry.update({
+    where: { id },
+    data: {
+      rawText: text,
+      type: structured.type,
+      severity: structured.severity,
+      title: structured.title,
+      summary: structured.summary,
+      tags: JSON.stringify(structured.tags),
+      aiProcessed,
+    },
+  });
+
+  await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
+  return { ok: true, structured };
+}
+
+function revalidatePetPaths(petId: string) {
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
+}
+
+async function resolveFacilityLogger(petId: string) {
+  let loggedByOrgId: string | null = null;
+  let loggedByName: string | null = null;
+  const actor = await getCurrentUser();
+  if (actor?.orgId) {
+    const actorOrg = await prisma.organization.findUnique({
+      where: { id: actor.orgId },
+      select: { kind: true, name: true },
+    });
+    if (isFacilityKind(actorOrg?.kind)) {
+      const stay = await prisma.petStay.findUnique({
+        where: { petId_orgId: { petId, orgId: actor.orgId } },
+        select: { status: true },
+      });
+      if (stay?.status !== "ACTIVE") return { error: "NO_ACTIVE_STAY" as const };
+      loggedByOrgId = actor.orgId;
+      loggedByName = actorOrg?.name ?? null;
+    }
+  }
+  return { loggedByOrgId, loggedByName };
+}
+
+export async function addFoodLogEntry(petId: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+
+  const foodName = String(formData.get("foodName") || "").trim();
+  if (!foodName) return { error: "Food name required" };
+  if (foodName.length > TITLE_MAX) return { error: VErr.TITLE_TOO_LONG };
+
+  const mealType = String(formData.get("mealType") || "OTHER");
+  const appetite = String(formData.get("appetite") || "NORMAL");
+  const amount = String(formData.get("amount") || "").trim();
+  if (amount.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+  const notes = String(formData.get("notes") || "").trim();
+  if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const logger = await resolveFacilityLogger(petId);
+  if ("error" in logger) return { error: logger.error };
+
+  await prisma.foodLogEntry.create({
+    data: {
+      petId,
+      mealType,
+      foodName,
+      amount: amount || null,
+      appetite,
+      notes: notes || null,
+      loggedByOrgId: logger.loggedByOrgId,
+      loggedByName: logger.loggedByName,
+    },
+  });
+
+  await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+  revalidatePetPaths(petId);
+  return { ok: true };
+}
+
+export async function deleteFoodLogEntry(petId: string, id: string) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const user = await getCurrentUser();
+  if (!user || user.orgId || (await currentActorIsFacility())) return { error: "Forbidden" };
+  const entry = await prisma.foodLogEntry.findUnique({ where: { id } });
+  if (!entry || entry.petId !== petId) return { error: "Not found" };
+  if (entry.lockedAt) return { error: "LOCKED" };
+  await prisma.foodLogEntry.delete({ where: { id } });
+  revalidatePetPaths(petId);
+  return { ok: true };
+}
+
+export async function addActivityLogEntry(petId: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+
+  const activityType = String(formData.get("activityType") || "OTHER");
+  const durationRaw = String(formData.get("durationMin") || "").trim();
+  const durationMin = durationRaw ? parseInt(durationRaw, 10) : null;
+  if (durationRaw && (!durationMin || durationMin < 1)) return { error: "Invalid duration" };
+
+  const intensity = String(formData.get("intensity") || "MODERATE");
+  const distanceRaw = String(formData.get("distanceKm") || "").trim();
+  const distanceKm = distanceRaw ? parseFloat(distanceRaw) : null;
+  if (distanceRaw && (distanceKm === null || Number.isNaN(distanceKm) || distanceKm < 0)) {
+    return { error: "Invalid distance" };
+  }
+
+  const notes = String(formData.get("notes") || "").trim();
+  if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const logger = await resolveFacilityLogger(petId);
+  if ("error" in logger) return { error: logger.error };
+
+  await prisma.activityLogEntry.create({
+    data: {
+      petId,
+      activityType,
+      durationMin,
+      distanceKm,
+      intensity,
+      notes: notes || null,
+      loggedByOrgId: logger.loggedByOrgId,
+      loggedByName: logger.loggedByName,
+    },
+  });
+
+  await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+  revalidatePetPaths(petId);
+  return { ok: true };
+}
+
+export async function deleteActivityLogEntry(petId: string, id: string) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const user = await getCurrentUser();
+  if (!user || user.orgId || (await currentActorIsFacility())) return { error: "Forbidden" };
+  const entry = await prisma.activityLogEntry.findUnique({ where: { id } });
+  if (!entry || entry.petId !== petId) return { error: "Not found" };
+  if (entry.lockedAt) return { error: "LOCKED" };
+  await prisma.activityLogEntry.delete({ where: { id } });
+  revalidatePetPaths(petId);
   return { ok: true };
 }
 
@@ -549,6 +727,8 @@ export async function generateTriageReport(petId: string, localeHint?: string) {
   const result = await generateTriage(pet, pet.logs, locale, pet.attachments, {
     timeZone,
     locale,
+    foodLogs: pet.foodLogs,
+    activityLogs: pet.activityLogs,
   });
   const report = await prisma.triageReport.create({
     data: {

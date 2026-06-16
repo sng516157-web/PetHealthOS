@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useMemo, useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, FileText, Trash2, ExternalLink, Pencil } from "lucide-react";
 import { Card } from "@/components/ui";
@@ -8,6 +8,9 @@ import { proxyImageSrc } from "@/lib/img";
 import { addAttachment, deleteAttachment, updateAttachment } from "@/app/actions";
 import { ATTACHMENT_KINDS, ATTACHMENT_KIND_META, AttachmentKind } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
+import { cn } from "@/lib/cn";
+
+type CategoryFilter = "ALL" | AttachmentKind;
 
 export type SerializedAttachment = {
   id: string;
@@ -114,6 +117,7 @@ export function DocumentsPanel({
   const router = useRouter();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [category, setCategory] = useState<CategoryFilter>("ALL");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -167,6 +171,30 @@ export function DocumentsPanel({
     });
   }
 
+  const filtered = useMemo(
+    () =>
+      category === "ALL"
+        ? attachments
+        : attachments.filter((a) => a.kind === category),
+    [attachments, category],
+  );
+
+  const counts = useMemo(() => {
+    const map: Record<string, number> = { ALL: attachments.length };
+    for (const k of ATTACHMENT_KINDS) {
+      map[k] = attachments.filter((a) => a.kind === k).length;
+    }
+    return map;
+  }, [attachments]);
+
+  const categoryTabs: { id: CategoryFilter; label: string }[] = [
+    { id: "ALL", label: t.documents.allCategories },
+    ...ATTACHMENT_KINDS.map((k) => ({
+      id: k as CategoryFilter,
+      label: t.attachmentKind[k],
+    })),
+  ];
+
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
@@ -198,11 +226,37 @@ export function DocumentsPanel({
         </div>
       )}
 
+      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-border pb-px">
+        {categoryTabs.map((tab) => {
+          const active = category === tab.id;
+          const count = counts[tab.id] ?? 0;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setCategory(tab.id)}
+              className={cn(
+                "relative shrink-0 px-3 py-2 text-xs font-medium transition",
+                active ? "text-brand-700" : "text-slate-500 hover:text-foreground",
+              )}
+            >
+              {tab.label}
+              <span className="ml-1 text-[10px] text-muted">({count})</span>
+              {active && (
+                <span className="absolute inset-x-1 -bottom-px h-0.5 rounded-full bg-brand-600" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="mt-3 space-y-2">
-        {attachments.length === 0 && (
-          <p className="py-2 text-center text-sm text-muted">{t.documents.none}</p>
+        {filtered.length === 0 && (
+          <p className="py-6 text-center text-sm text-muted">
+            {attachments.length === 0 ? t.documents.none : t.documents.noneInCategory}
+          </p>
         )}
-        {attachments.map((a) => {
+        {filtered.map((a) => {
           if (editingId === a.id) {
             return (
               <div key={a.id}>

@@ -74,6 +74,11 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
   - `/app/*` = **shop/breeder workspace** (sidebar; moved here from `/`). Gated by
     `requireActiveOrg()` → redirects non-shop / logged-out users to `/shop`.
   - `/me/*` = owner workspace. `/passport/[token]` = public passport.
+  - **Pet detail tabs** (owner `/me/pets/[id]/*`, shop/facility `/app/pets/[id]/*`):
+    major tabs — **Logs** (sub: Quick Log · Food · Activity), AI Assistant, Triage,
+    Reminders, Weight, Documents; owners also get **Check-in**; shops get **Transfer**.
+    Facility archived stays hide AI/Triage/Transfer. Reminders/weight/documents/check-in
+    moved out of the old sidebar grid into dedicated routes.
   - `/login` = shared auth entry; `/pricing`, `/app/billing`, `/me/billing`,
     `/billing/success|cancelled`; `/brand` = design-system showcase; `/demo/*` = motion
     previews (noindex, not in sitemap).
@@ -241,6 +246,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Pet page navigation + logging expansion.** Why (user approved
+  `/demo/pet-nav` preview). Replaced the single-page sidebar layout with major tabs on
+  all account types: Logs (Quick Log / Food / Activity sub-tabs), AI, Triage, Reminders,
+  Weight, Documents, Check-in (owners) or Transfer (shops). Weight tab: SVG trend chart +
+  collapsible history; Documents: category sub-tabs. New `FoodLogEntry` /
+  `ActivityLogEntry` models + CRUD actions; AI triage/chat cross-reference all three log
+  types. Owners can edit/delete health logs (with save warning); shop/facility logs stay
+  immutable. `/demo/triage-pdf` remains preview-only (not wired to triage yet).
 - **2026-06-16** — **Password reset (`/forgot-password`).** Why (user request): email+password
   accounts had no recovery path. Resend email with 6-digit code + magic link (1h TTL); reset at
   `/reset-password` via link or code; invalidates owner `sessionId` on success; no email enumeration
