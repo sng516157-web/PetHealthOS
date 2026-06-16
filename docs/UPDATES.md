@@ -9,6 +9,9 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Homepage dashboard frame.** Mini dashboard preview uses a full-width 16:9
+  viewport so owner/shop/facility layouts aren’t squashed on the landing page.
+
 - **2026-06-16 — Homepage mini dashboards.** The public `/` page now has clickable owner, shop,
   and facility dashboard previews (open pets, switch tabs) using the same UI components as the
   real app — no sign-in required.

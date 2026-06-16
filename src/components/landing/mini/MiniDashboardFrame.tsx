@@ -32,7 +32,9 @@ export function MiniDashboardFrame({
           <span className="ml-auto hidden text-[10px] font-medium text-brand-700 sm:inline">{hint}</span>
         )}
       </div>
-      <div className="max-h-[min(72vh,640px)] min-h-[480px] overflow-y-auto bg-paper">{children}</div>
+      <div className="aspect-video w-full overflow-hidden bg-paper">
+        <div className="h-full overflow-y-auto overscroll-contain">{children}</div>
+      </div>
     </div>
   );
 }

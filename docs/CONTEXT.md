@@ -248,6 +248,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Homepage mini dashboard 16:9 frame.** Why (squashed portrait slot in narrow
+  column): `MiniDashboardFrame` uses `aspect-video` + internal scroll; showcase block is full width
+  with callout copy below.
 - **2026-06-16** — **Homepage interactive mini dashboards (production).** Why (user request):
   replace static screenshot mocks with clickable previews on `/` between “How it works” and the
   sample passport. Reuses real `*HomeView` components via optional `preview` props; pet drill-in

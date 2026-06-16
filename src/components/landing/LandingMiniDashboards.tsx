@@ -73,13 +73,11 @@ export function LandingMiniDashboards({
         <p className="text-center text-sm text-muted">{copy.showcaseInteractiveHint}</p>
       </MotionReveal>
 
-      <MotionReveal delay={120} className="mt-8 grid gap-8 lg:grid-cols-5 lg:gap-10">
-        <div className="lg:col-span-3">
-          <MiniDashboardFrame urlLabel={url} hint="Interactive demo">
-            <DashboardPreviewRole role={role} onUrlChange={onUrlChange} />
-          </MiniDashboardFrame>
-        </div>
-        <div className="flex flex-col justify-center lg:col-span-2">
+      <MotionReveal delay={120} className="mt-8 space-y-8">
+        <MiniDashboardFrame urlLabel={url} hint="Interactive demo">
+          <DashboardPreviewRole role={role} onUrlChange={onUrlChange} />
+        </MiniDashboardFrame>
+        <div className="max-w-2xl">
           <span className="text-xs font-semibold uppercase tracking-wider text-sage">
             {screenCopy?.role}
           </span>
