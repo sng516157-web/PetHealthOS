@@ -46,6 +46,21 @@ landing auth on `/owner`, `/shop`, `/facility`.
 
 ---
 
+## Password reset
+
+| Step | Action | Expected |
+|------|--------|----------|
+| 1 | Sign-in tab → **Forgot password?** | Opens `/forgot-password` |
+| 2 | Submit email | Generic success (no account enumeration); email with code + link if account exists |
+| 3 | Click link in email | `/reset-password?token=…` → set new password → signed in |
+| 4 | Or `/reset-password` with email + code | Same outcome |
+| 5 | Expired token/code | Error; link to request new reset |
+| 6 | After reset | Owner sessions on other devices invalidated (`sessionId` cleared) |
+
+**Dev without Resend:** reset link + code logged to server console.
+
+---
+
 ## Owner single-device enforcement
 
 | Step | Action | Expected |

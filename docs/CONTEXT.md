@@ -124,6 +124,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   **Mark verified** (`markEmailVerifiedByAdmin`) for support. Verification emails send a **6-digit
   code** + HTML magic link (`EmailVerification.codeHash`); users can confirm on `/verify-email`
   without clicking the link.
+- **Password reset:** `/forgot-password` → `sendPasswordResetEmail` (same Resend + code/link
+  pattern as verify, 1-hour TTL) → `/reset-password` with token or email+code. Clears owner
+  `sessionId` on success so old devices lose access. Sign-in tab links to forgot flow.
 
 ---
 
@@ -238,6 +241,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Password reset (`/forgot-password`).** Why (user request): email+password
+  accounts had no recovery path. Resend email with 6-digit code + magic link (1h TTL); reset at
+  `/reset-password` via link or code; invalidates owner `sessionId` on success; no email enumeration
+  on request.
 - **2026-06-16** — **Email verification hardening.** Why (3 sign-ups delivered but never
   verified): plain magic links alone are fragile in CN inboxes. Added 6-digit code + HTML email
   (button + monospace code + link fallback), code entry on `/verify-email`, stronger spam/QQ/163

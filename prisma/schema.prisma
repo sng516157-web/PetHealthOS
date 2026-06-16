@@ -108,6 +108,7 @@ model User {
   claims             Transfer[]
   notifications      Notification[]
   emailVerifications EmailVerification[]
+  passwordResets     PasswordReset[]
 
   @@index([orgId])
 }
@@ -123,6 +124,21 @@ model EmailVerification {
   expiresAt  DateTime
   consumedAt DateTime?
   createdAt  DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Password reset tokens — magic link + 6-digit code, 1-hour TTL.
+model PasswordReset {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String
+  codeHash     String?
+  codeAttempts Int       @default(0)
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  createdAt    DateTime  @default(now())
 
   @@index([userId, createdAt])
 }

@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Password reset.** Forgot-password flow at `/forgot-password` and
+  `/reset-password` — email sends a 6-digit code + HTML link (1-hour TTL); sign-in tab links
+  to it; resets clear other owner sessions.
+
 - **2026-06-16 — Email verification hardening.** Sign-up emails now include a 6-digit code
   plus an HTML button/link; `/verify-email` accepts the code; clearer spam/QQ/163 hints;
   `/admin` lists unverified sign-ups with one-click mark verified.

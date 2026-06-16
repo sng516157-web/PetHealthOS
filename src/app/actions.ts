@@ -26,6 +26,11 @@ import {
   markEmailVerifiedByAdmin,
 } from "@/lib/email-verify";
 import {
+  sendPasswordResetEmail,
+  resetPasswordWithToken,
+  resetPasswordWithCode,
+} from "@/lib/password-reset";
+import {
   structureLogEntry,
   generateTriage,
   heuristicStructure,
@@ -958,6 +963,61 @@ export async function adminMarkEmailVerified(formData: FormData) {
   revalidatePath("/me");
   revalidatePath("/app");
   return { ok: true as const };
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = normalizeEmail(String(formData.get("email") || ""));
+  const emailErr = validateEmail(email);
+  if (emailErr) return { error: emailErr };
+
+  const locale = await getLocale();
+  const res = await sendPasswordResetEmail(
+    email,
+    isLocale(locale) ? locale : "en",
+  );
+  if ("error" in res) return { error: res.error };
+  return {
+    ok: true as const,
+    devLink: "devLink" in res ? res.devLink : undefined,
+    devCode: "devCode" in res ? res.devCode : undefined,
+  };
+}
+
+export async function resetPassword(formData: FormData) {
+  const token = String(formData.get("token") || "").trim();
+  const email = normalizeEmail(String(formData.get("email") || ""));
+  const code = String(formData.get("code") || "");
+  const password = String(formData.get("password") || "");
+  const confirm = String(formData.get("confirm") || "");
+
+  const pwErr = validatePassword(password);
+  if (pwErr) return { error: pwErr };
+  if (password !== confirm) return { error: "PASSWORD_MISMATCH" };
+
+  if (!token) {
+    const emailErr = validateEmail(email);
+    if (emailErr) return { error: emailErr };
+  }
+
+  const result = token
+    ? await resetPasswordWithToken(token, password)
+    : await resetPasswordWithCode(email, code, password);
+
+  if ("error" in result) return { error: result.error };
+
+  const user = await prisma.user.findUnique({ where: { id: result.userId } });
+  if (!user) return { error: "TOKEN_INVALID" };
+
+  await setSession(result.userId, { single: result.accountType === "owner" });
+
+  if (needsEmailVerification(user)) {
+    return {
+      ok: true as const,
+      accountType: result.accountType,
+      needsVerification: true as const,
+    };
+  }
+  return { ok: true as const, accountType: result.accountType };
 }
 
 export async function signOut() {

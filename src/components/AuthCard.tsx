@@ -167,6 +167,12 @@ function SignInTab({ t }: { t: Dictionary }) {
         <label className={labelCls}>{t.auth.password}</label>
         <input name="password" type="password" autoComplete="current-password" className={inputCls} />
         <FieldError code={fieldErr.password} />
+        <Link
+          href="/forgot-password"
+          className="mt-1.5 inline-block text-xs text-brand-700 underline hover:text-brand-800"
+        >
+          {t.auth.forgotPassword}
+        </Link>
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       {conflict && (
