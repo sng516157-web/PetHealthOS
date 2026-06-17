@@ -23,6 +23,7 @@ export const en = {
   language: { label: "Language", en: "English", zh: "中文" },
   nav: {
     dashboard: "Dashboard",
+    ai: "Workspace AI",
     pets: "Pets",
     reminders: "Reminders",
     notifications: "Notifications",
@@ -33,6 +34,7 @@ export const en = {
     /** Shorter labels for the mobile bottom tab bar. */
     mobile: {
       dashboard: "Home",
+      ai: "AI",
       pets: "Pets",
       reminders: "Reminders",
       notifications: "Alerts",
@@ -680,6 +682,60 @@ export const en = {
     rerun: "Re-run triage",
     assessing: "Assessing…",
   },
+  orgAi: {
+    pageTitle: "Workspace AI",
+    pageSubtitle: (facility: boolean, count: number): string =>
+      facility
+        ? `Ask across all ${count} pets currently in your care — ward rounds, appetite trends, and who needs a closer look.`
+        : `Ask across all ${count} pets in your shop — who needs attention, prep handovers, and compare litters.`,
+    tabAssistant: "Assistant",
+    tabWard: "Ward triage",
+    assistantTitle: "Workspace assistant",
+    grounded: (facility: boolean, count: number): string =>
+      facility
+        ? `Grounded in ${count} active stay${count === 1 ? "" : "s"} — health, food & activity logs`
+        : `Grounded in ${count} pet${count === 1 ? "" : "s"} in care — health, food & activity logs`,
+    askTitle: "Ask about your whole roster",
+    askDesc: (facility: boolean): string =>
+      facility
+        ? "Compare pets in care, prioritize rounds, or draft owner updates — all from one chat."
+        : "Find who needs attention, summarize litters, or prep buyer handovers — all from one chat.",
+    messagePlaceholder: "Ask about pets in your care…",
+    shopStarters: [
+      "Which dogs should I keep an eye on?",
+      "Summarize under-observation pets",
+      "Who is ready for handover this week?",
+      "Any appetite or weight trends I should know?",
+    ],
+    facilityStarters: [
+      "Which dogs should I keep an eye on?",
+      "Who needs rounds first today?",
+      "Any pets with appetite concerns?",
+      "Summarize medium-or-higher severity logs",
+    ],
+    previewReplyShop:
+      "**Sunrise Cattery workspace AI (demo)**\n\nCoco is under observation with a medium-severity appetite note — check her food log first. Mochi looks routine.\n\nYou asked about priority pets. With an AI key connected, I'd answer using all pets' records.",
+    previewReplyFacility:
+      "**Happy Paws workspace AI (demo)**\n\nOtis needs respiratory monitoring after IV fluids. Biscuit is stable post-op. Willow is routine boarding.\n\nYou asked about priority pets. With an AI key connected, I'd answer using all active stays.",
+    wardTitle: "Ward triage",
+    wardDesc:
+      "A roster-wide briefing: who needs attention first, why, and suggested follow-ups for your team.",
+    runWard: "Run ward triage",
+    rerunWard: "Re-run ward triage",
+    wardDemoNote:
+      "Demo mode uses rule-based prioritization from recent logs. Connect an AI key for a richer briefing.",
+    watchListTitle: "Watch list",
+    teamNotesTitle: "Team notes",
+    promoBadge: "Workspace AI",
+    promoTitleShop: "AI across your whole shop roster",
+    promoTitleFacility: "AI across every pet in care",
+    promoDesc: (facility: boolean, count: number): string =>
+      facility
+        ? `Ask which of your ${count} active stay${count === 1 ? "" : "s"} need attention, run ward triage, or compare trends — plus per-pet AI on each record.`
+        : `Ask which of your ${count} pet${count === 1 ? "" : "s"} need attention, run roster triage, or prep handovers — plus per-pet AI on each record.`,
+    promoCta: "Open workspace AI",
+    demoNote: "no AI key detected. Workspace AI uses rule-based summaries from your roster. Set",
+  },
   passport: {
     title: "Pet Health Passport",
     tamperEvident: "Tamper-evident",
@@ -756,7 +812,7 @@ export const en = {
     shopExtraPet: (price: number) => `Beyond that: ${formatUsd(price)}/mo per extra pet`,
     issuePassports: "Issue health passports (once verified)",
     multiSeat: "Multiple staff seats",
-    aiAssistant: "AI assistant & triage",
+    aiAssistant: "Workspace AI + per-pet assistant & triage",
     notForSale: "Personal use — cannot issue passports",
     qrCheckin: "QR check-in with owner consent",
     facilityNoPassport: "Cannot issue health passports",
@@ -1006,7 +1062,7 @@ export const en = {
       `Care for up to ${base} pets at the same time`,
       `Add extra care slots anytime — ${formatUsd(slotPrice)}/mo each (kept while paid, even when empty)`,
       "Log notes, weights & photos — each tagged with your facility's name",
-      "AI assistant + triage reports to communicate with owners",
+      "Workspace AI + ward triage across all pets in care — plus per-pet AI on each record",
       "Reminders & weight tracking for every pet in your care",
       "Multi-device sign-in for your whole team",
     ],

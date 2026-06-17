@@ -30,8 +30,8 @@ export function PreviewPetWorkspace({
   const tabOptions = {
     includeCheckin: role === "owner",
     includeTransfer: role === "shop",
-    includeAI: role !== "facility",
-    includeTriage: role !== "facility",
+    includeAI: true,
+    includeTriage: true,
   };
 
   useEffect(() => {

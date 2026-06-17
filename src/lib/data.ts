@@ -377,3 +377,115 @@ export async function getUserUsage(userId: string) {
   const count = await prisma.pet.count({ where: { ownerUserId: userId } });
   return { user, plan, count, limit: petLimit(plan, user.extraPetSlots) };
 }
+
+const ORG_AI_LOG_TAKE = 10;
+const ORG_AI_FOOD_TAKE = 6;
+const ORG_AI_ACTIVITY_TAKE = 6;
+
+export type OrgPetAIPack = {
+  id: string;
+  name: string;
+  species: string;
+  breed: string | null;
+  status: string;
+  birthDate: Date | null;
+  weightKg: number | null;
+  logs: {
+    id: string;
+    occurredAt: Date;
+    rawText: string;
+    type: string;
+    severity: string;
+    title: string | null;
+    summary: string | null;
+    tags: string;
+  }[];
+  foodLogs: {
+    occurredAt: Date;
+    mealType: string;
+    foodName: string | null;
+    amount: string | null;
+    appetite: string | null;
+    notes: string | null;
+  }[];
+  activityLogs: {
+    occurredAt: Date;
+    activityType: string;
+    durationMin: number | null;
+    distanceKm: number | null;
+    intensity: string | null;
+    notes: string | null;
+  }[];
+};
+
+/** All pets currently in org care — used by workspace AI (shop roster or facility active stays). */
+export async function getOrgPetsForAI(): Promise<{
+  orgName: string;
+  facility: boolean;
+  pets: OrgPetAIPack[];
+}> {
+  const org = await requireActiveOrg();
+  const facility = isFacilityOrg(org);
+
+  if (facility) {
+    const stays = await prisma.petStay.findMany({
+      where: { orgId: org.id, status: "ACTIVE" },
+      orderBy: { admittedAt: "desc" },
+      include: {
+        pet: {
+          include: {
+            logs: { orderBy: { occurredAt: "desc" }, take: ORG_AI_LOG_TAKE },
+            foodLogs: { orderBy: { occurredAt: "desc" }, take: ORG_AI_FOOD_TAKE },
+            activityLogs: { orderBy: { occurredAt: "desc" }, take: ORG_AI_ACTIVITY_TAKE },
+          },
+        },
+      },
+    });
+    return {
+      orgName: org.name,
+      facility,
+      pets: stays.map(({ pet }) => ({
+        id: pet.id,
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed,
+        status: pet.status,
+        birthDate: pet.birthDate,
+        weightKg: pet.weightKg,
+        logs: pet.logs,
+        foodLogs: pet.foodLogs,
+        activityLogs: pet.activityLogs,
+      })),
+    };
+  }
+
+  const pets = await prisma.pet.findMany({
+    where: {
+      orgId: org.id,
+      status: { in: ["ACTIVE", "UNDER_OBSERVATION"] },
+    },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      logs: { orderBy: { occurredAt: "desc" }, take: ORG_AI_LOG_TAKE },
+      foodLogs: { orderBy: { occurredAt: "desc" }, take: ORG_AI_FOOD_TAKE },
+      activityLogs: { orderBy: { occurredAt: "desc" }, take: ORG_AI_ACTIVITY_TAKE },
+    },
+  });
+
+  return {
+    orgName: org.name,
+    facility,
+    pets: pets.map((pet) => ({
+      id: pet.id,
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed,
+      status: pet.status,
+      birthDate: pet.birthDate,
+      weightKg: pet.weightKg,
+      logs: pet.logs,
+      foodLogs: pet.foodLogs,
+      activityLogs: pet.activityLogs,
+    })),
+  };
+}

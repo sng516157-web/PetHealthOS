@@ -14,6 +14,7 @@ import {
   MotionReveal,
   motionCardHover,
 } from "./DashboardMotion";
+import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
 
 type FacilityPet = {
   id: string;
@@ -42,7 +43,7 @@ export function FacilityHomeView({
   inCare: number;
   capacityLimit: number;
   pets: FacilityPet[];
-  preview?: { onPetSelect: (petId: string) => void };
+  preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
   const { t } = useI18n();
   const pct = capacityLimit > 0 ? Math.min(100, (inCare / capacityLimit) * 100) : 0;
@@ -92,6 +93,13 @@ export function FacilityHomeView({
           </div>
         </div>
       </MotionReveal>
+
+      <OrgAiPromoCard
+        facility
+        petCount={inCare}
+        className="mt-6"
+        preview={preview?.onOrgAiOpen ? { onOpen: preview.onOrgAiOpen } : undefined}
+      />
 
       <MotionReveal delay={160} className="mt-8">
         <h2 className="text-sm font-semibold text-forest">{t.facility.tabActive}</h2>

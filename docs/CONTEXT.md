@@ -41,7 +41,10 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
   (`Attachment` metadata in `buildPetContext`; up to 4 image/PDF files loaded for
   vision via `loadVisionAttachments` / `fetchStoredFileBytes`). Chat and triage both
   pass multimodal parts when documents exist. Log enrichment runs in the background
-  via `after()` so saves feel instant.
+  via `after()` so saves feel instant. **Org workspace AI** (`/app/ai`, shops +
+  facilities): roster-wide chat (`/api/org/chat`) and ward triage
+  (`generateOrgWardTriageReport`) over all pets in care via `getOrgPetsForAI()`.
+  Per-pet chat/triage remains on each pet page.
 - **Timezone:** Browser IANA timezone auto-detected on first visit (`TimezoneSync` →
   `setTimezone` cookie `tz`). `formatDate` / `formatDateTime` (`src/lib/format.ts`)
   use `Intl` with that timezone + UI locale. New log entries send client `occurredAt`
@@ -82,6 +85,7 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
     Facility archived stays hide AI/Triage/Transfer. Reminders/weight/documents/check-in
     moved out of the old sidebar grid into dedicated routes.
   - `/login` = shared auth entry; `/pricing`, `/app/billing`, `/me/billing`,
+    `/app/ai` = shop/facility workspace AI (assistant + ward triage),
     `/billing/success|cancelled`; `/brand` = design-system showcase; `/demo/*` = motion
     previews (noindex, not in sitemap).
 - **Cron:** `/api/cron/reminders` (daily, `vercel.json`), guarded by `CRON_SECRET`.
@@ -248,6 +252,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Workspace AI for shops & facilities (`/app/ai`).** Why (user request):
+  facilities lacked org-wide AI in marketing preview and needed roster-level agents for shops too.
+  `getOrgPetsForAI()` loads shop roster or facility active stays; `/api/org/chat` streams answers;
+  `generateOrgWardTriageReport` action runs ward triage. Nav + home promo cards; landing/pricing
+  copy updated. Per-pet AI/triage on facility pet pages unchanged (active stays only).
 - **2026-06-16** — **Homepage mini dashboard 16:9 frame.** Why (squashed portrait slot in narrow
   column): `MiniDashboardFrame` uses `aspect-video` + internal scroll; showcase block is full width
   with callout copy below.

@@ -10,6 +10,7 @@ import {
   CreditCard,
   UserCircle,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/client";
@@ -19,6 +20,7 @@ import { signOut } from "@/app/actions";
 
 const NAV = [
   { href: "/app", key: "dashboard" as const, icon: LayoutDashboard, exact: true },
+  { href: "/app/ai", key: "ai" as const, icon: Sparkles },
   { href: "/app/pets", key: "pets" as const, icon: PawPrint },
   { href: "/app/reminders", key: "reminders" as const, icon: BellRing },
   { href: "/app/notifications", key: "notifications" as const, icon: Bell },

@@ -499,3 +499,226 @@ function heuristicTriage(
     crossLogInsights,
   };
 }
+
+// ---------- Org workspace AI (shop / facility — all pets in care) ----------
+
+export type OrgPetContextPack = {
+  id: string;
+  name: string;
+  species: string;
+  breed: string | null;
+  status: string;
+  birthDate: Date | null;
+  weightKg: number | null;
+  logs: LogLike[];
+  foodLogs?: FoodLogLike[];
+  activityLogs?: ActivityLogLike[];
+};
+
+export function buildOrgCareContext(
+  orgName: string,
+  facility: boolean,
+  pets: OrgPetContextPack[],
+  opts: BuildContextOpts = {},
+): string {
+  const role = facility
+    ? "veterinary clinic / boarding facility"
+    : "breeder, cattery, kennel, or pet shop";
+  const header =
+    opts.locale === "zh"
+      ? `工作区：${orgName}（${role}）\n当前照护中的宠物（${pets.length} 只）：\n`
+      : `WORKSPACE: ${orgName} (${role})\nPets currently in care (${pets.length}):\n`;
+
+  if (pets.length === 0) {
+    return (
+      header +
+      (opts.locale === "zh"
+        ? "（暂无在照护中的宠物）"
+        : "(No pets currently in care)")
+    );
+  }
+
+  const blocks = pets.map((pet) => {
+    const statusNote =
+      pet.status === "UNDER_OBSERVATION"
+        ? opts.locale === "zh"
+          ? " · 状态：观察中"
+          : " · status: UNDER_OBSERVATION"
+        : "";
+    const body = buildPetContext(pet, pet.logs, [], {
+      ...opts,
+      foodLogs: pet.foodLogs,
+      activityLogs: pet.activityLogs,
+    });
+    return `=== ${pet.name} (id:${pet.id}${statusNote}) ===\n${body}`;
+  });
+
+  return `${header}\n${blocks.join("\n\n")}`;
+}
+
+const OrgWardTriageSchema = z.object({
+  summary: z.string().describe("2-4 sentence overview for the whole roster"),
+  watchList: z
+    .array(
+      z.object({
+        petName: z.string(),
+        reason: z.string(),
+        urgency: z.enum(URGENCY),
+      }),
+    )
+    .describe("Pets that need extra attention, most urgent first"),
+  teamNotes: z
+    .array(z.string())
+    .describe("Actionable notes for staff — rounds, follow-ups, owner updates"),
+});
+
+export type OrgWardTriageResult = z.infer<typeof OrgWardTriageSchema>;
+
+export function heuristicOrgWardTriage(
+  pets: OrgPetContextPack[],
+  locale: Locale = DEFAULT_LOCALE,
+): OrgWardTriageResult {
+  const rank: Record<string, number> = {
+    NONE: 0, LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4,
+  };
+  const twoWeeks = Date.now() - 1000 * 60 * 60 * 24 * 14;
+  const watchList: OrgWardTriageResult["watchList"] = [];
+
+  for (const pet of pets) {
+    const recent = pet.logs.filter((l) => l.occurredAt.getTime() > twoWeeks);
+    const maxSev = recent.reduce((m, l) => Math.max(m, rank[l.severity] ?? 0), 0);
+    const underWatch = pet.status === "UNDER_OBSERVATION";
+    const refused = (pet.foodLogs ?? []).some((f) => f.appetite === "REFUSED");
+    if (!underWatch && maxSev < 2 && !refused) continue;
+
+    const last = recent[0];
+    const urgency: OrgWardTriageResult["watchList"][number]["urgency"] =
+      maxSev >= 4 ? "EMERGENCY" : maxSev >= 3 ? "URGENT" : maxSev >= 2 ? "SOON" : "MONITOR";
+
+    const reason =
+      locale === "zh"
+        ? underWatch
+          ? "标记为观察中"
+          : last?.title || last?.rawText?.slice(0, 80) || "近期记录需关注"
+        : underWatch
+          ? "Marked under observation"
+          : last?.title || last?.rawText?.slice(0, 80) || "Recent log needs review";
+
+    watchList.push({ petName: pet.name, reason, urgency });
+  }
+
+  watchList.sort(
+    (a, b) =>
+      ({ EMERGENCY: 4, URGENT: 3, SOON: 2, MONITOR: 1, ROUTINE: 0 }[b.urgency] ?? 0) -
+      ({ EMERGENCY: 4, URGENT: 3, SOON: 2, MONITOR: 1, ROUTINE: 0 }[a.urgency] ?? 0),
+  );
+
+  if (locale === "zh") {
+    return {
+      summary:
+        watchList.length > 0
+          ? `共 ${pets.length} 只宠物在照护中，${watchList.length} 只需要额外关注。这是基于规则的概览 —— 连接 AI 密钥可获得更完整的分析。`
+          : `${pets.length} 只宠物在照护中，近期未发现明显需优先处理的事项。`,
+      watchList,
+      teamNotes: watchList.length
+        ? ["优先查看观察中或高严重度记录的宠物", "如有变化，及时更新日志并通知主人"]
+        : ["继续按计划记录护理", "下次巡房时复查食欲与活动量"],
+    };
+  }
+
+  return {
+    summary:
+      watchList.length > 0
+        ? `${pets.length} pets in care; ${watchList.length} need extra attention. Rule-based overview — connect an AI key for deeper analysis.`
+        : `${pets.length} pets in care with no obvious priority flags in recent logs.`,
+    watchList,
+    teamNotes: watchList.length
+      ? ["Review under-observation pets and high-severity logs first", "Log changes and notify owners when needed"]
+      : ["Keep routine logging on schedule", "Recheck appetite and activity on rounds"],
+  };
+}
+
+export async function generateOrgWardTriage(
+  orgName: string,
+  facility: boolean,
+  pets: OrgPetContextPack[],
+  locale: Locale = DEFAULT_LOCALE,
+  opts: BuildContextOpts = {},
+): Promise<OrgWardTriageResult> {
+  if (!hasAI()) return heuristicOrgWardTriage(pets, locale);
+  const context = buildOrgCareContext(orgName, facility, pets, { ...opts, locale });
+  const role = facility ? "care facility staff" : "breeder/shop staff";
+  const system =
+    `You are a veterinary triage assistant helping ${role} prioritize pets across an entire roster. You DO NOT diagnose. Based ONLY on the provided multi-pet records, produce a ward-round style briefing: who needs attention first and why. Never invent data. ` +
+    languageInstruction(locale);
+  const prompt = `${context}\n\nProduce a workspace-wide triage briefing for all pets currently in care.`;
+  try {
+    const { object } = await generateObject({
+      model: getModel(),
+      schema: OrgWardTriageSchema,
+      system,
+      prompt,
+    });
+    return object;
+  } catch (e) {
+    console.error("generateOrgWardTriage failed, using heuristic", e);
+    return heuristicOrgWardTriage(pets, locale);
+  }
+}
+
+export function orgAiSystemPrompt(
+  orgName: string,
+  facility: boolean,
+  locale: Locale,
+  context: string,
+): string {
+  const role = facility
+    ? "veterinary clinic / boarding facility"
+    : "breeder, cattery, kennel, or pet shop";
+  const audience = facility
+    ? "You support facility staff managing many pets during active stays."
+    : "You support shop staff managing many pets before handover.";
+
+  return `You are the workspace AI for ${orgName}, a ${role}. ${audience}
+
+You have access to ALL pets currently in care — their health, food, and activity logs in the roster below.
+
+Rules:
+- Answer roster-wide questions: who needs attention, compare pets, summarize trends, prioritize rounds, draft owner updates.
+- Reference pets by name; you may compare multiple animals in one answer.
+- Cross-reference health, food, and activity logs when patterns matter.
+- You are NOT a veterinarian — no definitive diagnoses. Recommend professional care when concerning.
+- Be warm, concise, practical. Use short paragraphs or bullets.
+- ${languageInstruction(locale)}
+
+${context}`;
+}
+
+export function mockOrgChatReply(
+  orgName: string,
+  facility: boolean,
+  pets: OrgPetContextPack[],
+  question: string,
+  locale: Locale,
+): string {
+  const briefing = heuristicOrgWardTriage(pets, locale);
+  const zh = locale === "zh";
+  const lines: string[] = [
+    zh
+      ? `**${orgName} 工作区 AI（演示模式）**\n`
+      : `**${orgName} workspace AI (demo mode)**\n`,
+    briefing.summary,
+  ];
+  if (briefing.watchList.length > 0) {
+    lines.push(zh ? "\n**建议优先关注：**" : "\n**Priority watch list:**");
+    for (const w of briefing.watchList.slice(0, 5)) {
+      lines.push(`- **${w.petName}** — ${w.reason} (${w.urgency})`);
+    }
+  }
+  lines.push(
+    zh
+      ? `\n你问的是：“${question}”。连接 AI 密钥后，我会基于全部 ${pets.length} 只宠物的记录用自然语言回答。`
+      : `\nYou asked: "${question}". With an AI key connected, I'd answer in natural language using all ${pets.length} pets' records.`,
+  );
+  return lines.join("\n");
+}

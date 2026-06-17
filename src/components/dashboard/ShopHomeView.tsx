@@ -19,6 +19,7 @@ import {
   MotionReveal,
   motionCardHover,
 } from "./DashboardMotion";
+import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
 
 type ShopPet = {
   id: string;
@@ -57,7 +58,7 @@ export function ShopHomeView({
   pets: ShopPet[];
   attention: ShopPet[];
   reminders: ShopReminder[];
-  preview?: { onPetSelect: (petId: string) => void };
+  preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
   const { t } = useI18n();
   const now = Date.now();
@@ -125,6 +126,13 @@ export function ShopHomeView({
           toneClass="bg-sky-50 text-sky-600"
         />
       </div>
+
+      <OrgAiPromoCard
+        facility={false}
+        petCount={pets.length}
+        className="mt-8"
+        preview={preview?.onOrgAiOpen ? { onOpen: preview.onOrgAiOpen } : undefined}
+      />
 
       <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">
         <div className="min-w-0 space-y-6 xl:col-span-8">

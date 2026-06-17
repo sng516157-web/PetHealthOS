@@ -1,4 +1,5 @@
 import { FACILITY_BASE_CAPACITY } from "@/lib/plans";
+import type { OrgWardTriageResult } from "@/lib/ai";
 
 const now = Date.now();
 const day = 86400000;
@@ -183,6 +184,28 @@ export const PREVIEW_FACILITY_PETS = [
 
 export const PREVIEW_FACILITY_CAPACITY = FACILITY_BASE_CAPACITY;
 
+/** Canned ward triage for landing preview org AI tab. */
+export const PREVIEW_ORG_WARD_TRIAGE: OrgWardTriageResult = {
+  summary:
+    "3 pets in care; 2 need extra attention. Otis has medium-severity respiratory monitoring; Biscuit is post-op day 1.",
+  watchList: [
+    {
+      petName: "Otis",
+      reason: "IV fluids overnight — monitor resp rate",
+      urgency: "SOON",
+    },
+    {
+      petName: "Biscuit",
+      reason: "Post-op check — stable but on small meals",
+      urgency: "MONITOR",
+    },
+  ],
+  teamNotes: [
+    "Recheck Otis resp rate and appetite on morning rounds",
+    "Confirm Biscuit incision site before discharge planning",
+  ],
+};
+
 export type PreviewPetRecord = {
   id: string;
   name: string;
@@ -206,6 +229,14 @@ export function findPreviewPet(id: string): PreviewPetRecord | undefined {
     }
   }
   return undefined;
+}
+
+export function previewWorkspacePath(
+  role: "owner" | "shop" | "facility",
+  opts?: { petId?: string | null; orgAi?: boolean },
+): string {
+  if (opts?.orgAi && role !== "owner") return "pethealthos.online/app/ai";
+  return previewPetPath(role, opts?.petId);
 }
 
 export function previewPetPath(

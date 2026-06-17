@@ -74,7 +74,7 @@ export function PreviewPetTabPanels({
     return <PreviewActivityPanel fmt={fmt} />;
   }
 
-  if (mainTab === "chat" && role !== "facility") {
+  if (mainTab === "chat") {
     return (
       <Card className="p-4">
         <div className="flex items-center gap-2">
@@ -89,7 +89,7 @@ export function PreviewPetTabPanels({
     );
   }
 
-  if (mainTab === "triage" && role !== "facility") {
+  if (mainTab === "triage") {
     return (
       <Card className="p-4">
         <div className="flex items-center gap-2">

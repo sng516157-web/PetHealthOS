@@ -19,6 +19,7 @@ export const zh: Dictionary = {
   language: { label: "语言", en: "English", zh: "中文" },
   nav: {
     dashboard: "仪表盘",
+    ai: "工作区 AI",
     pets: "宠物",
     reminders: "提醒",
     notifications: "通知",
@@ -28,6 +29,7 @@ export const zh: Dictionary = {
     organization: "机构",
     mobile: {
       dashboard: "首页",
+      ai: "AI",
       pets: "宠物",
       reminders: "提醒",
       notifications: "通知",
@@ -669,6 +671,58 @@ export const zh: Dictionary = {
     rerun: "重新分诊",
     assessing: "评估中…",
   },
+  orgAi: {
+    pageTitle: "工作区 AI",
+    pageSubtitle: (facility: boolean, count: number) =>
+      facility
+        ? `可跨当前照护中的 ${count} 只宠物提问——巡房优先级、食欲趋势、谁需要重点关注。`
+        : `可跨店内 ${count} 只宠物提问——谁需关注、交接准备、窝次对比。`,
+    tabAssistant: "助手",
+    tabWard: "病区分诊",
+    assistantTitle: "工作区助手",
+    grounded: (facility: boolean, count: number) =>
+      facility
+        ? `基于 ${count} 个在住照护——健康、饮食与活动记录`
+        : `基于照护中的 ${count} 只宠物——健康、饮食与活动记录`,
+    askTitle: "询问整个名单",
+    askDesc: (facility: boolean) =>
+      facility
+        ? "对比在住宠物、排定巡房顺序或起草主人更新——一个对话搞定。"
+        : "找出需关注的宠物、汇总窝次或准备买家交接——一个对话搞定。",
+    messagePlaceholder: "询问照护中的宠物…",
+    shopStarters: [
+      "哪些狗需要重点关注？",
+      "汇总观察中的宠物",
+      "本周哪些可以交接？",
+      "有哪些食欲或体重趋势需要注意？",
+    ],
+    facilityStarters: [
+      "哪些狗需要重点关注？",
+      "今天巡房先看谁？",
+      "有哪些宠物食欲异常？",
+      "汇总中高等严重度的记录",
+    ],
+    previewReplyShop:
+      "**Sunrise Cattery 工作区 AI（演示）**\n\nCoco 处于观察中，有一条中等严重度的食欲记录——建议先看她的饮食日志。Mochi 目前常规。\n\n你询问了优先关注的宠物。连接 AI 密钥后，我会基于全部宠物记录用自然语言回答。",
+    previewReplyFacility:
+      "**Happy Paws 工作区 AI（演示）**\n\nOtis 输液后需监测呼吸。Biscuit 术后稳定。Willow 寄养常规。\n\n你询问了优先关注的宠物。连接 AI 密钥后，我会基于全部在住记录用自然语言回答。",
+    wardTitle: "病区分诊",
+    wardDesc: "全名单简报：谁需优先关注、原因及团队后续建议。",
+    runWard: "运行病区分诊",
+    rerunWard: "重新运行",
+    wardDemoNote: "演示模式根据近期记录用规则排序。连接 AI 密钥可获得更完整的简报。",
+    watchListTitle: "关注名单",
+    teamNotesTitle: "团队备注",
+    promoBadge: "工作区 AI",
+    promoTitleShop: "覆盖整个商家名单的 AI",
+    promoTitleFacility: "覆盖所有在住宠物的 AI",
+    promoDesc: (facility: boolean, count: number) =>
+      facility
+        ? `询问 ${count} 个在住照护中谁需关注、运行病区分诊或对比趋势——每只宠物档案内也有独立 AI。`
+        : `询问 ${count} 只宠物中谁需关注、运行名单分诊或准备交接——每只宠物档案内也有独立 AI。`,
+    promoCta: "打开工作区 AI",
+    demoNote: "未检测到 AI 密钥。工作区 AI 会根据名单用规则生成摘要。请设置",
+  },
   passport: {
     title: "宠物健康护照",
     tamperEvident: "防篡改",
@@ -742,7 +796,7 @@ export const zh: Dictionary = {
     shopExtraPet: (price: number) => `超出后每只 ${formatUsd(price)}/月`,
     issuePassports: "签发健康护照（审核通过后）",
     multiSeat: "多员工席位",
-    aiAssistant: "AI 助手与分诊",
+    aiAssistant: "工作区 AI + 单宠助手与分诊",
     notForSale: "个人使用——不可签发护照",
     qrCheckin: "扫码登记，经主人授权",
     facilityNoPassport: "不可签发健康护照",
@@ -989,7 +1043,7 @@ export const zh: Dictionary = {
       `最多可同时照护 ${base} 只宠物`,
       `可随时新增照护名额——每个 ${formatUsd(slotPrice)}/月（持续付费即保留，空置也保留）`,
       "记录笔记、体重与照片——每条都标注你的机构名称",
-      "AI 助手 + 分诊报告，便于与主人沟通",
+      "工作区 AI + 病区分诊，覆盖所有在住宠物——每只档案内也有独立 AI",
       "为照护中的每只宠物设置提醒与体重追踪",
       "团队多设备登录",
     ],

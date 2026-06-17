@@ -9,6 +9,8 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Workspace AI for shops & facilities.** `/app/ai` adds roster-wide assistant + ward triage across all pets in care; home promo cards, landing/pricing copy, and mini-dashboard preview updated.
+
 - **2026-06-16 — Homepage dashboard frame.** Mini dashboard preview uses a full-width 16:9
   viewport so owner/shop/facility layouts aren’t squashed on the landing page.
 

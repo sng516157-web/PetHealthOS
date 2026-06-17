@@ -39,7 +39,7 @@ export const landingEn = {
   showcaseSubtitle:
     "Three workspaces — owner, shop, and clinic — each focused on what that role needs to do. Click around in the live preview.",
   showcaseInteractiveHint:
-    "Switch roles above, then open pets and tabs inside the frame — nothing is saved; it mirrors the real app.",
+    "Switch roles above, then open pets, workspace AI, or tabs inside the frame — nothing is saved; it mirrors the real app.",
   showcaseScreens: [
     {
       role: "Pet owners",
@@ -59,6 +59,7 @@ export const landingEn = {
       desc: "The shop workspace tracks every pet in your care, flags what needs attention, and prepares a tamper-evident passport when the pet goes to a new owner.",
       bullets: [
         "Overview stats — pets in care, attention items, due reminders",
+        "Workspace AI across your whole roster — e.g. “Which dogs should I keep an eye on?”",
         "Attention feed for high-severity logs and under-observation pets",
         "Issue a passport QR that freezes your records at handover",
       ],
@@ -70,6 +71,7 @@ export const landingEn = {
       desc: "Facilities scan the owner's check-in code to open a time-boxed stay. While active you see full history; after take-back the view freezes and the old QR dies.",
       bullets: [
         "Admit pet from owner QR — capacity meter shows slots in use",
+        "Workspace AI + ward triage across all active stays",
         "Log care, weight, and documents during an active stay",
         "Archived stays stay read-only — no new owner data leaks in",
       ],
@@ -87,11 +89,11 @@ export const landingEn = {
   ownerCardCta: "Create free owner account",
   shopCardTitle: "Breeders, shops, and shelters",
   shopCardDesc:
-    "Build trust with buyers by handing over a digital health passport backed by real care history.",
+    "Build trust with buyers by handing over a digital health passport backed by real care history — with workspace AI across your whole roster.",
   shopCardCta: "Create shop workspace",
   facilityCardTitle: "Clinics, boarding, groomers & carers",
   facilityCardDesc:
-    "Check pets in, view owner-approved history, log care, and hand back a clear report.",
+    "Check pets in, view owner-approved history, log care, run ward triage across active stays, and hand back a clear report.",
   facilityCardCta: "Create facility workspace",
   trustEyebrow: "Trust & safety",
   trustTitle: "Built for better care conversations",
@@ -202,6 +204,7 @@ export const landingEn = {
     whyTitle: "Prove care — don't just claim it",
     whyItems: [
       "Build buyer trust before purchase",
+      "Workspace AI across all pets in care — prioritize who needs attention",
       "Keep vaccines, weights, and documents organized",
       "Reduce repeated questions after handover",
       "Make the handover feel more professional",
@@ -250,7 +253,7 @@ export const landingEn = {
     pricingEyebrow: "Pricing",
     pricingTitle: "Start free",
     pricingDesc:
-      "Start free with up to 5 pets. Upgrade when you need more capacity, team features, or higher-volume passport issuing.",
+      "Start free with up to 5 pets. Upgrade when you need more capacity, team features, workspace AI at scale, or higher-volume passport issuing.",
     pricingCta: "Create shop workspace",
     loginTitle: "Create shop workspace",
   },
@@ -287,6 +290,7 @@ export const landingEn = {
       "Feeding and appetite notes",
       "Medication given on site",
       "Weight checks",
+      "Workspace AI + ward triage across active stays",
       "Photos for owner reassurance",
       "Behavior and comfort observations",
       "Staff notes tagged with your facility name",
@@ -320,7 +324,7 @@ export const landingEn = {
     pricingEyebrow: "Pricing",
     pricingTitle: "Start free",
     pricingDesc:
-      "Start free with up to 5 pets in care. Upgrade when your facility needs more capacity or team features.",
+      "Start free with up to 5 pets in care. Upgrade when your facility needs more capacity, workspace AI, or team features.",
     pricingCta: "Create facility workspace",
     loginTitle: "Create facility workspace",
   },

@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import {
   requireActiveOrg,
   getPetForAI,
+  getOrgPetsForAI,
   getOrgUsage,
   getUserUsage,
   canAccessPet,
@@ -33,8 +34,10 @@ import {
 import {
   structureLogEntry,
   generateTriage,
+  generateOrgWardTriage,
   heuristicStructure,
   hasAI,
+  type OrgWardTriageResult,
 } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
 import { isLocale, type Locale } from "@/lib/i18n/config";
@@ -743,6 +746,20 @@ export async function generateTriageReport(petId: string, localeHint?: string) {
   revalidatePath(`/app/pets/${petId}/triage`);
   revalidatePath(`/me/pets/${petId}/triage`);
   return { id: report.id };
+}
+
+export async function generateOrgWardTriageReport(
+  localeHint?: string,
+): Promise<{ report: OrgWardTriageResult } | { error: string }> {
+  const { orgName, facility, pets } = await getOrgPetsForAI();
+  const locale = await resolveLocale(localeHint);
+  const { getTimezone } = await import("@/lib/timezone/server");
+  const timeZone = await getTimezone();
+  const report = await generateOrgWardTriage(orgName, facility, pets, locale, {
+    timeZone,
+    locale,
+  });
+  return { report };
 }
 
 export async function addAttachment(petId: string, formData: FormData) {
