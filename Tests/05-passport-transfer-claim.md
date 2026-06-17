@@ -13,7 +13,7 @@
 | Step | Action | Expected |
 |------|--------|----------|
 | 1 | Verified shop → pet → Transfer | Form: guarantee, visibility, claimability |
-| 2 | Submit transfer | Pet status TRANSFERRED; archived in shop list |
+| 2 | Submit transfer | Pet status TRANSFERRED; archived in shop list; **shop quota slot freed** (in-care count drops; paid `OrgSlot` unlinked) |
 | 3 | Pre-transfer history | `lockedAt` set; milestone "Homecoming day" added |
 | 4 | Unverified shop attempts transfer | Server-side block |
 | 5 | Second transfer same pet | `ALREADY_ISSUED` |

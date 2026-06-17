@@ -9,6 +9,12 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-16 — Passport-first homepage.** `/` now leads with QR health passports for breeders
+  and owners — dual CTAs, proof strip, founding offer, and interactive shop/owner dashboard previews.
+
+- **2026-06-16 — Shop quota on transfer.** Issuing a passport frees the pet from shop roster quota
+  and unlinks any paid extra slot, so breeders can add new pets after handover.
+
 - **2026-06-16 — Workspace AI for shops & facilities.** `/app/ai` adds roster-wide assistant + ward triage across all pets in care; home promo cards, landing/pricing copy, and mini-dashboard preview updated.
 
 - **2026-06-16 — Homepage dashboard frame.** Mini dashboard preview uses a full-width 16:9

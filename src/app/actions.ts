@@ -954,11 +954,13 @@ export async function createTransfer(petId: string, formData: FormData) {
     where: { id: petId },
     data: { status: "TRANSFERRED" },
   });
+  await releaseShopSlotForPet(petId);
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
   revalidatePath(`/app/pets/${petId}/transfer`);
   revalidatePath("/app/pets");
   revalidatePath("/app");
+  revalidatePath("/app/billing");
   return { token };
 }
 

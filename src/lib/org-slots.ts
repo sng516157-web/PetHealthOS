@@ -9,6 +9,15 @@ import type { OwnerPetEntitlements } from "./owner-slots";
 
 export type OrgSlotKind = "care" | "shop_pet";
 
+/** Pets that count toward shop plan quota and consume in-care roster slots. */
+export const SHOP_IN_CARE_STATUSES = ["ACTIVE", "UNDER_OBSERVATION"] as const;
+
+export async function countShopQuotaPets(orgId: string): Promise<number> {
+  return prisma.pet.count({
+    where: { orgId, status: { in: [...SHOP_IN_CARE_STATUSES] } },
+  });
+}
+
 function newSlotId(): string {
   return randomBytes(12).toString("hex");
 }
@@ -132,10 +141,7 @@ export async function assignShopPetSlot(orgId: string, petId: string): Promise<v
     select: { plan: true },
   });
   const plan = getOrgPlan(org?.plan);
-  const countRows = await prisma.$queryRaw<{ c: bigint }[]>`
-    SELECT COUNT(*)::bigint AS c FROM "Pet" WHERE "orgId" = ${orgId}
-  `;
-  const petCount = Number(countRows[0]?.c ?? 0);
+  const petCount = await countShopQuotaPets(orgId);
   if (petCount <= plan.includedPets) return;
 
   const open = await prisma.$queryRaw<{ id: string }[]>`
@@ -207,7 +213,7 @@ export async function getShopPetEntitlements(
   });
   const plan = getOrgPlan(org?.plan);
   const pets = await prisma.pet.findMany({
-    where: { orgId },
+    where: { orgId, status: { in: [...SHOP_IN_CARE_STATUSES] } },
     orderBy: { createdAt: "asc" },
     select: { id: true },
   });

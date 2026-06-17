@@ -328,6 +328,118 @@ export const landingEn = {
     pricingCta: "Create facility workspace",
     loginTitle: "Create facility workspace",
   },
+  /** Passport-first homepage copy (live at `/`, archive at `/demo/homepage-v2`). */
+  homepageV2: {
+    heroEyebrow: "QR pet health passport",
+    heroTitle: "Pet health records and QR passports — for breeders and owners",
+    heroSubtitle:
+      "Owners scan a passport at handover and inherit vaccines, weights, and documents. Breeders, shelters, and shops build that record before the pet goes to a new home.",
+    heroPrimary: "Create your first 5 pet passports free",
+    heroSecondary: "View sample passport",
+    heroOwnerPrimary: "Create free owner account",
+    heroOwnerCta: "I'm a pet owner — scan or claim a passport",
+    pathsEyebrow: "Two sides of one passport",
+    pathsTitle: "Breeders issue it. Owners keep it.",
+    pathsSubtitle:
+      "Shops and shelters build the handover record; new owners scan the QR and continue the same timeline for life.",
+    pathsBreederTitle: "Breeders, shelters & shops",
+    pathsBreederDesc:
+      "Record care before handover, issue a QR passport at sale or adoption, and free up your roster when the pet goes to a new home.",
+    pathsBreederCta: "Create shop workspace",
+    pathsOwnerTitle: "Pet owners",
+    pathsOwnerDesc:
+      "Adopted or bought a pet with a PawSure passport? Scan the QR to inherit the full care history — vaccines, weights, documents, and notes — then keep logging for life.",
+    pathsOwnerBullets: [
+      "Scan a breeder or shelter passport QR at handover",
+      "Inherit vaccines, weights, documents, and care notes",
+      "Set reminders, log health, and store files in one place",
+      "First pet free — no passport required to start your own record",
+    ],
+    pathsOwnerCta: "Create free owner account",
+    pathsOwnerScan: "Scan a passport QR",
+    disclaimer:
+      "PawSure is not a veterinary certificate and does not guarantee an animal's health. It helps breeders, shelters, shops, and owners keep and share care records clearly.",
+    proofEyebrow: "Early traction",
+    proofLine: "Now piloting with 2 breeders and 4 pet owners",
+    proofSubline: "Founding users onboarding now",
+    proofStats: ["4 pet owners", "2 breeders", "Founding users onboarding now"],
+    problemEyebrow: "The handover problem",
+    problemTitle:
+      "Pet handovers still rely on messy screenshots, paper notes, and scattered records",
+    problemBullets: [
+      "Buyers ask the same questions again after handover",
+      "Vaccination and care details live in chats, folders, and paper",
+      "Paper records are easy to lose or forget",
+      "Breeders, shelters, and shops need a more professional way to show care history",
+    ],
+    solutionEyebrow: "The passport",
+    solutionTitle: "One QR passport for the pet's care history",
+    solutionSubtitle:
+      "Build the record before handover. Share one link or QR code. The new owner continues the same timeline.",
+    solutionSteps: [
+      { title: "Create a pet profile", desc: "Name, breed, intake date, and profile notes in your workspace." },
+      { title: "Add health & care records", desc: "Vaccines, weights, deworming, daily notes, and milestones over time." },
+      { title: "Attach documents", desc: "Vaccine certificates, registration papers, lab results, and photos." },
+      { title: "Share by QR code", desc: "Buyer scans at handover — no app required to view." },
+      { title: "Transfer to the owner", desc: "History freezes at issue; the owner claims and continues the record." },
+      { title: "Owner continues for life", desc: "Reminders, logs, and documents stay in one place after adoption." },
+    ],
+    useCasesEyebrow: "Who it's for",
+    useCasesTitle: "Built for handovers — and the owners who receive them",
+    useCasesSecondary:
+      "Clinics and boarding facilities can use PawSure after a passport has been created and shared.",
+    useCaseCards: [
+      {
+        title: "Breeders",
+        desc: "Give buyers a clear, professional handover record — vaccines, weights, and care notes in one place.",
+      },
+      {
+        title: "Shelters",
+        desc: "Send adopters home with vaccination status, medical notes, and documents they can actually find later.",
+      },
+      {
+        title: "Pet shops",
+        desc: "Answer fewer repeat questions and show that care was documented before the pet leaves your shop.",
+      },
+      {
+        title: "Pet owners",
+        desc: "Scan a passport from your breeder or shelter, inherit the full history, and keep your pet's record for life.",
+      },
+    ],
+    dashboardEyebrow: "Your workspace",
+    dashboardTitle: "Manage passports from one place",
+    dashboardSubtitle:
+      "Shops track pets before handover; owners see every pet, reminder, and inherited passport in one home.",
+    dashboardHint: "Switch shop or owner — click around; nothing is saved.",
+    foundingEyebrow: "Limited offer",
+    foundingTitle: "Founding breeder offer",
+    foundingCopy:
+      "We are personally onboarding our first breeder, shelter, and pet shop users. Create your first 5 pet passports free, with hands-on setup support.",
+    foundingBullets: [
+      "Set up pet profiles before handover",
+      "Add vaccines, weights, documents, and care notes",
+      "Share a QR passport with the new owner",
+      "Let the owner continue the record after transfer",
+      "No credit card required for the first 5 pets",
+    ],
+    foundingCta: "Start free setup",
+    finalTitle: "Give your next pet a QR health passport",
+    finalCta: "Create your first 5 pet passports free",
+    finalOwnerCta: "Create free owner account",
+    passportHero: {
+      readyForHandover: "Ready for handover",
+      sharedWithOwner: "Shared with new owner",
+      vaccinationStatus: "Vaccination status",
+      vaccinationUpToDate: "Up to date for handover",
+      weightHistory: "Weight history",
+      careNotes: "Care notes",
+      documents: "Documents",
+      handoverSeal: "Handover seal",
+      scanQr: "Scan to open passport",
+    },
+    ownerLink: "Pet owners — scan or claim a passport",
+    facilityLink: "Clinics & boarding — secondary use",
+  },
   backHome: "Back to home",
   alreadyMember: "Already have an account?",
   disclaimer: "Disclaimer",

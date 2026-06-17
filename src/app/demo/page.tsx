@@ -34,7 +34,25 @@ export default function DemoHubPage() {
           </p>
         </MotionPop>
 
-        <MotionReveal delay={120} className="mt-10">
+        <MotionReveal delay={80} className="mt-10">
+          <Link
+            href="/demo/homepage-v2"
+            className="group flex items-center gap-4 rounded-3xl border-2 border-brand-500 bg-brand-50/90 p-6 shadow-soft transition hover:border-brand-600"
+          >
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white">
+              <FileText size={22} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-extrabold text-forest">Homepage — passport-first (archive)</h2>
+              <p className="text-sm text-ink/70">
+                Now live on / — preview archive with amber banner
+              </p>
+            </div>
+            <ArrowRight size={18} className="shrink-0 text-brand-600 transition group-hover:translate-x-0.5" />
+          </Link>
+        </MotionReveal>
+
+        <MotionReveal delay={120} className="mt-6">
           <Link
             href="/demo/messaging"
             className="group flex items-center gap-4 rounded-3xl border border-brand-300 bg-brand-50/50 p-6 shadow-soft transition hover:border-brand-400"

@@ -19,14 +19,24 @@ const ROLES: { id: Role; label: string; icon: typeof User }[] = [
 
 export function LandingMiniDashboards({
   copy,
+  defaultRole = "owner",
+  allowedRoles,
 }: {
   copy: Pick<
     typeof landingEn,
     "showcaseEyebrow" | "showcaseTitle" | "showcaseSubtitle" | "showcaseScreens" | "showcaseInteractiveHint"
   >;
+  defaultRole?: Role;
+  /** When set, hides role switcher buttons not in this list. */
+  allowedRoles?: Role[];
 }) {
-  const [role, setRole] = useState<Role>("owner");
-  const [url, setUrl] = useState("pethealthos.online/me");
+  const roles = allowedRoles
+    ? ROLES.filter((r) => allowedRoles.includes(r.id))
+    : ROLES;
+  const [role, setRole] = useState<Role>(defaultRole);
+  const [url, setUrl] = useState(
+    defaultRole === "owner" ? "pethealthos.online/me" : "pethealthos.online/app",
+  );
 
   const onUrlChange = useCallback((next: string) => {
     setUrl(next);
@@ -45,7 +55,8 @@ export function LandingMiniDashboards({
       </MotionReveal>
 
       <MotionReveal delay={60} className="mt-8 flex flex-wrap justify-center gap-2">
-        {ROLES.map((r) => {
+        {roles.length > 1 &&
+          roles.map((r) => {
           const Icon = r.icon;
           const active = role === r.id;
           return (

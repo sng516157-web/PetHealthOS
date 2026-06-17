@@ -115,6 +115,9 @@ Notes:
   Owner-managed pets (no `orgId`) are blocked.
 - Claiming a transferred pet is intentionally **not** quota-blocked (protects the
   breeder→buyer handoff). The cap applies to pets an owner adds themselves.
+- **Shop roster quota** counts only pets **in care** (`ACTIVE` / `UNDER_OBSERVATION`).
+  Issuing a passport (`createTransfer`) sets `TRANSFERRED`, releases any linked
+  `shop_pet` `OrgSlot`, and frees the slot for the next animal.
 
 **Shop verification (KYC).** Shops must upload a business licence (营业执照) or
 alternative proof and be **approved by the PawSure team** before issuing passports.
@@ -252,6 +255,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-16** — **Passport-first homepage (production `/`).** Why (user approved after
+  `/demo/homepage-v2` review): replaced legacy landing with passport-first layout — dual shop/owner
+  hero CTAs, proof strip, owner-first paths, founding offer, shop+owner mini dashboards. Shared
+  component `PassportHomepageLanding`; demo route kept as archive with banner.
+- **2026-06-16** — **Shop quota frees on passport issue.** Why (user): transferred pets should
+  not keep consuming roster quota or paid `shop_pet` slots. `getOrgUsage` + `assignShopPetSlot`
+  count only `ACTIVE`/`UNDER_OBSERVATION` pets; `createTransfer` calls `releaseShopSlotForPet`.
 - **2026-06-16** — **Workspace AI for shops & facilities (`/app/ai`).** Why (user request):
   facilities lacked org-wide AI in marketing preview and needed roster-level agents for shops too.
   `getOrgPetsForAI()` loads shop roster or facility active stays; `/api/org/chat` streams answers;

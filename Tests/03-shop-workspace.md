@@ -68,6 +68,7 @@ Full flow: [05-passport-transfer-claim.md](./05-passport-transfer-claim.md).
 | 2 | Upgrade to SHOP (demo or Stripe) | `org.plan` SHOP; limits increase |
 | 3 | Cancel subscription | Downgrade to STARTER; read-only over-quota pets |
 | 4 | Extra shop pet slot (¥30/mo) if over 50 | `OrgSlot` shop_pet ACTIVE |
+| 5 | Issue passport for pet using paid slot | Slot released; quota count drops — can add another pet |
 
 Payment details: [07-billing-payments.md](./07-billing-payments.md).
 

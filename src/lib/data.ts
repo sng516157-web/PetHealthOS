@@ -20,6 +20,7 @@ import {
 } from "./owner-slots";
 import {
   countActiveOrgCareSlots,
+  countShopQuotaPets,
   getFacilityStayEntitlements,
   getShopPetEntitlements,
 } from "./org-slots";
@@ -365,7 +366,7 @@ export async function getOrgUsage() {
   const fresh = await prisma.organization.findUnique({ where: { id: org.id } });
   const current = fresh ?? org;
   const plan = getOrgPlan(current.plan);
-  const count = await prisma.pet.count({ where: { orgId: org.id } });
+  const count = await countShopQuotaPets(org.id);
   return { org: current, plan, count, limit: petLimit(plan, current.extraPetSlots) };
 }
 
