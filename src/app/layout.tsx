@@ -9,6 +9,7 @@ import { TimezoneProvider, TimezoneSync } from "@/lib/timezone/client";
 import { defaultSiteMetadata } from "@/lib/seo";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AnalyticsListener } from "@/components/AnalyticsListener";
+import { Analytics } from "@vercel/analytics/next";
 
 // Nunito gives the warm, rounded, trustworthy feel of the PawSure brand. CJK
 // text falls back to the system stack (PingFang/YaHei) to avoid shipping a
@@ -51,6 +52,7 @@ export default async function RootLayout({
       <body className="min-h-full w-full max-w-full overflow-x-clip">
         <GoogleAnalytics />
         <AnalyticsListener />
+        <Analytics />
         <I18nProvider initialLocale={locale}>
           {!forBot && <LocaleBootstrap serverLocale={locale} />}
           <TimezoneProvider timeZone={timeZone}>
