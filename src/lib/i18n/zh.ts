@@ -557,9 +557,11 @@ export const zh: Dictionary = {
     scanDesc: "宠物来自宠诺上的繁育者或商家？扫描它的护照即可添加到这里。",
     limitTitle: (limit: number) =>
       limit === 1 ? "免费套餐包含 1 只宠物" : `你的套餐包含 ${limit} 只宠物`,
-    limitDesc: (price: number) =>
-      `你已用完免费名额。每多一只 ${formatUsd(price)}/月——或扫描护照以继承额外的宠物。`,
-    limitUpgrade: "添加宠物名额",
+    limitDesc: (onPlus: boolean): string =>
+      onPlus
+        ? "Owner Plus 套餐含 5 只宠物。如需更换，请先从账户中移除一只宠物。"
+        : "免费账户含 1 只宠物。升级 Owner Plus 后可最多管理 5 只宠物。",
+    limitUpgrade: "升级 Owner Plus",
     checkinTitle: "寄养 / 就诊登记",
     checkinDesc: "向宠物医院或寄养机构出示此二维码——他们扫码后，可在照护期间查看这只宠物的记录。",
     showQr: "显示登记二维码",
@@ -789,7 +791,9 @@ export const zh: Dictionary = {
     free: "免费",
     usd: (n: number) => formatUsd(n),
     rmb: (n: number) => formatUsd(n),
-    includedPets: (n: number) => `含 ${n} 只宠物——永久免费`,
+    includedPets: (n: number) =>
+      n === 1 ? "含 1 只宠物——永久免费" : `含 ${n} 只宠物`,
+    ownerPlusIncluded: (n: number) => `同一订阅最多 ${n} 只宠物`,
     extraPet: (price: number, cap: number) =>
       `之后每多一只 ${formatUsd(price)}/月（最多共 ${cap} 只）`,
     shopIncluded: (n: number) => `含 ${n} 只在管宠物`,
@@ -800,7 +804,7 @@ export const zh: Dictionary = {
     notForSale: "个人使用——不可签发护照",
     qrCheckin: "扫码登记，经主人授权",
     facilityNoPassport: "不可签发健康护照",
-    ownerNote: "领养时、扫描护照时或自行注册时创建账户。",
+    ownerNote: "第一只宠物免费。需要最多 5 只宠物时，升级 Owner Plus。",
     currentPlan: "当前套餐",
     choose: "选择",
     getStarted: "开始使用",
@@ -895,6 +899,13 @@ export const zh: Dictionary = {
     slotAdded: "已新增一只宠物名额（演示模式——尚未配置支付渠道）。",
     slotCapReached: (cap: number) =>
       `主人账户最多 ${cap} 只宠物。如需更多，请使用商家账户。`,
+  },
+  ownerBilling: {
+    title: "Owner Plus",
+    planName: "Owner Plus — 5 只宠物",
+    subtitle: "按月付费，按年更省。",
+    includedPets: "同一账户最多 5 只宠物",
+    manageViaPortal: "在「账户」→ Stripe 账单门户中管理或取消订阅。",
   },
   shopBilling: {
     title: "商家套餐",
@@ -993,8 +1004,8 @@ export const zh: Dictionary = {
     grantEmailLabel: "账号邮箱",
     grantEmailPlaceholder: "owner@example.com",
     grantKindLabel: "赠送类型",
-    grantOwnerSlot: "主人额外宠物位",
-    grantOwnerSlotHint: "个人账号（无工作区）。名额标记为 comped。",
+    grantOwnerPlus: "Owner Plus（5 只宠物）",
+    grantOwnerPlusHint: "个人账号（无工作区）。赠送套餐——最多 5 只宠物。",
     grantCareSlot: "机构照护名额",
     grantCareSlotHint: "医院/寄养账号。赠送 1 个 comped 照护名额。",
     grantShopPlan: "SHOP 套餐（月付）",

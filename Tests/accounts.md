@@ -57,7 +57,8 @@ Verify UI copy matches these numbers when testing billing/pricing:
 
 | Audience | Included | Extra price | Cap |
 |----------|----------|-------------|-----|
-| Owner | 1 pet | $1.49/mo per extra | 10 pets total |
+| Owner FREE | 1 pet | — | 1 pet |
+| Owner PLUS | 5 pets | $6.99/mo or $80/yr | 5 pets |
 | Shop STARTER | 5 pets | — | — |
 | Shop SHOP | 50 pets | $2.49/mo per extra pet slot | — |
 | Shop SHOP plan price | — | $14.99/mo or $149/yr | — |
@@ -71,7 +72,7 @@ Verify UI copy matches these numbers when testing billing/pricing:
 2. **Unverified shop** — sign in → `/verify` → upload doc → `/app` with pending banner.
 3. **Admin** — approve unverified shop → banner clears.
 4. **Verified shop** — Transfer tab → issue passport → copy link.
-5. **Owner** — open passport → claim OR use `owner.demo@pawsure.test` → billing slot purchase.
+5. **Owner** — open passport → claim OR use `owner.demo@pawsure.test` → `/me/billing` Owner Plus upgrade.
 6. **Facility** — admit pet via token; owner take-back → facility read-only snapshot.
 
 Maps to docs: 06 → 03 → 05 → 02 → 04.

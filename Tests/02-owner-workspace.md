@@ -33,7 +33,7 @@
 | 1 | At cap (10 pets) | Cannot add more |
 | 2 | Revoked slot pet | View-only: no new logs, no AI (see entitlements) |
 
-Reference: `OWNER_EXTRA_PET_CAP = 10`, 1 included, ¥15/mo extras.
+Reference: `FREE` = 1 pet; `PLUS` = 5 pets at $6.99/mo or $80/yr. No per-pet slot purchases.
 
 ---
 
@@ -63,9 +63,9 @@ Cross-test with [04-facility-stays.md](./04-facility-stays.md).
 
 | Step | Action | Expected |
 |------|--------|----------|
-| 1 | Page loads without server error | Slot count + pricing shown |
-| 2 | Purchase extra pet slot (demo or Stripe) | `OwnerPetSlot` ACTIVE; quota increases |
-| 3 | Refresh after payment | Count stable; not duplicated |
+| 1 | Page loads without server error | Usage meter + Owner Plus upgrade shown |
+| 2 | Purchase Owner Plus (demo or Stripe) | `User.plan` = `PLUS`; limit = 5 |
+| 3 | Refresh after payment | Plan stable; not duplicated |
 
 Full payment matrix: [07-billing-payments.md](./07-billing-payments.md).
 

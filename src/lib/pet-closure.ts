@@ -12,17 +12,25 @@ export type DeathClosureEligibility = {
   reason?: "PAID_TENURE" | "FREE_TENURE" | "INSUFFICIENT_TENURE";
 };
 
-/** Owner must have 6+ months on a paid extra-pet slot OR 2+ years on a free account. */
+/** Owner must have 6+ months on Owner Plus (or legacy paid slot) OR 2+ years on a free account. */
 export async function checkDeathClosureEligibility(
   userId: string,
 ): Promise<DeathClosureEligibility> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { createdAt: true },
+    select: { createdAt: true, plan: true, planActivatedAt: true },
   });
   if (!user) return { eligible: false, reason: "INSUFFICIENT_TENURE" };
 
   const paidSince = new Date(Date.now() - PAID_TENURE_MS);
+  if (
+    user.plan === "PLUS" &&
+    user.planActivatedAt &&
+    user.planActivatedAt <= paidSince
+  ) {
+    return { eligible: true, reason: "PAID_TENURE" };
+  }
+
   const paidSlot = await prisma.$queryRaw<{ id: string }[]>`
     SELECT id FROM "OwnerPetSlot"
     WHERE "userId" = ${userId}
@@ -55,8 +63,8 @@ export async function releaseShopSlotForPet(petId: string): Promise<void> {
 }
 
 export function deathCondolenceCreditUsd(): number {
-  const plan = getUserPlan("FREE");
-  return plan.extraPetPriceUsd * DEATH_REFUND_MONTHS;
+  const plan = getUserPlan("PLUS");
+  return plan.priceUsd * DEATH_REFUND_MONTHS;
 }
 
 export { DEATH_REFUND_MONTHS, parseProofDocUrls };

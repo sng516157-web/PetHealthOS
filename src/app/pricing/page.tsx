@@ -6,10 +6,9 @@ import {
   ORG_PLANS,
   USER_PLANS,
   SHOP_BILLING,
+  OWNER_BILLING,
   FACILITY_BASE_CAPACITY,
   FACILITY_EXTRA_SLOT_PRICE_USD,
-  OWNER_EXTRA_PET_CAP,
-  type Plan,
 } from "@/lib/plans";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getI18n } from "@/lib/i18n/server";
@@ -25,7 +24,7 @@ import { formatUsd } from "@/lib/money";
 
 export const metadata: Metadata = pageMetadata({
   title: "Plans & Pricing (USD)",
-  description: `Pet owners: 1 pet free, extra pets from ${formatUsd(USER_PLANS.FREE.extraPetPriceUsd)}/mo. Breeders & shops: from ${formatUsd(SHOP_BILLING.month)}/mo. Facilities: care-slot pricing for hospitals and boarding.`,
+  description: `Pet owners: 1 pet free, Owner Plus ${formatUsd(OWNER_BILLING.month)}/mo or ${formatUsd(OWNER_BILLING.year)}/yr for 5 pets. Breeders & shops: from ${formatUsd(SHOP_BILLING.month)}/mo.`,
   path: "/pricing",
 });
 
@@ -80,10 +79,57 @@ export default async function PricingPage() {
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
               {t.pricing.forOwners}
             </h2>
-            <div className="grid gap-4 sm:max-w-md">
-              {Object.values(USER_PLANS).map((p) => (
-                <PlanCard key={p.key} plan={p} t={t} />
-              ))}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div
+                className={`rounded-2xl border border-border bg-surface p-6 ${motionCardHover}`}
+              >
+                <h3 className="text-base font-semibold text-foreground">
+                  {(t.plans as Record<string, string>).FREE}
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">{t.pricing.freeTagline}</p>
+                <div className="mt-3 text-3xl font-bold text-foreground">{t.pricing.free}</div>
+                <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                  <li className="flex items-start gap-2">
+                    <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                    {t.pricing.includedPets(USER_PLANS.FREE.includedPets)}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                    {t.pricing.aiAssistant}
+                  </li>
+                </ul>
+                <Link
+                  href="/owner"
+                  className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand-300"
+                >
+                  {t.pricing.getStarted}
+                </Link>
+              </div>
+              <OrgBillingCard
+                t={t}
+                name={t.shopBilling.monthly}
+                price={t.pricing.usd(OWNER_BILLING.month)}
+                cadence={t.pricing.perMonth.trim()}
+                note={t.ownerBilling.planName}
+                features={[
+                  t.pricing.ownerPlusIncluded(USER_PLANS.PLUS.includedPets),
+                  t.pricing.aiAssistant,
+                ]}
+                href="/owner"
+              />
+              <OrgBillingCard
+                t={t}
+                name={t.shopBilling.yearly}
+                price={t.pricing.usd(OWNER_BILLING.year)}
+                cadence={t.shopBilling.perYear}
+                note={t.ownerBilling.planName}
+                features={[
+                  t.pricing.ownerPlusIncluded(USER_PLANS.PLUS.includedPets),
+                  t.pricing.aiAssistant,
+                ]}
+                href="/owner"
+                highlight
+              />
             </div>
             <p className="mt-3 text-xs text-muted">{t.pricing.ownerNote}</p>
           </section>
@@ -233,48 +279,6 @@ function OrgBillingCard({
         }`}
       >
         {t.pricing.choose}
-      </Link>
-    </div>
-  );
-}
-
-function PlanCard({ plan, t }: { plan: Plan; t: Dictionary }) {
-  const name = (t.plans as Record<string, string>)[plan.key] ?? plan.key;
-  const cap = plan.petCap ?? OWNER_EXTRA_PET_CAP;
-
-  return (
-    <div className={`relative rounded-2xl border border-brand-400 bg-brand-50/40 p-6 shadow-sm ${motionCardHover}`}>
-      <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-medium text-white">
-        <Star size={11} /> {t.pricing.mostPopular}
-      </span>
-      <h3 className="text-base font-semibold text-foreground">{name}</h3>
-      <p className="mt-0.5 text-xs text-muted">{t.pricing.freeTagline}</p>
-      <div className="mt-3 text-3xl font-bold text-foreground">{t.pricing.free}</div>
-      <ul className="mt-4 space-y-2 text-sm text-slate-600">
-        <li className="flex items-center gap-2">
-          <Check size={15} className="text-emerald-500" />
-          {t.pricing.includedPets(plan.includedPets)}
-        </li>
-        {plan.extraPetPriceUsd > 0 && (
-          <li className="flex items-center gap-2">
-            <Check size={15} className="text-emerald-500" />
-            {t.pricing.extraPet(plan.extraPetPriceUsd, cap)}
-          </li>
-        )}
-        <li className="flex items-center gap-2">
-          <Check size={15} className="text-emerald-500" />
-          {t.pricing.aiAssistant}
-        </li>
-        <li className="flex items-center gap-2 text-muted">
-          <Check size={15} className="text-slate-300" />
-          {t.pricing.notForSale}
-        </li>
-      </ul>
-      <Link
-        href="/owner"
-        className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
-      >
-        {t.pricing.getStarted}
       </Link>
     </div>
   );

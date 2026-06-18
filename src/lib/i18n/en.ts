@@ -565,9 +565,11 @@ export const en = {
     scanDesc: "Got a pet from a PawSure breeder or shop? Scan its passport to add it here.",
     limitTitle: (limit: number) =>
       limit === 1 ? "Your free plan includes 1 pet" : `Your plan includes ${limit} pets`,
-    limitDesc: (price: number) =>
-      `You've used your free pet. Add more for ${formatUsd(price)}/mo each — or scan a passport to inherit an extra pet.`,
-    limitUpgrade: "Add a pet slot",
+    limitDesc: (onPlus: boolean): string =>
+      onPlus
+        ? "Your Owner Plus plan includes 5 pets. Remove a pet from your account if you need to add a different one."
+        : "Your free account includes 1 pet. Upgrade to Owner Plus for up to 5 pets.",
+    limitUpgrade: "Upgrade to Owner Plus",
     checkinTitle: "Boarding / vet check-in",
     checkinDesc: "Show this QR to a hospital or boarding facility — they scan it to access this pet's records while it's in their care.",
     showQr: "Show check-in QR",
@@ -805,7 +807,9 @@ export const en = {
     usd: (n: number) => formatUsd(n),
     /** @deprecated use usd */
     rmb: (n: number) => formatUsd(n),
-    includedPets: (n: number) => `${n} pet included — free forever`,
+    includedPets: (n: number) =>
+      n === 1 ? "1 pet included — free forever" : `${n} pets included`,
+    ownerPlusIncluded: (n: number) => `Up to ${n} pets on one subscription`,
     extraPet: (price: number, cap: number) =>
       `Then ${formatUsd(price)}/mo per extra pet (up to ${cap} total)`,
     shopIncluded: (n: number) => `${n} pets included`,
@@ -817,7 +821,7 @@ export const en = {
     qrCheckin: "QR check-in with owner consent",
     facilityNoPassport: "Cannot issue health passports",
     ownerNote:
-      "Create an account when you adopt a pet, scan a passport, or sign up yourself.",
+      "Free for your first pet. Upgrade to Owner Plus when you need up to 5 pets on one account.",
     currentPlan: "Current plan",
     choose: "Choose",
     getStarted: "Get started",
@@ -916,6 +920,13 @@ export const en = {
     slotCapReached: (cap: number) =>
       `You've reached the ${cap}-pet limit for owner accounts. For more, use a Shop account.`,
   },
+  ownerBilling: {
+    title: "Owner Plus",
+    planName: "Owner Plus — 5 pets",
+    subtitle: "Pay monthly or save with yearly billing.",
+    includedPets: "Up to 5 pets on one account",
+    manageViaPortal: "Manage or cancel your subscription in Account → Stripe billing portal.",
+  },
   shopBilling: {
     title: "Shop plan",
     subtitle: "Pay monthly, or save with yearly.",
@@ -1012,8 +1023,8 @@ export const en = {
     grantEmailLabel: "Account email",
     grantEmailPlaceholder: "owner@example.com",
     grantKindLabel: "Grant type",
-    grantOwnerSlot: "Owner extra pet slot",
-    grantOwnerSlotHint: "For personal accounts (no workspace). Marks slot as comped.",
+    grantOwnerPlus: "Owner Plus (5 pets)",
+    grantOwnerPlusHint: "For personal accounts (no workspace). Comped plan — up to 5 pets.",
     grantCareSlot: "Facility care slot",
     grantCareSlotHint: "For hospital/boarding accounts. One comped care slot.",
     grantShopPlan: "SHOP plan (monthly)",
@@ -1023,7 +1034,7 @@ export const en = {
     grantEmailRequired: "Enter an email address.",
     grantUserNotFound: "No account with that email.",
     grantNotOwner: "That account is a shop/facility user — use care slot or SHOP plan instead.",
-    grantNotOrg: "That account has no workspace — use owner extra pet slot instead.",
+    grantNotOrg: "That account has no workspace — use Owner Plus grant instead.",
     grantNotFacility: "That org is a shop, not a facility — use SHOP plan for shops.",
     grantCapReached: "Owner is already at the max extra pet slots for their plan.",
     grantBadRequest: "Invalid grant type.",

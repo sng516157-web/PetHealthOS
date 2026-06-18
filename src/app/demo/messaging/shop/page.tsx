@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Store } from "lucide-react";
 import { messagingDemo } from "@/lib/demo/messaging-copy";
-import { SHOP_BILLING, USER_PLANS } from "@/lib/plans";
+import { SHOP_BILLING, OWNER_BILLING } from "@/lib/plans";
 import { formatUsd } from "@/lib/money";
 import { MessagingDemoChrome } from "@/components/demo/messaging/MessagingDemoChrome";
 import {
@@ -26,7 +26,7 @@ export default function MessagingShopDemo() {
     { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
     {
       label: "Price",
-      owner: `Free + ${formatUsd(USER_PLANS.FREE.extraPetPriceUsd)}/mo per extra pet`,
+      owner: `Free + Owner Plus from ${formatUsd(OWNER_BILLING.month)}/mo (5 pets)`,
       shop: `${formatUsd(SHOP_BILLING.month)}/mo · ${formatUsd(SHOP_BILLING.year)}/yr`,
     },
   ];

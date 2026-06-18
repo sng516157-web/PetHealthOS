@@ -1,7 +1,6 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import {
-  countActiveOwnerSlots,
   createOwnerPetSlot,
   ensureOwnerPetSlotActive,
   revokeOwnerPetSlot,
@@ -19,8 +18,8 @@ import { prisma } from "./prisma";
 import {
   getOrgPlan,
   getUserPlan,
-  maxExtraSlots,
   shopPriceUsd,
+  ownerPriceUsd,
   isBillingInterval,
   FACILITY_EXTRA_SLOT_PRICE_USD,
   type BillingInterval,
@@ -182,7 +181,11 @@ export async function activatePlan(
   } else {
     await prisma.user.update({
       where: { id: scope.id },
-      data: { plan: planKey },
+      data: {
+        plan: planKey,
+        planInterval: planKey === "FREE" ? null : (interval ?? null),
+        planActivatedAt: planKey === "FREE" ? null : new Date(),
+      },
     });
   }
 }
@@ -250,6 +253,9 @@ export async function startCheckout(opts: {
   if (scope.kind === "org" && planKey === "SHOP") {
     interval = isBillingInterval(opts.interval) ? opts.interval : "month";
     amountUsd = shopPriceUsd(interval);
+  } else if (scope.kind === "user" && planKey === "PLUS") {
+    interval = isBillingInterval(opts.interval) ? opts.interval : "month";
+    amountUsd = ownerPriceUsd(interval);
   }
 
   // No provider configured → demo mode: activate immediately.
@@ -277,41 +283,13 @@ export async function startCheckout(opts: {
   });
 }
 
-// Buy one extra pet slot for an owner ($1.49/mo). Demo-increments the slot count
-// when no provider is configured; otherwise routes through Stripe and the slot
-// is granted on return (see finalizeStripeSession). Hard-capped by the plan.
-export async function buyOwnerPetSlot(opts: {
+// Legacy — owner billing is now Owner Plus (5 pets). Per-pet slots removed.
+export async function buyOwnerPetSlot(_opts: {
   userId: string;
   baseUrl: string;
   provider: Provider;
 }): Promise<CheckoutResult> {
-  const { userId, baseUrl } = opts;
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return { error: "NO_USER" };
-  const plan = getUserPlan(user.plan);
-  if (plan.extraPetPriceUsd <= 0) return { error: "NO_OVERAGE" };
-  await expireStalePendingSlots({ kind: "user", id: userId });
-  const purchased = await countActiveOwnerSlots(userId);
-  if (purchased >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
-
-  if (!anyProviderConfigured()) {
-    await createOwnerPetSlot(userId);
-    return { activated: true, demo: true };
-  }
-
-  if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
-
-  const slotId = await createOwnerPetSlot(userId, { pending: true });
-  const stripeCustomerId = await getStripeCustomerId({ kind: "user", id: userId });
-
-  return createStripeCheckout({
-    amountUsd: plan.extraPetPriceUsd,
-    productName: "PawSure — extra pet slot",
-    metadata: { scopeKind: "user_slot", scopeId: userId, slotId },
-    baseUrl,
-    interval: "month",
-    stripeCustomerId,
-  });
+  return { error: "NO_OVERAGE" };
 }
 
 // Buy one extra facility "care slot" ($2.49/mo). Demo-grants the slot when no
@@ -419,6 +397,8 @@ export async function applyReversalFromMetadata(
     }
   } else if (scopeKind === "org") {
     await activatePlan({ kind: "org", id: scopeId }, "STARTER");
+  } else if (scopeKind === "user") {
+    await activatePlan({ kind: "user", id: scopeId }, "FREE");
   }
 }
 

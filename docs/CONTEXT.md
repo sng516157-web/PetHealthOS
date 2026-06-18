@@ -101,15 +101,14 @@ Defined in `src/lib/plans.ts`. Quotas are **hard-enforced** on pet creation.
 - `SHOP` — **$14.99/mo or $149/yr** (`SHOP_BILLING`), 50 pets (+**$2.49/mo** per extra slot), multi-seat.
 
 **Owners (consumers)** — `USER_PLANS`, **cannot issue passports**:
-- `FREE` = the **"Owner's Account"** (zh: 主人账户) — the only owner tier. Free,
-  **2 pets included**, then **¥25/mo per extra pet**, **hard-capped at 10 pets total**
-  (`petCap`). Created on passport-claim **or** owner self-signup. (There is no longer
-  a separate "Owner Plus" tier — it was collapsed into per-extra-pet overage.)
+- `FREE` — **1 pet** free (Owner's Account / 主人账户). Created on passport-claim or self-signup.
+- `PLUS` — **$6.99/mo or $80/yr** (`OWNER_BILLING`), **5 pets** included. No per-pet add-ons.
 
 Notes:
-- Per-extra-pet overage uses `extraPetSlots` (same field shops use). `petLimit()`
-  clamps to `petCap`; `maxExtraSlots()` gates how many can be bought. Owner buys a
-  slot via `addOwnerPetSlot` → `buyOwnerPetSlot` (demo-grants when no provider).
+- Owner quota = `plan.includedPets` only (`getUserUsage`, `getOwnerPetEntitlements`). Upgrade on
+  `/me/billing` via `OwnerBilling` → Stripe (`scopeKind: user`, `planKey: PLUS`). Cancel → `FREE`;
+  pets beyond the tier become view-only. Legacy `OwnerPetSlot` / `user_slot` Stripe subs still
+  reverse via webhook sync but new slot purchases are disabled.
 - Passport issuance is enforced **server-side** in `createTransfer`: requires an org
   pet on a passport-capable plan **AND** `org.verificationStatus === "APPROVED"`.
   Owner-managed pets (no `orgId`) are blocked.
@@ -131,9 +130,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   Reviewers approve/reject (`reviewOrg`) with a reason. New submissions email the team
   via `notifyAdmins` when `RESEND_API_KEY` + `ADMIN_EMAILS` are set. **Entitlement grants:**
   reviewers can comp an owner extra pet slot, facility care slot, or SHOP plan by account
-  email (`AdminGrantPanel` → `adminGrantEntitlement` in `src/lib/admin-grants.ts`). Comped
-  slots set `OwnerPetSlot.comped` / `OrgSlot.comped = true` so `syncSlotRevocationsFromStripe`
-  does not revoke them on billing refresh; SHOP plan uses `activatePlan` (same as demo mode).
+  email (`AdminGrantPanel` → `adminGrantEntitlement` in `src/lib/admin-grants.ts`). Grant types:
+  Owner Plus plan, facility care slot, or SHOP plan. Comped care slots set `OrgSlot.comped = true`
+  so `syncSlotRevocationsFromStripe` does not revoke them on billing refresh; SHOP / Owner Plus
+  use `activatePlan` (same as demo mode).
   **Unverified sign-ups:** `/admin` lists accounts with `emailVerifiedAt` null; reviewers can
   **Mark verified** (`markEmailVerifiedByAdmin`) for support. Verification emails send a **6-digit
   code** + HTML magic link (`EmailVerification.codeHash`); users can confirm on `/verify-email`
@@ -255,6 +255,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-17** — **Owner Plus subscription (replaces per-pet slots).** Why (user): simplify
+  owner billing to $6.99/mo or $80/yr for 5 pets; remove extra-slot purchases. New `PLUS` plan
+  in `USER_PLANS`; `/me/billing` uses `OwnerBilling`; entitlements by plan tier only. Legacy
+  `user_slot` Stripe subs still reverse via webhook sync.
 - **2026-06-16** — **Passport-first homepage (production `/`).** Why (user approved after
   `/demo/homepage-v2` review): replaced legacy landing with passport-first layout — dual shop/owner
   hero CTAs, proof strip, owner-first paths, founding offer, shop+owner mini dashboards. Shared

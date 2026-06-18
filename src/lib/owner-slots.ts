@@ -208,21 +208,6 @@ export async function getOwnerPetEntitlements(
     return { tier: "readonly", ...readonly };
   }
 
-  const slotRows = await prisma.$queryRaw<{ status: string; userId: string }[]>`
-    SELECT status, "userId" FROM "OwnerPetSlot" WHERE "petId" = ${petId} LIMIT 1
-  `;
-  const slot = slotRows[0];
-
-  if (slot) {
-    if (slot.userId !== userId) {
-      return { tier: "readonly", ...readonly };
-    }
-    if (slot.status === "ACTIVE") {
-      return { tier: "paid", ...full };
-    }
-    return { tier: "readonly", ...readonly };
-  }
-
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { plan: true },
@@ -235,7 +220,7 @@ export async function getOwnerPetEntitlements(
   });
   const index = pets.findIndex((p) => p.id === petId);
   if (index >= 0 && index < plan.includedPets) {
-    return { tier: "included", ...full };
+    return { tier: plan.key === "FREE" ? "included" : "paid", ...full };
   }
 
   return { tier: "readonly", ...readonly };

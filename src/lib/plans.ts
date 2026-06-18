@@ -57,7 +57,15 @@ export function facilityCapacity(extraSlots: number): number {
   return FACILITY_BASE_CAPACITY + Math.max(0, extraSlots);
 }
 
-export const OWNER_EXTRA_PET_CAP = 10;
+/** Paid owner plan — monthly or yearly (USD). Includes 5 pets; no per-pet add-ons. */
+export const OWNER_BILLING: Record<BillingInterval, number> = {
+  month: 6.99,
+  year: 80,
+};
+
+export function ownerPriceUsd(interval: BillingInterval): number {
+  return OWNER_BILLING[interval];
+}
 
 export const USER_PLANS: Record<string, Plan> = {
   FREE: {
@@ -65,8 +73,18 @@ export const USER_PLANS: Record<string, Plan> = {
     audience: "user",
     includedPets: 1,
     priceUsd: 0,
-    extraPetPriceUsd: 1.49,
-    petCap: OWNER_EXTRA_PET_CAP,
+    extraPetPriceUsd: 0,
+    petCap: 1,
+    canIssuePassport: false,
+    multiSeat: false,
+  },
+  PLUS: {
+    key: "PLUS",
+    audience: "user",
+    includedPets: 5,
+    priceUsd: 6.99,
+    extraPetPriceUsd: 0,
+    petCap: 5,
     canIssuePassport: false,
     multiSeat: false,
   },

@@ -9,6 +9,8 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-17 — Owner Plus pricing.** Owners get 1 pet free; **Owner Plus** is **$6.99/mo or $80/yr for up to 5 pets**. Per-pet slot purchases removed — upgrade on `/me/billing`.
+
 - **2026-06-16 — Passport-first homepage.** `/` now leads with QR health passports for breeders
   and owners — dual CTAs, proof strip, founding offer, and interactive shop/owner dashboard previews.
 

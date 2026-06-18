@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Store } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
-import { SHOP_BILLING, USER_PLANS } from "@/lib/plans";
+import { SHOP_BILLING, USER_PLANS, OWNER_BILLING } from "@/lib/plans";
 import { formatUsd } from "@/lib/money";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
@@ -41,7 +41,7 @@ export default async function ShopLandingPage() {
     s.diffLineage,
     {
       label: s.diffPrice.label,
-      owner: s.diffPrice.owner(USER_PLANS.FREE.extraPetPriceUsd),
+      owner: s.diffPrice.owner(OWNER_BILLING.month),
       shop: s.diffPrice.shop(SHOP_BILLING.month, SHOP_BILLING.year),
     },
   ];

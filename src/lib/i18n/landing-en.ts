@@ -173,7 +173,7 @@ export const landingEn = {
     pricingEyebrow: "Pricing",
     pricingTitle: "Start free",
     pricingDesc:
-      "Free for your first pet. Upgrade only when you need more pet slots or advanced features.",
+      "Free for your first pet. Owner Plus covers up to 5 pets — $6.99/mo or $80/yr.",
     pricingCta: "Create free owner account",
     loginTitle: "Owner sign in / create account",
   },
@@ -244,7 +244,7 @@ export const landingEn = {
     diffLineage: { label: "Lineage & litters", owner: "Basic", shop: "Yes" },
     diffPrice: {
       label: "Price",
-      owner: (extra: number) => `Free + ${formatUsd(extra)}/mo per extra pet`,
+      owner: (month: number) => `Free + Owner Plus from ${formatUsd(month)}/mo (5 pets)`,
       shop: (month: number, year: number) =>
         `${formatUsd(month)}/mo · ${formatUsd(year)}/yr`,
     },

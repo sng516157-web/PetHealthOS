@@ -3,15 +3,9 @@ import "server-only";
 import { prisma } from "./prisma";
 import { activatePlan } from "./billing";
 import { isFacilityKind } from "./constants";
-import {
-  countActiveOwnerSlots,
-  createOwnerPetSlot,
-  reconcileOwnerPetSlotAssignments,
-} from "./owner-slots";
 import { createOrgSlot } from "./org-slots";
-import { getUserPlan, maxExtraSlots } from "./plans";
 
-export type AdminGrantKind = "owner_slot" | "care_slot" | "shop_plan";
+export type AdminGrantKind = "owner_plus" | "care_slot" | "shop_plan";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -41,17 +35,12 @@ export async function adminGrantEntitlement(
   const user = await findUserByEmail(trimmed);
   if (!user) return { error: "USER_NOT_FOUND" };
 
-  if (kind === "owner_slot") {
+  if (kind === "owner_plus") {
     if (user.orgId) return { error: "NOT_OWNER" };
-    const plan = getUserPlan(user.plan);
-    const purchased = await countActiveOwnerSlots(user.id);
-    if (purchased >= maxExtraSlots(plan)) return { error: "CAP_REACHED" };
-
-    await createOwnerPetSlot(user.id, { comped: true });
-    await reconcileOwnerPetSlotAssignments(user.id);
+    await activatePlan({ kind: "user", id: user.id }, "PLUS", "month");
     return {
       ok: true,
-      message: `Granted 1 comped owner pet slot to ${user.email ?? user.name}.`,
+      message: `Activated Owner Plus (5 pets) for ${user.email ?? user.name}.`,
     };
   }
 

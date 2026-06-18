@@ -59,7 +59,6 @@ import {
   isFacilityKind,
   type GuaranteeType,
 } from "@/lib/constants";
-import { assignOwnerPetSlot } from "@/lib/owner-slots";
 import {
   assignCareSlotToStay,
   assignShopPetSlot,
@@ -67,17 +66,16 @@ import {
   countActiveOrgCareSlots,
 } from "@/lib/org-slots";
 import { checkoutBaseUrl } from "@/lib/site-url";
+import { syncOwnerSlotCount } from "@/lib/owner-slots";
 import {
   checkDeathClosureEligibility,
   releaseOwnerSlotForPet,
   releaseShopSlotForPet,
 } from "@/lib/pet-closure";
 import { markDeathClaimReviewed } from "@/lib/death-claim-refund";
-import { syncOwnerSlotCount } from "@/lib/owner-slots";
 import { legalAcceptanceFromForm } from "@/lib/legal-policies";
 import {
   startCheckout,
-  buyOwnerPetSlot,
   buyFacilitySlot,
   type CheckoutScope,
   type Provider,
@@ -1653,7 +1651,6 @@ export async function addOwnedPet(formData: FormData) {
       photoUrl,
     },
   });
-  await assignOwnerPetSlot(user.id, pet.id);
   revalidatePath("/me");
   return { id: pet.id };
 }
@@ -1692,20 +1689,9 @@ export async function startPlanCheckout(formData: FormData) {
   return { ok: true, demo: result.demo ?? false };
 }
 
-// Owner buys one extra pet slot (¥25/mo). Demo-grants when no provider is set.
-export async function addOwnerPetSlot(formData: FormData) {
-  const user = await getCurrentUser();
-  if (!user) return { error: "Please sign in first" };
-  const provider = String(formData.get("provider") || "stripe") as Provider;
-  const baseUrl = await checkoutBaseUrl();
-  const result = await buyOwnerPetSlot({ userId: user.id, baseUrl, provider });
-
-  if ("error" in result) return { error: result.error };
-  if ("url" in result) return { url: result.url };
-
-  revalidatePath("/me/billing");
-  revalidatePath("/me");
-  return { ok: true, demo: result.demo ?? false };
+// Legacy — owner billing is Owner Plus (5 pets). Per-pet slots removed.
+export async function addOwnerPetSlot(_formData: FormData) {
+  return { error: "NO_OVERAGE" };
 }
 
 // Facility buys one extra care slot ($2.49/mo). Demo-grants when no provider set.
@@ -1821,7 +1807,7 @@ export async function adminGrantEntitlement(formData: FormData) {
   const email = String(formData.get("email") || "");
   const kind = String(formData.get("kind") || "") as AdminGrantKind;
   if (
-    kind !== "owner_slot" &&
+    kind !== "owner_plus" &&
     kind !== "care_slot" &&
     kind !== "shop_plan"
   ) {

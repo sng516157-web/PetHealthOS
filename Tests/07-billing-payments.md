@@ -27,24 +27,30 @@ Every checkout must set `scopeKind`, `scopeId`, and `slotId` (slots) on session 
 | Product | scopeKind | Fulfill | Reversal |
 |---------|-----------|---------|----------|
 | Shop/facility SHOP plan | `org` | `activatePlan` → SHOP | → STARTER |
-| Owner extra pet | `user_slot` | `ensureOwnerPetSlotActive` | `revokeOwnerPetSlot` |
+| Owner Plus | `user` | `activatePlan` → PLUS | → FREE |
+| Owner extra pet *(legacy)* | `user_slot` | `ensureOwnerPetSlotActive` | `revokeOwnerPetSlot` |
 | Facility care slot | `org_slot` | `ensureOrgSlotActive` | `revokeOrgSlot` |
 
 ---
 
-## Scenario A — Owner extra pet slot
+## Scenario A — Owner Plus
 
 | Step | Action | Expected |
 |------|--------|----------|
-| 1 | `/me/billing` → buy slot | Checkout or demo grant |
-| 2 | Complete payment | `OwnerPetSlot` ACTIVE |
-| 3 | Add pet using new slot | Allowed |
+| 1 | `/me/billing` → choose monthly or yearly → pay | Checkout or demo grant |
+| 2 | Complete payment | `User.plan` = `PLUS`; limit = 5 pets |
+| 3 | Add pets up to 5 | Allowed |
 | 4 | Open `/billing/success?session_id=…` | Idempotent fulfill |
-| 5 | Refresh `/me/billing` | Count correct; page loads (no server error) |
-| 6 | Cancel sub in Stripe portal | Slot REVOKED |
-| 7 | Refresh billing again | Still revoked — **not** re-activated |
-| 8 | Refund charge | Slot REVOKED |
-| 9 | Pet on revoked slot | View-only (no log/AI) |
+| 5 | Refresh `/me/billing` | Shows active plan; page loads (no server error) |
+| 6 | Cancel sub in Stripe portal | Plan → `FREE`; limit = 1 |
+| 7 | Refresh billing again | Still FREE — **not** re-activated |
+| 8 | Pets beyond free tier after cancel | View-only (no log/AI) |
+
+## Scenario A-legacy — Owner extra pet slot *(deprecated)*
+
+| Step | Action | Expected |
+|------|--------|----------|
+| 1 | Existing `user_slot` subscription only | Webhook sync still revokes on cancel |
 
 ---
 

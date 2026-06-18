@@ -6,7 +6,6 @@ import { Check, CreditCard } from "lucide-react";
 import { startPlanCheckout } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { useI18n } from "@/lib/i18n/client";
-import { OWNER_EXTRA_PET_CAP } from "@/lib/plans";
 import { trackBeginCheckout } from "@/lib/analytics";
 
 export type PlanOption = {
@@ -131,7 +130,7 @@ export function UpgradePanel({
                     <Check size={13} className="text-emerald-500" />
                     {t.pricing.extraPet(
                       p.extraPetPriceUsd,
-                      p.petCap ?? (scope === "user" ? OWNER_EXTRA_PET_CAP : p.includedPets),
+                      p.petCap ?? p.includedPets,
                     )}
                   </li>
                 )}

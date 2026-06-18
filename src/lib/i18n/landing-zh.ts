@@ -142,7 +142,7 @@ export const landingZh: typeof landingEn = {
     aiNote: "可选 AI 助手：基于记录提问，但医疗决定请务必咨询兽医。",
     pricingEyebrow: "定价",
     pricingTitle: "免费起步",
-    pricingDesc: "第一只宠物免费。仅在需要更多宠物位或高级功能时升级。",
+    pricingDesc: "第一只宠物免费。Owner Plus 最多 5 只宠物——$6.99/月或 $80/年。",
     pricingCta: "免费创建主人账户",
     loginTitle: "主人登录 / 注册",
   },
@@ -212,7 +212,7 @@ export const landingZh: typeof landingEn = {
     diffLineage: { label: "血统与窝次", owner: "基础", shop: "是" },
     diffPrice: {
       label: "价格",
-      owner: (extra: number) => `免费 + 额外每只 ${formatUsd(extra)}/月`,
+      owner: (month: number) => `免费 + Owner Plus ${formatUsd(month)}/月起（5 只宠物）`,
       shop: (month: number, year: number) =>
         `${formatUsd(month)}/月 · ${formatUsd(year)}/年`,
     },

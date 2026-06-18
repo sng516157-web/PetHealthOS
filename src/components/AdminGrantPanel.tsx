@@ -5,13 +5,13 @@ import { Gift } from "lucide-react";
 import { adminGrantEntitlement } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
 
-type GrantKind = "owner_slot" | "care_slot" | "shop_plan";
+type GrantKind = "owner_plus" | "care_slot" | "shop_plan";
 
 export function AdminGrantPanel() {
   const { t } = useI18n();
   const [pending, start] = useTransition();
   const [email, setEmail] = useState("");
-  const [kind, setKind] = useState<GrantKind>("owner_slot");
+  const [kind, setKind] = useState<GrantKind>("owner_plus");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -48,9 +48,9 @@ export function AdminGrantPanel() {
 
   const options: { id: GrantKind; label: string; hint: string }[] = [
     {
-      id: "owner_slot",
-      label: t.admin.grantOwnerSlot,
-      hint: t.admin.grantOwnerSlotHint,
+      id: "owner_plus",
+      label: t.admin.grantOwnerPlus,
+      hint: t.admin.grantOwnerPlusHint,
     },
     {
       id: "care_slot",

@@ -375,8 +375,10 @@ export async function getUserUsage(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
   const plan = getUserPlan(user.plan);
-  const count = await prisma.pet.count({ where: { ownerUserId: userId } });
-  return { user, plan, count, limit: petLimit(plan, user.extraPetSlots) };
+  const count = await prisma.pet.count({
+    where: { ownerUserId: userId, status: { not: "DECEASED" } },
+  });
+  return { user, plan, count, limit: plan.includedPets };
 }
 
 const ORG_AI_LOG_TAKE = 10;

@@ -86,8 +86,10 @@ model User {
   privacyAcceptedAt DateTime?
   createdAt        DateTime  @default(now())
 
-  plan          String @default("FREE") // FREE (Owner's Account)
-  extraPetSlots Int    @default(0)
+  plan          String @default("FREE") // FREE | PLUS
+  extraPetSlots Int    @default(0) // legacy — no longer used for owner billing
+  planInterval    String?
+  planActivatedAt DateTime?
   stripeCustomerId String?
 
   // Single-device enforcement for owner accounts: the active session id (also

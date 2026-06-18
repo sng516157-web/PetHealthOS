@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserUsage } from "@/lib/data";
-import { OwnerExtraSlots } from "@/components/OwnerExtraSlots";
+import { OwnerBilling } from "@/components/OwnerBilling";
 import { MotionPage } from "@/components/dashboard/DashboardMotion";
 import { getI18n } from "@/lib/i18n/server";
+import { OWNER_BILLING } from "@/lib/plans";
 
 export default async function UserBillingPage() {
   const user = await getCurrentUser();
@@ -38,14 +39,14 @@ export default async function UserBillingPage() {
         )}
       </div>
 
-      {plan.extraPetPriceUsd > 0 && plan.petCap != null && (
-        <OwnerExtraSlots
-          includedPets={plan.includedPets}
-          extraPetPriceUsd={plan.extraPetPriceUsd}
-          petCap={plan.petCap}
-          extraSlots={usage.user.extraPetSlots}
+      <div className="mt-6">
+        <OwnerBilling
+          currentPlan={plan.key}
+          currentInterval={usage.user.planInterval}
+          priceMonth={OWNER_BILLING.month}
+          priceYear={OWNER_BILLING.year}
         />
-      )}
+      </div>
     </MotionPage>
   );
 }
