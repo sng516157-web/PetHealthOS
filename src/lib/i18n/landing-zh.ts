@@ -317,9 +317,9 @@ export const landingZh: typeof landingEn = {
     disclaimer:
       "宠诺不是兽医证书，也不保证动物健康状况。它帮助繁育者、救助机构、商家和主人更清晰地上传与分享护理记录。",
     proofEyebrow: "早期验证",
-    proofLine: "正在与 2 家繁育者和 4 位宠物主人试点",
-    proofSubline: "创始用户陆续入驻中",
-    proofStats: ["4 位宠物主人", "2 家繁育者", "创始用户陆续入驻中"],
+    proofLine: "全球已有 50+ 位测试用户",
+    proofSubline: "繁育者、主人与商家从世界各地持续加入",
+    proofStats: ["50+ 测试用户", "遍布全球", "创始用户持续入驻"],
     problemEyebrow: "交接痛点",
     problemTitle: "宠物交接仍依赖零散截图、纸质笔记和分散记录",
     problemBullets: [

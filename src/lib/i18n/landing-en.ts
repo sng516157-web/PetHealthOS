@@ -360,9 +360,9 @@ export const landingEn = {
     disclaimer:
       "PawSure is not a veterinary certificate and does not guarantee an animal's health. It helps breeders, shelters, shops, and owners keep and share care records clearly.",
     proofEyebrow: "Early traction",
-    proofLine: "Now piloting with 2 breeders and 4 pet owners",
-    proofSubline: "Founding users onboarding now",
-    proofStats: ["4 pet owners", "2 breeders", "Founding users onboarding now"],
+    proofLine: "Now reaching 50+ testers worldwide",
+    proofSubline: "Breeders, owners, and shops joining from around the world",
+    proofStats: ["50+ testers", "Worldwide", "Founding users still onboarding"],
     problemEyebrow: "The handover problem",
     problemTitle:
       "Pet handovers still rely on messy screenshots, paper notes, and scattered records",

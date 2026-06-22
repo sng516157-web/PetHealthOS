@@ -255,6 +255,8 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-17** — **Homepage proof strip copy.** Why (user): reflect broader early
+  traction — "Now reaching 50+ testers worldwide" on production homepage proof strip.
 - **2026-06-17** — **Owner Plus subscription (replaces per-pet slots).** Why (user): simplify
   owner billing to $6.99/mo or $80/yr for 5 pets; remove extra-slot purchases. New `PLUS` plan
   in `USER_PLANS`; `/me/billing` uses `OwnerBilling`; entitlements by plan tier only. Legacy
