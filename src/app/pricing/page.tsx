@@ -21,6 +21,9 @@ import {
 } from "@/components/motion/aurora";
 import { pageMetadata } from "@/lib/seo";
 import { formatUsd } from "@/lib/money";
+import { FoundingBreederLifetimeCard } from "@/components/FoundingBreederLifetimeCard";
+import { BreederPricingFaq } from "@/components/BreederPricingFaq";
+import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
 
 export const metadata: Metadata = pageMetadata({
   title: "Plans & Pricing (USD)",
@@ -31,6 +34,7 @@ export const metadata: Metadata = pageMetadata({
 export default async function PricingPage() {
   const { locale, t } = await getI18n();
   const shop = ORG_PLANS.SHOP;
+  const founding = await getFoundingBreederLifetimeAvailability();
   const facilityFeatures = t.facility.planBenefits(
     FACILITY_BASE_CAPACITY,
     FACILITY_EXTRA_SLOT_PRICE_USD,
@@ -140,7 +144,13 @@ export default async function PricingPage() {
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
               {t.pricing.forShops}
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <FoundingBreederLifetimeCard
+                mode="marketing"
+                soldOut={founding.soldOut}
+                remaining={founding.remaining}
+                marketingHref="/shop"
+              />
               <OrgBillingCard
                 t={t}
                 name={t.shopBilling.monthly}
@@ -174,6 +184,7 @@ export default async function PricingPage() {
             <p className="mt-3 text-xs text-muted">
               {t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}
             </p>
+            <BreederPricingFaq />
           </section>
         </MotionReveal>
 

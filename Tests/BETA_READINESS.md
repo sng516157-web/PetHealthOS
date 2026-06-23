@@ -59,7 +59,7 @@ Core flows work on both Vercel and the China proxy domain. Suitable for a **smal
 | `AUTH_SECRET` | ✅ Set | — |
 | `ADMIN_PASSWORD` | ✅ Set | Admin review works |
 | `BLOB_READ_WRITE_TOKEN` | ✅ Set | Uploads / KYC docs |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | ✅ Set | AI chat/triage |
+| `GROQ_API_KEY` | ✅ Set | AI chat/triage |
 | `STRIPE_SECRET_KEY` | ✅ Set | Real/test checkout |
 | `STRIPE_WEBHOOK_SECRET` | ✅ Set | Fulfillment |
 | `APP_PUBLIC_URL` | ✅ Set | Checkout return via proxy |

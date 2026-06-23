@@ -178,7 +178,7 @@ const privacyEn: LegalDocument = {
     {
       heading: "3. AI processing",
       body: [
-        "When you use AI chat or triage, relevant pet context (and attached images/PDFs you choose) may be sent to third-party AI providers (e.g. Google Gemini) to generate responses.",
+        "When you use AI chat or triage, relevant pet context (and attached images you choose) may be sent to third-party AI providers (e.g. Groq) to generate responses.",
         "Do not submit sensitive personal data unrelated to pet care. AI output is not stored as medical advice.",
       ],
     },
@@ -258,7 +258,7 @@ const privacyZh: LegalDocument = {
     {
       heading: "3. AI 处理",
       body: [
-        "使用 AI 对话或分诊时，相关宠物上下文（及您选择的图片/PDF）可能发送至第三方 AI 服务商（如 Google Gemini）以生成回复。",
+        "使用 AI 对话或分诊时，相关宠物上下文（及您选择的图片）可能发送至第三方 AI 服务商（如 Groq）以生成回复。",
         "请勿提交与宠物照护无关的敏感个人信息。AI 输出不构成医疗建议。",
       ],
     },

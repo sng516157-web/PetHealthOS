@@ -2,7 +2,7 @@
 
 **Code:** `src/lib/ai.ts`, `src/lib/uploads.ts`, `/api/pets/[id]/chat`, `generateTriageReport`, `canAccessPet`.
 
-**Requires:** `GOOGLE_GENERATIVE_AI_API_KEY` for live AI; without it expect graceful errors.
+**Requires:** `GROQ_API_KEY` for live AI; without it expect demo/rule-based fallbacks.
 
 ---
 

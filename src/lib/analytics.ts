@@ -30,6 +30,10 @@ export function trackEmailVerified(accountType: AccountSegment) {
   trackEvent("email_verified", { account_type: accountType });
 }
 
+export function trackFoundingLifetimeCtaClicked(source: string) {
+  trackEvent("founding_lifetime_cta_clicked", { source });
+}
+
 export function trackBeginCheckout(opts: {
   accountType: AccountSegment;
   product: string;

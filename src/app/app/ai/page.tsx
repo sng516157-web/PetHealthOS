@@ -16,7 +16,7 @@ export default async function OrgAiPage() {
         <MotionReveal>
           <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-soft">
             <strong>{t.common.demoBadge}:</strong> {t.orgAi.demoNote}{" "}
-            <code className="rounded bg-amber-100 px-1">AI_GATEWAY_API_KEY</code>{" "}
+            <code className="rounded bg-amber-100 px-1">GROQ_API_KEY</code>{" "}
             <code className="rounded bg-amber-100 px-1">.env</code> {t.chat.demoNoteEnd}
           </div>
         </MotionReveal>

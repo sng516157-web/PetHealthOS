@@ -36,7 +36,7 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
 - **Prisma 7** + **PostgreSQL (Neon)** via `@prisma/adapter-pg`. Client singleton
   in `src/lib/prisma.ts`. Migrations use the **unpooled** URL (see
   `prisma.config.ts`); runtime uses the **pooled** URL.
-- **AI:** Google Gemini via the Vercel AI SDK (`@ai-sdk/google`); logic in
+- **AI:** Groq via the Vercel AI SDK (`@ai-sdk/groq`); logic in
   `src/lib/ai.ts`. Locale-aware. Context = health log **plus** reference documents
   (`Attachment` metadata in `buildPetContext`; up to 4 image/PDF files loaded for
   vision via `loadVisionAttachments` / `fetchStoredFileBytes`). Chat and triage both
@@ -186,7 +186,7 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 - **GitHub:** `https://github.com/sng516157-web/PetHealthOS.git`, branch `main`.
 - **Env vars (names only; values are gitignored):** `DATABASE_URL`,
   `DATABASE_URL_UNPOOLED`, `AUTH_SECRET`, `CRON_SECRET`, `BLOB_READ_WRITE_TOKEN`,
-  `GOOGLE_GENERATIVE_AI_API_KEY`, plus Neon `POSTGRES_*`/`PG*`/`NEON_*`. Optional:
+  `GROQ_API_KEY`, plus Neon `POSTGRES_*`/`PG*`/`NEON_*`. Optional:
   `TWILIO_*`, `STRIPE_SECRET_KEY`, `WECHAT_PAY_*`, `ALIPAY_*`, Resend key. See
   `.env.example`. Fresh clone: `vercel link` → `vercel env pull`.
 
@@ -255,6 +255,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-17** — **AI provider: Groq (replaces Google Gemini).** Why (user): switch to
+  Groq for chat/triage/structuring via `@ai-sdk/groq`; env `GROQ_API_KEY`, optional
+  `GROQ_MODEL` / `GROQ_VISION_MODEL`. PDF attachments stay metadata-only; images use vision model.
+- **2026-06-17** — **Founding Breeder Lifetime Deal ($299 one-time).** Why (user): offer early
+  breeders lifetime access to core passport features without recurring subscription. Plan key
+  `FOUNDING_BREEDER_LIFETIME` (same SHOP entitlements, `planInterval: lifetime`); Stripe
+  one-time Checkout; cap via `FOUNDING_BREEDER_LIFETIME_LIMIT`; pricing UI + `/app/billing` +
+  homepage founding section; analytics `founding_lifetime_cta_clicked`.
 - **2026-06-17** — **Homepage proof strip copy.** Why (user): reflect broader early
   traction — "Now reaching 50+ testers worldwide" on production homepage proof strip.
 - **2026-06-17** — **Owner Plus subscription (replaces per-pet slots).** Why (user): simplify

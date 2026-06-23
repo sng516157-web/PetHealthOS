@@ -35,7 +35,7 @@ portable, verifiable **health passport** when the pet changes hands.
 
 - **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4**
 - **Prisma 7** + **PostgreSQL (Neon)** via `@prisma/adapter-pg`
-- **Vercel Blob** (uploads) · **Vercel AI SDK** + **Google Gemini** (rule-based fallback in demo mode)
+- **Vercel Blob** (uploads) · **Vercel AI SDK** + **Groq** (rule-based fallback in demo mode)
 - Deployed on **Vercel**, reachable from mainland China via a **Hong Kong Caddy
   reverse proxy** (`deploy/Caddyfile`)
 

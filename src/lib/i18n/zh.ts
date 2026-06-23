@@ -778,6 +778,7 @@ export const zh: Dictionary = {
   plans: {
     STARTER: "入门版",
     SHOP: "商家版",
+    FOUNDING_BREEDER_LIFETIME: "创始繁育者终身版",
     FREE: "主人账户",
     PLUS: "主人 Plus",
   },
@@ -814,6 +815,40 @@ export const zh: Dictionary = {
     shopTagline: "适合在营的猫舍、犬舍与商家。",
     freeTagline: "把宠物一生的健康集中在一处。",
     plusTagline: "适合养了较多宠物的主人。",
+    foundingLifetime: {
+      badge: "限量早期繁育者优惠",
+      title: "创始繁育者终身版",
+      subtitle: "面向希望使用宠诺、又不想按月订阅的早期繁育合作伙伴。",
+      priceCadence: "一次性",
+      cta: "领取创始优惠",
+      features: [
+        "一个繁育者/商家账户",
+        "终身使用核心繁育护照功能",
+        "创建与管理宠物健康护照",
+        "向新主人转移记录",
+        "包含未来核心护照产品改进",
+        "AI/文档重度使用适用公平使用限制",
+      ],
+      smallPrint:
+        "限量早期繁育者优惠，仅限一个繁育者/商家账户。未来非核心模块、定制搭建、批量导入或异常高用量可能需另行定价。",
+      soldOut: "创始优惠名额已满",
+      spotsRemaining: (n: number) => `剩余 ${n} 个创始名额`,
+      activeBadge: "终身访问已激活",
+      alreadyActive: "您的工作区已拥有终身访问权限。",
+      alreadySubscribed: "您已有生效中的商家订阅。",
+      notBreeder: "此优惠仅面向繁育者与商家账户。",
+    },
+    foundingFaqTitle: "创始繁育者终身版 — 常见问题",
+    foundingFaq: [
+      {
+        q: "终身访问包含什么？",
+        a: "创始繁育者终身版为一个繁育者/商家账户提供宠诺核心繁育护照系统的终身访问，包括健康护照、宠物记录、主人交接，以及未来核心护照产品的改进。AI 重度功能、文档处理、异常高用量、定制开发、批量导入及未来非核心模块可能适用单独限制或定价。",
+      },
+      {
+        q: "为什么是限量优惠？",
+        a: "此优惠面向在平台成长阶段帮助我们打磨产品的早期繁育合作伙伴。产品与定价更成熟后，该优惠可能被取消或替换。",
+      },
+    ],
   },
   account: {
     nav: "账户",

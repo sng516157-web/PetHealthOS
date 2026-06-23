@@ -9,6 +9,10 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-17 — AI on Groq.** Chat, triage, and log structuring now use Groq (`GROQ_API_KEY`) instead of Google Gemini.
+
+- **2026-06-17 — Founding Breeder Lifetime.** Breeders can claim a limited $299 one-time deal for lifetime core passport access — on `/pricing`, homepage, and `/app/billing` after signup.
+
 - **2026-06-17 — Homepage traction copy.** Proof strip now says we’re reaching 50+ testers worldwide.
 
 - **2026-06-17 — Owner Plus pricing.** Owners get 1 pet free; **Owner Plus** is **$6.99/mo or $80/yr for up to 5 pets**. Per-pet slot purchases removed — upgrade on `/me/billing`.

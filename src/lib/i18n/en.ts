@@ -792,6 +792,7 @@ export const en = {
   plans: {
     STARTER: "Starter",
     SHOP: "Shop",
+    FOUNDING_BREEDER_LIFETIME: "Founding Breeder Lifetime",
     FREE: "Owner's Account",
     PLUS: "Owner Plus",
   },
@@ -831,6 +832,42 @@ export const en = {
     shopTagline: "For working catteries, kennels & shops.",
     freeTagline: "Keep your pet's lifelong health in one calm place.",
     plusTagline: "For owners with a larger household.",
+    foundingLifetime: {
+      badge: "Limited early breeder offer",
+      title: "Founding Breeder Lifetime",
+      subtitle:
+        "For early breeder partners who want to use PawSure without a recurring subscription.",
+      priceCadence: "one-time",
+      cta: "Claim founding deal",
+      features: [
+        "One breeder/business account",
+        "Lifetime access to core breeder passport features",
+        "Create and manage pet health passports",
+        "Transfer records to new owners",
+        "Includes future core passport improvements",
+        "Fair-use limits apply for AI/document-heavy usage",
+      ],
+      smallPrint:
+        "Limited early breeder offer. Applies to one breeder/business account. Future non-core modules, custom setup, bulk imports, or unusually high usage may require separate pricing.",
+      soldOut: "This founding offer is no longer available",
+      spotsRemaining: (n: number) =>
+        n === 1 ? "1 founding spot remaining" : `${n} founding spots remaining`,
+      activeBadge: "Lifetime access active",
+      alreadyActive: "Your workspace already has lifetime access.",
+      alreadySubscribed: "You already have an active shop subscription.",
+      notBreeder: "This offer is for breeder and shop accounts only.",
+    },
+    foundingFaqTitle: "Founding breeder lifetime — FAQ",
+    foundingFaq: [
+      {
+        q: "What does lifetime access include?",
+        a: "The Founding Breeder Lifetime Deal gives one breeder/business account lifetime access to the core PetHealthOS breeder passport system, including health passports, pet records, owner handover, and future improvements to the core passport product. AI-heavy features, document processing, unusually high usage, custom development, bulk imports, and future non-core modules may be subject to separate limits or pricing.",
+      },
+      {
+        q: "Why is this a limited offer?",
+        a: "This offer is for early breeder partners who are helping shape PawSure while the platform is still growing. It may be removed or replaced once the product and pricing are more established.",
+      },
+    ],
   },
   account: {
     nav: "Account",

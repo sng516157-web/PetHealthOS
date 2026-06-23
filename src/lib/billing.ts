@@ -23,9 +23,17 @@ import {
   isBillingInterval,
   FACILITY_EXTRA_SLOT_PRICE_USD,
   type BillingInterval,
+  type PlanInterval,
   type Plan,
 } from "./plans";
 import { toStripeCents } from "./money";
+import {
+  FOUNDING_BREEDER_LIFETIME_PLAN_KEY,
+  FOUNDING_BREEDER_LIFETIME_PRICE_USD,
+  foundingBreederLifetimeStripePriceId,
+  getFoundingBreederLifetimeAvailability,
+  isFoundingBreederLifetimePlan,
+} from "./founding-breeder-lifetime";
 
 export type CheckoutScope =
   | { kind: "org"; id: string }
@@ -166,16 +174,21 @@ async function persistStripeCustomer(
 export async function activatePlan(
   scope: CheckoutScope,
   planKey: string,
-  interval?: BillingInterval,
+  interval?: PlanInterval,
 ): Promise<void> {
   if (scope.kind === "org") {
+    const isStarter = planKey === "STARTER";
+    const resolvedInterval: PlanInterval | null = isFoundingBreederLifetimePlan(planKey)
+      ? "lifetime"
+      : isStarter
+        ? null
+        : (interval ?? null);
     await prisma.organization.update({
       where: { id: scope.id },
       data: {
         plan: planKey,
-        // Free tier clears the interval; paid records how it was bought.
-        planInterval: planKey === "STARTER" ? null : (interval ?? null),
-        planActivatedAt: planKey === "STARTER" ? null : new Date(),
+        planInterval: resolvedInterval,
+        planActivatedAt: isStarter ? null : new Date(),
       },
     });
   } else {
@@ -199,9 +212,17 @@ async function createStripeCheckout(opts: {
   baseUrl: string;
   interval?: BillingInterval;
   stripeCustomerId?: string | null;
+  stripePriceId?: string | null;
 }): Promise<CheckoutResult> {
-  const { amountUsd, productName, metadata, baseUrl, interval, stripeCustomerId } =
-    opts;
+  const {
+    amountUsd,
+    productName,
+    metadata,
+    baseUrl,
+    interval,
+    stripeCustomerId,
+    stripePriceId,
+  } = opts;
   const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
   const recurring = interval === "month" || interval === "year";
@@ -209,19 +230,21 @@ async function createStripeCheckout(opts: {
     mode: recurring ? "subscription" : "payment",
     payment_method_types: ["card"],
     ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: toStripeCents(amountUsd),
-          ...(recurring
-            ? { recurring: { interval: interval as "month" | "year" } }
-            : {}),
-          product_data: { name: productName },
-        },
-      },
-    ],
+    line_items: stripePriceId
+      ? [{ quantity: 1, price: stripePriceId }]
+      : [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "usd",
+              unit_amount: toStripeCents(amountUsd),
+              ...(recurring
+                ? { recurring: { interval: interval as "month" | "year" } }
+                : {}),
+              product_data: { name: productName },
+            },
+          },
+        ],
     success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/billing/cancelled`,
     metadata,
@@ -229,6 +252,59 @@ async function createStripeCheckout(opts: {
   });
   if (!session.url) return { error: "STRIPE_NO_URL" };
   return { url: session.url };
+}
+
+/** One-time founding breeder lifetime deal ($299). */
+export async function buyFoundingBreederLifetime(opts: {
+  orgId: string;
+  baseUrl: string;
+  provider: Provider;
+}): Promise<CheckoutResult> {
+  const { orgId, baseUrl } = opts;
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { plan: true, kind: true },
+  });
+  if (!org) return { error: "NO_ORG" };
+  if (org.kind === "HOSPITAL" || org.kind === "BOARDING") {
+    return { error: "NOT_BREEDER" };
+  }
+  if (isFoundingBreederLifetimePlan(org.plan)) {
+    return { error: "ALREADY_LIFETIME" };
+  }
+  if (org.plan === "SHOP") {
+    return { error: "ALREADY_SUBSCRIBED" };
+  }
+
+  const availability = await getFoundingBreederLifetimeAvailability();
+  if (availability.soldOut) return { error: "FOUNDING_SOLD_OUT" };
+
+  const planKey = FOUNDING_BREEDER_LIFETIME_PLAN_KEY;
+  const metadata = {
+    scopeKind: "org",
+    scopeId: orgId,
+    planKey,
+    interval: "lifetime",
+  };
+
+  if (!anyProviderConfigured()) {
+    await activatePlan({ kind: "org", id: orgId }, planKey, "lifetime");
+    return { activated: true, demo: true };
+  }
+
+  if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
+
+  const stripeCustomerId = await getStripeCustomerId({ kind: "org", id: orgId });
+  const stripePriceId = foundingBreederLifetimeStripePriceId();
+
+  return createStripeCheckout({
+    amountUsd: FOUNDING_BREEDER_LIFETIME_PRICE_USD,
+    productName: "PawSure — Founding Breeder Lifetime",
+    metadata,
+    baseUrl,
+    stripeCustomerId,
+    stripePriceId,
+  });
 }
 
 export async function startCheckout(opts: {
@@ -370,7 +446,9 @@ export async function applyFulfillmentFromMetadata(
     }
   } else if (scopeKind === "org" || scopeKind === "user") {
     if (!md.planKey) return;
-    const interval = isBillingInterval(md.interval) ? md.interval : undefined;
+    let interval: PlanInterval | undefined;
+    if (md.interval === "lifetime") interval = "lifetime";
+    else if (isBillingInterval(md.interval)) interval = md.interval;
     await activatePlan({ kind: scopeKind, id: scopeId }, md.planKey, interval);
   }
 }

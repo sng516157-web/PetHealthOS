@@ -9,6 +9,7 @@ How PawSure maps Stripe events to app entitlements. All subscription checkouts e
 | Product | `scopeKind` | Stripe mode | On pay | On cancel (`subscription.deleted`) | On refund (`charge.refunded`) |
 |---------|-------------|-------------|--------|-------------------------------------|-------------------------------|
 | Shop / facility SHOP plan | `org` | subscription (month/year) | `activatePlan` → SHOP | `activatePlan` → STARTER | `activatePlan` → STARTER |
+| Founding Breeder Lifetime | `org` | payment (one-time) | `activatePlan` → FOUNDING_BREEDER_LIFETIME (`planInterval: lifetime`) | — (no subscription) | `activatePlan` → STARTER |
 | Owner Plus plan | `user` | subscription (month/year) | `activatePlan` → PLUS | `activatePlan` → FREE | `activatePlan` → FREE |
 | Owner extra pet slot *(legacy)* | `user_slot` | subscription (month) | `ensureOwnerPetSlotActive` | `revokeOwnerPetSlot` | `revokeOwnerPetSlot` |
 | Facility care slot | `org_slot` | subscription (month) | `ensureOrgSlotActive` | `revokeOrgSlot` | `revokeOrgSlot` |

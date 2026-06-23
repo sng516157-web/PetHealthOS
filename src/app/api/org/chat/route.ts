@@ -7,6 +7,8 @@ import {
   buildOrgCareContext,
   orgAiSystemPrompt,
   mockOrgChatReply,
+  plainTextResponseFromStreamText,
+  plainTextStreamResponse,
 } from "@/lib/ai";
 import { getLocale } from "@/lib/i18n/server";
 import { isLocale } from "@/lib/i18n/config";
@@ -36,26 +38,9 @@ export async function POST(req: Request) {
 
   if (!hasAI()) {
     const last = messages[messages.length - 1]?.content ?? "";
-    const text = mockOrgChatReply(orgName, facility, pets, last, resolvedLocale);
-    const stream = new ReadableStream({
-      start(controller) {
-        const enc = new TextEncoder();
-        const words = text.split(" ");
-        let i = 0;
-        const timer = setInterval(() => {
-          if (i >= words.length) {
-            clearInterval(timer);
-            controller.close();
-            return;
-          }
-          controller.enqueue(enc.encode(words[i] + " "));
-          i++;
-        }, 12);
-      },
-    });
-    return new Response(stream, {
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
+    return plainTextStreamResponse(
+      mockOrgChatReply(orgName, facility, pets, last, resolvedLocale),
+    );
   }
 
   const chatMessages: ModelMessage[] = messages.map((m) => ({
@@ -63,11 +48,14 @@ export async function POST(req: Request) {
     content: m.content,
   }));
 
+  const last = messages[messages.length - 1]?.content ?? "";
+  const fallback = mockOrgChatReply(orgName, facility, pets, last, resolvedLocale);
+
   const result = streamText({
     model: getModel(),
     system,
     messages: chatMessages,
   });
 
-  return result.toTextStreamResponse();
+  return plainTextResponseFromStreamText(result, fallback);
 }

@@ -43,6 +43,10 @@ export function OrgChatPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next, locale }),
       });
+      if (!res.ok) {
+        const errText = (await res.text()).trim();
+        throw new Error(errText || `HTTP ${res.status}`);
+      }
       if (!res.body) throw new Error("No response body");
 
       setMessages((m) => [...m, { role: "assistant", content: "" }]);
@@ -59,8 +63,18 @@ export function OrgChatPanel({
           return copy;
         });
       }
+      if (!acc.trim()) {
+        throw new Error("empty");
+      }
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: t.chat.error }]);
+      setMessages((m) => {
+        const withoutEmptyAssistant =
+          m.at(-1)?.role === "assistant" && !m.at(-1)?.content ? m.slice(0, -1) : m;
+        return [
+          ...withoutEmptyAssistant,
+          { role: "assistant", content: t.chat.error },
+        ];
+      });
     } finally {
       setBusy(false);
     }

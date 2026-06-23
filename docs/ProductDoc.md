@@ -131,7 +131,7 @@ PawSure 把"健康历程"沉淀成一份**可携带、可验证、能随宠物�
 
 - **前端 / 框架**：Next.js（App Router）+ React + TypeScript，Tailwind 设计系统，统一的品牌组件库。
 - **数据**：PostgreSQL（托管），ORM 管理 schema 与迁移。
-- **AI**：Google Gemini（经 Vercel AI SDK 接入），支持多模态（读图）；
+- **AI**：Groq（经 Vercel AI SDK `@ai-sdk/groq` 接入），支持宠物图片；PDF 仅作元数据引用；
 日志结构化在**后台异步**进行，因此"保存"始终是即时的。AI 具备地区 / 语言感知。
 - **存储**：图片 / 文件走对象存储（生产）+ 本地回退（开发）；认证证明走私有存储。
 - **认证**：统一账户体系（邮箱+密码 / 手机验证码，签名 Cookie 会话）；按账户类型实施设备数限制。

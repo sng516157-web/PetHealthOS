@@ -77,6 +77,7 @@ import { legalAcceptanceFromForm } from "@/lib/legal-policies";
 import {
   startCheckout,
   buyFacilitySlot,
+  buyFoundingBreederLifetime,
   type CheckoutScope,
   type Provider,
   createBillingPortalSession,
@@ -1692,6 +1693,25 @@ export async function startPlanCheckout(formData: FormData) {
 // Legacy — owner billing is Owner Plus (5 pets). Per-pet slots removed.
 export async function addOwnerPetSlot(_formData: FormData) {
   return { error: "NO_OVERAGE" };
+}
+
+export async function startFoundingBreederLifetimeCheckout(formData: FormData) {
+  const org = await requireActiveOrg();
+  const provider = String(formData.get("provider") || "stripe") as Provider;
+  const baseUrl = await checkoutBaseUrl();
+  const result = await buyFoundingBreederLifetime({
+    orgId: org.id,
+    baseUrl,
+    provider,
+  });
+
+  if ("error" in result) return { error: result.error };
+  if ("url" in result) return { url: result.url };
+
+  revalidatePath("/app/billing");
+  revalidatePath("/app");
+  revalidatePath("/pricing");
+  return { ok: true, demo: result.demo ?? false };
 }
 
 // Facility buys one extra care slot ($2.49/mo). Demo-grants when no provider set.

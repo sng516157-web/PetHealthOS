@@ -20,6 +20,8 @@ import {
 import { PassportHeroMockup } from "@/components/landing/PassportHeroMockup";
 import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
 import { LandingMiniDashboards } from "@/components/landing/LandingMiniDashboards";
+import { FoundingLifetimeCtaLink } from "@/components/FoundingLifetimeCtaLink";
+import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
 import {
   AuroraOrbs,
   MotionPop,
@@ -118,6 +120,43 @@ export function PassportHomepageLanding({ locale, t, previewBanner }: Props) {
           <MotionPop index={2} className="order-1 lg:order-2">
             <PassportHeroMockup />
           </MotionPop>
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-surface/60">
+        <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-10">
+          <MotionReveal>
+            <div className="overflow-hidden rounded-3xl border border-brand-200 bg-gradient-to-br from-brand-50/90 via-surface to-sand/30 p-8 shadow-soft md:p-10">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
+                {h.foundingEyebrow}
+              </span>
+              <h2 className="mt-2 text-2xl font-extrabold text-forest md:text-3xl">
+                {h.foundingTitle}
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/70">{h.foundingCopy}</p>
+              <div className="mt-6 max-w-xl">
+                <BulletList items={h.foundingBullets} />
+              </div>
+              <p className="mt-4 text-sm font-semibold text-forest">
+                {t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}{" "}
+                {t.pricing.foundingLifetime.priceCadence}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <FoundingLifetimeCtaLink
+                  href="/pricing#founding-breeder-lifetime"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-forest px-6 py-3 text-sm font-semibold text-white shadow-ps-button transition hover:bg-forest/90"
+                >
+                  {h.foundingCta} <ArrowRight size={16} />
+                </FoundingLifetimeCtaLink>
+                <Link
+                  href={SHOP_SIGNUP_HREF}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-brand-300 bg-surface px-6 py-3 text-sm font-semibold text-forest transition hover:border-brand-400"
+                >
+                  {h.foundingSecondaryCta}
+                </Link>
+              </div>
+            </div>
+          </MotionReveal>
         </div>
       </section>
 
@@ -300,29 +339,6 @@ export function PassportHomepageLanding({ locale, t, previewBanner }: Props) {
           }}
         />
       </div>
-
-      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-        <MotionReveal>
-          <div className="overflow-hidden rounded-3xl border border-brand-200 bg-gradient-to-br from-brand-50/90 via-surface to-sand/30 p-8 shadow-soft md:p-10">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
-              {h.foundingEyebrow}
-            </span>
-            <h2 className="mt-2 text-2xl font-extrabold text-forest md:text-3xl">
-              {h.foundingTitle}
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/70">{h.foundingCopy}</p>
-            <div className="mt-6 max-w-xl">
-              <BulletList items={h.foundingBullets} />
-            </div>
-            <Link
-              href={SHOP_SIGNUP_HREF}
-              className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
-            >
-              {h.foundingCta} <ArrowRight size={16} />
-            </Link>
-          </div>
-        </MotionReveal>
-      </section>
 
       <section className="border-t border-border bg-forest py-16 text-white md:py-20">
         <div className="mx-auto max-w-6xl px-5 text-center md:px-8">

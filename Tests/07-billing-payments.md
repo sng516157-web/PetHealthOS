@@ -27,6 +27,7 @@ Every checkout must set `scopeKind`, `scopeId`, and `slotId` (slots) on session 
 | Product | scopeKind | Fulfill | Reversal |
 |---------|-----------|---------|----------|
 | Shop/facility SHOP plan | `org` | `activatePlan` → SHOP | → STARTER |
+| Founding Breeder Lifetime | `org` | `activatePlan` → FOUNDING_BREEDER_LIFETIME (`lifetime`) | refund → STARTER |
 | Owner Plus | `user` | `activatePlan` → PLUS | → FREE |
 | Owner extra pet *(legacy)* | `user_slot` | `ensureOwnerPetSlotActive` | `revokeOwnerPetSlot` |
 | Facility care slot | `org_slot` | `ensureOrgSlotActive` | `revokeOrgSlot` |
@@ -62,6 +63,18 @@ Every checkout must set `scopeKind`, `scopeId`, and `slotId` (slots) on session 
 | 2 | Pay | `org.plan` SHOP; interval stored |
 | 3 | Cancel subscription | Downgrade STARTER |
 | 4 | Pets over STARTER limit | Read-only per `getPetEntitlements` |
+
+## Scenario B2 — Founding Breeder Lifetime ($299 one-time)
+
+| Step | Action | Expected |
+|------|--------|----------|
+| 1 | `/pricing` or `/app/billing` → Claim founding deal | Checkout (or demo grant if no Stripe) |
+| 2 | Pay | `org.plan` = `FOUNDING_BREEDER_LIFETIME`; `planInterval` = `lifetime` |
+| 3 | `/app/billing` | Lifetime card shows active; no subscription upsell |
+| 4 | SHOP org tries lifetime | Error `ALREADY_SUBSCRIBED` |
+| 5 | Lifetime org tries again | Error `ALREADY_LIFETIME` |
+| 6 | After limit reached | `FOUNDING_SOLD_OUT` on new purchases |
+| 7 | Refund charge | `org.plan` → STARTER |
 
 ---
 

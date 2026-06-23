@@ -10,6 +10,9 @@ import {
 import { Check } from "lucide-react";
 import { ShopBilling } from "@/components/ShopBilling";
 import { FacilitySlots } from "@/components/FacilitySlots";
+import { FoundingBreederLifetimeCard } from "@/components/FoundingBreederLifetimeCard";
+import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
+import { isFoundingBreederLifetimePlan } from "@/lib/founding-breeder-lifetime";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OrgBillingPage() {
@@ -17,6 +20,9 @@ export default async function OrgBillingPage() {
   const { org, plan, count, limit } = await getOrgUsage();
   const facility = isFacilityOrg(org);
   const capacity = facility ? await getFacilityCapacity() : null;
+  const founding = !facility ? await getFoundingBreederLifetimeAvailability() : null;
+  const isLifetime = isFoundingBreederLifetimePlan(plan.key);
+  const isShop = plan.key === "SHOP";
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
   const atLimit = count >= limit;
 
@@ -69,14 +75,25 @@ export default async function OrgBillingPage() {
         </>
       )}
 
-      <ShopBilling
-        currentPlan={plan.key}
-        currentInterval={org.planInterval}
-        priceMonth={SHOP_BILLING.month}
-        priceYear={SHOP_BILLING.year}
-        title={facility ? t.facility.planTitle : undefined}
-        subtitle={facility ? t.facility.planSubtitle : undefined}
-      />
+      {!facility && founding && !isShop && (
+        <FoundingBreederLifetimeCard
+          mode="checkout"
+          soldOut={founding.soldOut}
+          remaining={founding.remaining}
+          active={isLifetime}
+        />
+      )}
+
+      {!facility && !isLifetime && (
+        <ShopBilling
+          currentPlan={plan.key}
+          currentInterval={org.planInterval}
+          priceMonth={SHOP_BILLING.month}
+          priceYear={SHOP_BILLING.year}
+          title={facility ? t.facility.planTitle : undefined}
+          subtitle={facility ? t.facility.planSubtitle : undefined}
+        />
+      )}
     </div>
   );
 }

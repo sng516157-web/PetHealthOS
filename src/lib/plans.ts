@@ -32,9 +32,26 @@ export const ORG_PLANS: Record<string, Plan> = {
     canIssuePassport: true,
     multiSeat: true,
   },
+  FOUNDING_BREEDER_LIFETIME: {
+    key: "FOUNDING_BREEDER_LIFETIME",
+    audience: "org",
+    includedPets: 50,
+    priceUsd: 299,
+    extraPetPriceUsd: 2.49,
+    petCap: null,
+    canIssuePassport: true,
+    multiSeat: true,
+  },
 };
 
 export type BillingInterval = "month" | "year";
+
+/** Stored on `Organization.planInterval` / `User.planInterval`. */
+export type PlanInterval = BillingInterval | "lifetime";
+
+export function isPlanInterval(v: string | null | undefined): v is PlanInterval {
+  return v === "month" || v === "year" || v === "lifetime";
+}
 
 /** Paid SHOP plan — monthly or yearly (USD). */
 export const SHOP_BILLING: Record<BillingInterval, number> = {
