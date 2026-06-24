@@ -262,6 +262,9 @@ Newest first. One entry per decision/change: date — what — why.
 - **2026-06-17** — **AI provider: Groq (replaces Google Gemini).** Why (user): switch to
   Groq for chat/triage/structuring via `@ai-sdk/groq`; env `GROQ_API_KEY`, optional
   `GROQ_MODEL` / `GROQ_VISION_MODEL`. PDF attachments stay metadata-only; images use vision model.
+- **2026-06-17** — **Hotfix: homepage server error.** `FoundingBreederHomepageSection` was a client
+  component receiving the full i18n `Dictionary` (with functions) from the server — React 19 rejects
+  that. Pass pre-rendered price strings from the server parent instead.
 - **2026-06-17** — **Founding breeder funnel + permanent forfeiture.** Why (user): homepage founding
   CTA → `/shop?founding=1` with intent cookie; after email verify, `/app?founding=1` auto-starts
   Stripe checkout; KYC gate skipped while intent cookie + STARTER. `Organization.foundingBreederEligible`

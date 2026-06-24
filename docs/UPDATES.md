@@ -9,6 +9,8 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-17 — Homepage fix.** Fixed a server error on `/` caused by passing i18n functions into a client component.
+
 - **2026-06-17 — Founding breeder signup → checkout.** Landing founding CTA routes to shop signup; after email verify the dashboard auto-starts Stripe checkout (KYC can wait). Monthly/yearly shop subs permanently forfeit the founding deal — shown greyed out on billing.
 
 - **2026-06-17 — Founding breeder countdown & dashboard.** Shop home shows the founding lifetime deal with a live spots counter; when all spots are claimed the offer disappears everywhere (not just “sold out”).

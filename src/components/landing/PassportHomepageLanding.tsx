@@ -21,6 +21,7 @@ import { PassportHeroMockup } from "@/components/landing/PassportHeroMockup";
 import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
 import { LandingMiniDashboards } from "@/components/landing/LandingMiniDashboards";
 import { FoundingBreederHomepageSection } from "@/components/landing/FoundingBreederHomepageSection";
+import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
 import {
   AuroraOrbs,
   MotionPop,
@@ -130,10 +131,11 @@ export function PassportHomepageLanding({ locale, t, previewBanner, founding }: 
 
       {founding && !founding.soldOut && (
         <FoundingBreederHomepageSection
-          t={t}
           h={h}
           initial={founding}
           shopSignupHref={SHOP_SIGNUP_HREF}
+          priceLabel={t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}
+          priceCadence={t.pricing.foundingLifetime.priceCadence}
         />
       )}
 

@@ -3,12 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import type { Dictionary } from "@/lib/i18n/en";
 import { BulletList } from "@/components/landing/LandingBlocks";
 import { FoundingLifetimeCtaLink } from "@/components/FoundingLifetimeCtaLink";
 import { FoundingBreederSpotCounter } from "@/components/FoundingBreederSpotCounter";
 import { MotionReveal } from "@/components/motion/aurora";
-import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
 
 type Availability = {
   limit: number;
@@ -18,15 +16,24 @@ type Availability = {
 };
 
 export function FoundingBreederHomepageSection({
-  t,
   h,
   initial,
   shopSignupHref,
+  priceLabel,
+  priceCadence,
 }: {
-  t: Dictionary;
-  h: Dictionary["landing"]["homepageV2"];
+  h: {
+    foundingEyebrow: string;
+    foundingTitle: string;
+    foundingCopy: string;
+    foundingBullets: string[];
+    foundingCta: string;
+    foundingSecondaryCta: string;
+  };
   initial: Availability;
   shopSignupHref: string;
+  priceLabel: string;
+  priceCadence: string;
 }) {
   const [hidden, setHidden] = useState(initial.soldOut);
 
@@ -53,8 +60,7 @@ export function FoundingBreederHomepageSection({
               onSoldOut={() => setHidden(true)}
             />
             <p className="mt-4 text-sm font-semibold text-forest">
-              {t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}{" "}
-              {t.pricing.foundingLifetime.priceCadence}
+              {priceLabel} {priceCadence}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <FoundingLifetimeCtaLink
