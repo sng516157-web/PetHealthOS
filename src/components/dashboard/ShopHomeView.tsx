@@ -20,6 +20,14 @@ import {
   motionCardHover,
 } from "./DashboardMotion";
 import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
+import { FoundingBreederDashboardPromo } from "@/components/FoundingBreederDashboardPromo";
+
+type FoundingAvailability = {
+  limit: number;
+  claimed: number;
+  remaining: number;
+  soldOut: boolean;
+};
 
 type ShopPet = {
   id: string;
@@ -52,12 +60,14 @@ export function ShopHomeView({
   pets,
   attention,
   reminders,
+  foundingPromo,
   preview,
 }: {
   orgName: string;
   pets: ShopPet[];
   attention: ShopPet[];
   reminders: ShopReminder[];
+  foundingPromo?: FoundingAvailability;
   preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
   const { t } = useI18n();
@@ -126,6 +136,10 @@ export function ShopHomeView({
           toneClass="bg-sky-50 text-sky-600"
         />
       </div>
+
+      {foundingPromo && !foundingPromo.soldOut && (
+        <FoundingBreederDashboardPromo initial={foundingPromo} className="mt-8" />
+      )}
 
       <OrgAiPromoCard
         facility={false}

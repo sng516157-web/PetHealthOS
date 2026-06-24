@@ -11,15 +11,19 @@ import { getI18n } from "@/lib/i18n/server";
 import { EmailVerifiedBanner } from "@/components/EmailVerifiedBanner";
 import { ShopHomeView } from "@/components/dashboard/ShopHomeView";
 import { FacilityHomeView } from "@/components/dashboard/FacilityHomeView";
+import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
+import { hasFoundingIntent } from "@/lib/founding-intent-server";
+import { FoundingBreederAutoCheckout } from "@/components/FoundingBreederAutoCheckout";
 
 export default async function Dashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ verified?: string }>;
+  searchParams: Promise<{ verified?: string; founding?: string }>;
 }) {
   const org = await requireActiveOrg();
   const params = await searchParams;
   const showVerified = params.verified === "1";
+  const foundingIntent = params.founding === "1" || (await hasFoundingIntent());
   const { t } = await getI18n();
 
   if (isFacilityOrg(org)) {
@@ -62,10 +66,21 @@ export default async function Dashboard({
     );
   }
 
-  const [pets, reminders] = await Promise.all([
+  const [pets, reminders, founding] = await Promise.all([
     getActivePetsWithStats(),
     getUpcomingReminders(),
+    getFoundingBreederLifetimeAvailability(),
   ]);
+  const showFoundingPromo =
+    org.plan === "STARTER" &&
+    org.foundingBreederEligible &&
+    !founding.soldOut &&
+    !foundingIntent;
+  const autoFoundingCheckout =
+    foundingIntent &&
+    org.plan === "STARTER" &&
+    org.foundingBreederEligible &&
+    !founding.soldOut;
 
   const now = Date.now();
   const twoWeeks = 1000 * 60 * 60 * 24 * 14;
@@ -117,11 +132,13 @@ export default async function Dashboard({
           <EmailVerifiedBanner message={t.verifyEmail.confirmedBanner} />
         </div>
       )}
+      {autoFoundingCheckout && <FoundingBreederAutoCheckout />}
       <ShopHomeView
         orgName={org.name}
         pets={petItems}
         attention={attentionItems}
         reminders={reminderItems}
+        foundingPromo={showFoundingPromo ? founding : undefined}
       />
     </>
   );

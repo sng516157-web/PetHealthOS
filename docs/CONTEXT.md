@@ -255,14 +255,29 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-17** — **Feedback form replaces public support email.** Why (user): avoid
+  exposing operator inbox; `/feedback` collects email, optional name, and message with a
+  UUID reference; Resend delivers to `FEEDBACK_INBOX_EMAIL`. Nav link on landing, pricing,
+  owner header, shop mobile header, and sidebar.
 - **2026-06-17** — **AI provider: Groq (replaces Google Gemini).** Why (user): switch to
   Groq for chat/triage/structuring via `@ai-sdk/groq`; env `GROQ_API_KEY`, optional
   `GROQ_MODEL` / `GROQ_VISION_MODEL`. PDF attachments stay metadata-only; images use vision model.
+- **2026-06-17** — **Founding breeder funnel + permanent forfeiture.** Why (user): homepage founding
+  CTA → `/shop?founding=1` with intent cookie; after email verify, `/app?founding=1` auto-starts
+  Stripe checkout; KYC gate skipped while intent cookie + STARTER. `Organization.foundingBreederEligible`
+  set false on monthly/yearly SHOP activation; billing shows greyed-out founding card with
+  explanation. Migration `20260617150000_founding_breeder_eligible`.
+- **2026-06-17** — **Founding breeder UI: dashboard promo + live countdown + sold-out removal.** Why
+  (user): show founding lifetime on shop dashboard (`/app` home) for STARTER orgs; display real
+  remaining/limit with progress bar (`FoundingBreederSpotCounter`, polls
+  `/api/founding-breeder-lifetime/availability` every 30s); when cap reached hide offer from all
+  surfaces (homepage, pricing, billing, dashboard) — no disabled “sold out” card. Lifetime orgs
+  still see active badge on billing.
 - **2026-06-17** — **Founding Breeder Lifetime Deal ($299 one-time).** Why (user): offer early
   breeders lifetime access to core passport features without recurring subscription. Plan key
   `FOUNDING_BREEDER_LIFETIME` (same SHOP entitlements, `planInterval: lifetime`); Stripe
-  one-time Checkout; cap via `FOUNDING_BREEDER_LIFETIME_LIMIT`; pricing UI + `/app/billing` +
-  homepage founding section; analytics `founding_lifetime_cta_clicked`.
+  one-time Checkout; cap via `FOUNDING_BREEDER_LIFETIME_LIMIT`; pricing UI + `/app` home promo +
+  `/app/billing` + homepage founding section; analytics `founding_lifetime_cta_clicked`.
 - **2026-06-17** — **Homepage proof strip copy.** Why (user): reflect broader early
   traction — "Now reaching 50+ testers worldwide" on production homepage proof strip.
 - **2026-06-17** — **Owner Plus subscription (replaces per-pet slots).** Why (user): simplify

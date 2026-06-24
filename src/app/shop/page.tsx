@@ -8,6 +8,7 @@ import { SHOP_BILLING, USER_PLANS, OWNER_BILLING } from "@/lib/plans";
 import { formatUsd } from "@/lib/money";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuthCard } from "@/components/AuthCard";
+import { FoundingIntentSync } from "@/components/FoundingIntentSync";
 import {
   SectionHeading,
   PricingPreview,
@@ -28,9 +29,23 @@ export const metadata: Metadata = pageMetadata({
   path: "/shop",
 });
 
-export default async function ShopLandingPage() {
+export default async function ShopLandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ founding?: string }>;
+}) {
+  const params = await searchParams;
+  const foundingIntent = params.founding === "1";
   const user = await getCurrentUser();
-  if (user) redirect(user.orgId ? "/app" : "/me");
+  if (user) {
+    redirect(
+      user.orgId
+        ? foundingIntent
+          ? "/app?founding=1"
+          : "/app"
+        : "/me",
+    );
+  }
   const { locale, t } = await getI18n();
   const s = t.landing.shop;
   const l = t.landing;
@@ -48,6 +63,7 @@ export default async function ShopLandingPage() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <FoundingIntentSync active={foundingIntent} />
       <LandingHeader t={t} locale={locale} />
 
       <main className="relative overflow-hidden">
@@ -178,7 +194,7 @@ export default async function ShopLandingPage() {
                   {s.loginTitle}
                 </span>
                 <div className="mt-3">
-                  <AuthCard accountType="shop" defaultTab="register" />
+                  <AuthCard accountType="shop" defaultTab="register" foundingIntent={foundingIntent} />
                 </div>
                 <p className="mt-4 text-center text-xs text-muted">
                   {l.alreadyMember}{" "}

@@ -11,6 +11,7 @@ import {
   FACILITY_EXTRA_SLOT_PRICE_USD,
 } from "@/lib/plans";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { FeedbackNavLink } from "@/components/FeedbackNavLink";
 import { getI18n } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/en";
 import {
@@ -55,6 +56,13 @@ export default async function PricingPage() {
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/pricing"
+              className="hidden rounded-lg px-3 py-1.5 text-xs font-medium text-forest sm:inline-flex"
+            >
+              {t.landing.nav.pricing}
+            </Link>
+            <FeedbackNavLink label={t.landing.nav.feedback} />
             <LocaleToggle compact />
             <Link
               href="/login"
@@ -144,13 +152,16 @@ export default async function PricingPage() {
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
               {t.pricing.forShops}
             </h2>
-            <div className="grid gap-4 lg:grid-cols-3">
-              <FoundingBreederLifetimeCard
-                mode="marketing"
-                soldOut={founding.soldOut}
-                remaining={founding.remaining}
-                marketingHref="/shop"
-              />
+            <div
+              className={`grid gap-4 ${founding.soldOut ? "sm:grid-cols-2" : "lg:grid-cols-3"}`}
+            >
+              {!founding.soldOut && (
+                <FoundingBreederLifetimeCard
+                  mode="marketing"
+                  availability={founding}
+                  marketingHref="/shop?founding=1#signup"
+                />
+              )}
               <OrgBillingCard
                 t={t}
                 name={t.shopBilling.monthly}
@@ -184,7 +195,7 @@ export default async function PricingPage() {
             <p className="mt-3 text-xs text-muted">
               {t.shopBilling.starterNote(ORG_PLANS.STARTER.includedPets)}
             </p>
-            <BreederPricingFaq />
+            {!founding.soldOut && <BreederPricingFaq />}
           </section>
         </MotionReveal>
 

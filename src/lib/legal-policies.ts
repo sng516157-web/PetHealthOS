@@ -1,7 +1,6 @@
 // Terms of Service & Privacy Policy — bilingual templates. NOT legal advice.
 import type { Locale } from "./i18n/config";
 import type { LegalDocument } from "./legal";
-import { DISCLAIMER_CONTACT_EMAIL } from "./legal";
 
 export const TERMS_UPDATED = "2026-06-15";
 export const PRIVACY_UPDATED = "2026-06-15";
@@ -77,7 +76,8 @@ const termsEn: LegalDocument = {
     },
   ],
   contactHeading: "10. Contact",
-  contactBody: `Questions about these Terms: ${DISCLAIMER_CONTACT_EMAIL}`,
+  contactBody: "Questions about these Terms? Send us feedback.",
+  contactLinkLabel: "Open feedback form",
 };
 
 const termsZh: LegalDocument = {
@@ -149,7 +149,8 @@ const termsZh: LegalDocument = {
     },
   ],
   contactHeading: "10. 联系我们",
-  contactBody: `条款相关问题：${DISCLAIMER_CONTACT_EMAIL}`,
+  contactBody: "条款相关问题，请通过反馈表单联系我们。",
+  contactLinkLabel: "提交反馈",
 };
 
 const privacyEn: LegalDocument = {
@@ -229,7 +230,8 @@ const privacyEn: LegalDocument = {
     },
   ],
   contactHeading: "11. Contact",
-  contactBody: `Privacy questions or requests: ${DISCLAIMER_CONTACT_EMAIL}`,
+  contactBody: "Privacy questions or requests? Send us feedback.",
+  contactLinkLabel: "Open feedback form",
 };
 
 const privacyZh: LegalDocument = {
@@ -309,7 +311,8 @@ const privacyZh: LegalDocument = {
     },
   ],
   contactHeading: "11. 联系我们",
-  contactBody: `隐私问题或请求：${DISCLAIMER_CONTACT_EMAIL}`,
+  contactBody: "隐私问题或请求，请通过反馈表单联系我们。",
+  contactLinkLabel: "提交反馈",
 };
 
 export function getTerms(locale: Locale): LegalDocument {

@@ -3,7 +3,7 @@ import type { landingEn } from "./landing-en";
 
 /** 简体中文营销 / 落地页文案 */
 export const landingZh: typeof landingEn = {
-  nav: { pricing: "定价", signIn: "登录", getStarted: "开始使用" },
+  nav: { pricing: "定价", signIn: "登录", getStarted: "开始使用", feedback: "反馈" },
   heroEyebrow: "数字宠物健康护照",
   heroTitle: "每只宠物都应有一份值得信赖的健康记录。",
   heroSubtitle:

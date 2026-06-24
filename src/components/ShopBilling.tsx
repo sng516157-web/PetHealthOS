@@ -108,6 +108,10 @@ export function ShopBilling({
         </div>
         <p className="mt-1 text-xs text-muted">{subtitle ?? t.shopBilling.subtitle}</p>
 
+        <p className="mt-4 text-[11px] leading-relaxed text-amber-800/90">
+          {t.shopBilling.foundingForfeitWarning}
+        </p>
+
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {options.map((o) => {
             const active = interval === o.id;

@@ -23,6 +23,7 @@ export default async function OrgBillingPage() {
   const founding = !facility ? await getFoundingBreederLifetimeAvailability() : null;
   const isLifetime = isFoundingBreederLifetimePlan(plan.key);
   const isShop = plan.key === "SHOP";
+  const foundingBlocked = !org.foundingBreederEligible || isShop;
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
   const atLimit = count >= limit;
 
@@ -75,11 +76,18 @@ export default async function OrgBillingPage() {
         </>
       )}
 
-      {!facility && founding && !isShop && (
+      {!facility && (isLifetime || foundingBlocked || (founding && !founding.soldOut)) && (
         <FoundingBreederLifetimeCard
           mode="checkout"
-          soldOut={founding.soldOut}
-          remaining={founding.remaining}
+          blocked={foundingBlocked && !isLifetime}
+          availability={
+            founding ?? {
+              limit: 0,
+              claimed: 0,
+              remaining: 0,
+              soldOut: true,
+            }
+          }
           active={isLifetime}
         />
       )}

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { trackFoundingLifetimeCtaClicked } from "@/lib/analytics";
+import { setFoundingIntentClient } from "@/lib/founding-intent";
 
 type Props = {
   href: string;
@@ -15,7 +16,10 @@ export function FoundingLifetimeCtaLink({ href, className, children }: Props) {
     <Link
       href={href}
       className={className}
-      onClick={() => trackFoundingLifetimeCtaClicked("homepage")}
+      onClick={() => {
+        setFoundingIntentClient();
+        trackFoundingLifetimeCtaClicked("homepage");
+      }}
     >
       {children}
     </Link>

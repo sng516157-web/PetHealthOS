@@ -28,6 +28,8 @@ model Organization {
   // free STARTER tier). planActivatedAt is when it was last (re)activated.
   planInterval    String?
   planActivatedAt DateTime?
+  // Set false permanently when the org subscribes to monthly/yearly SHOP (founding lifetime forfeited).
+  foundingBreederEligible Boolean @default(true)
   // Stripe Customer for card subscriptions (portal cancel / renew).
   stripeCustomerId String?
 

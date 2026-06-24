@@ -5,6 +5,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { getDisclaimer } from "@/lib/legal";
 import { LandingHeader, LandingFooter } from "@/components/LandingHeader";
 import { AuroraOrbs, MotionPop, MotionReveal } from "@/components/motion/aurora";
+import { LegalContactSection } from "@/components/LegalContactSection";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -67,10 +68,7 @@ export default async function DisclaimerPage() {
             ))}
 
             <MotionReveal delay={120 + d.sections.length * 40}>
-              <section>
-                <h2 className="text-base font-bold text-forest">{d.contactHeading}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-ink/75">{d.contactBody}</p>
-              </section>
+              <LegalContactSection doc={d} />
             </MotionReveal>
           </article>
         </div>

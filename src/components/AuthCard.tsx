@@ -41,17 +41,24 @@ const PHONE_AUTH_ENABLED: boolean = false;
 type Tab = "signin" | "register" | "phone";
 type AccountType = "owner" | "shop" | "facility";
 
-function dest(type?: string, needsVerification?: boolean) {
-  if (needsVerification) return "/verify-email";
-  return type === "shop" || type === "facility" ? "/app" : "/me";
+function dest(type?: string, needsVerification?: boolean, founding?: boolean) {
+  if (needsVerification) {
+    return founding ? "/verify-email?founding=1" : "/verify-email";
+  }
+  if (type === "shop" || type === "facility") {
+    return founding ? "/app?founding=1" : "/app";
+  }
+  return "/me";
 }
 
 export function AuthCard({
   accountType = "owner",
   defaultTab = "signin",
+  foundingIntent = false,
 }: {
   accountType?: AccountType;
   defaultTab?: Tab;
+  foundingIntent?: boolean;
 }) {
   const { t } = useI18n();
   // Never land on the parked Phone tab while it's disabled.
@@ -102,9 +109,9 @@ export function AuthCard({
         })}
       </div>
 
-      {tab === "signin" && <SignInTab t={t} />}
+      {tab === "signin" && <SignInTab t={t} foundingIntent={foundingIntent} />}
       {tab === "register" && (
-        <RegisterTab t={t} accountType={accountType} />
+        <RegisterTab t={t} accountType={accountType} foundingIntent={foundingIntent} />
       )}
       {PHONE_AUTH_ENABLED && tab === "phone" && (
         <PhoneTab t={t} accountType={accountType} />
@@ -113,7 +120,7 @@ export function AuthCard({
   );
 }
 
-function SignInTab({ t }: { t: Dictionary }) {
+function SignInTab({ t, foundingIntent }: { t: Dictionary; foundingIntent?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +137,7 @@ function SignInTab({ t }: { t: Dictionary }) {
         return;
       }
       if (res?.error) setError(vmsg(t, res.error));
-      else router.push(dest(res?.accountType, res && "needsVerification" in res && res.needsVerification));
+      else router.push(dest(res?.accountType, res && "needsVerification" in res && res.needsVerification, foundingIntent));
     });
   }
 
@@ -193,9 +200,11 @@ function SignInTab({ t }: { t: Dictionary }) {
 function RegisterTab({
   t,
   accountType,
+  foundingIntent = false,
 }: {
   t: Dictionary;
   accountType: AccountType;
+  foundingIntent?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -256,8 +265,11 @@ function RegisterTab({
               ? "shop"
               : "owner";
         trackSignUp(segment);
-        const q = res.verifyError ? `?error=${encodeURIComponent(res.verifyError)}` : "";
-        router.push(`${dest(res?.accountType, res?.needsVerification)}${q}`);
+        const path = dest(res?.accountType, res?.needsVerification, foundingIntent);
+        const sep = path.includes("?") ? "&" : "?";
+        router.push(
+          res.verifyError ? `${path}${sep}error=${encodeURIComponent(res.verifyError)}` : path,
+        );
       }
     });
   }

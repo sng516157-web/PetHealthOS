@@ -2,7 +2,7 @@ import { formatUsd } from "@/lib/money";
 
 /** English marketing / landing copy (homepage, owner, shop, facility). */
 export const landingEn = {
-  nav: { pricing: "Pricing", signIn: "Sign in", getStarted: "Get started" },
+  nav: { pricing: "Pricing", signIn: "Sign in", getStarted: "Get started", feedback: "Feedback" },
   heroEyebrow: "Digital pet health passport",
   heroTitle: "Every pet should come with a health record people can trust.",
   heroSubtitle:

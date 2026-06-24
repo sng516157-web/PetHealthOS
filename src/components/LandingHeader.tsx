@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PawSureMarkTile, PawSureMark } from "@/components/PawSureLogo";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { FeedbackNavLink } from "@/components/FeedbackNavLink";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/en";
 
@@ -24,6 +25,7 @@ export function LandingHeader({ t, locale = "en" }: { t: Dictionary; locale?: Lo
           >
             {t.landing.nav.pricing}
           </Link>
+          <FeedbackNavLink label={t.landing.nav.feedback} />
           <LocaleToggle compact />
           <Link
             href="/login"
@@ -51,6 +53,9 @@ export function LandingFooter({ t, locale = "en" }: { t: Dictionary; locale?: Lo
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
           <Link href="/pricing" className="hover:text-forest">
             {t.landing.nav.pricing}
+          </Link>
+          <Link href="/feedback" className="hover:text-forest">
+            {t.landing.nav.feedback}
           </Link>
           <Link href="/terms" className="hover:text-forest">
             {t.landing.termsOfService}

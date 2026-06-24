@@ -9,6 +9,12 @@ Agents: append a bullet here in the **same commit** as any user-facing change (s
 
 ---
 
+- **2026-06-17 — Founding breeder signup → checkout.** Landing founding CTA routes to shop signup; after email verify the dashboard auto-starts Stripe checkout (KYC can wait). Monthly/yearly shop subs permanently forfeit the founding deal — shown greyed out on billing.
+
+- **2026-06-17 — Founding breeder countdown & dashboard.** Shop home shows the founding lifetime deal with a live spots counter; when all spots are claimed the offer disappears everywhere (not just “sold out”).
+
+- **2026-06-17 — Feedback page.** Contact us via `/feedback` instead of a public support email — each submission gets a reference ID and is emailed privately to the team.
+
 - **2026-06-17 — AI on Groq.** Chat, triage, and log structuring now use Groq (`GROQ_API_KEY`) instead of Google Gemini.
 
 - **2026-06-17 — Founding Breeder Lifetime.** Breeders can claim a limited $299 one-time deal for lifetime core passport access — on `/pricing`, homepage, and `/app/billing` after signup.

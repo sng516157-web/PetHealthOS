@@ -11,7 +11,9 @@ import {
   UserCircle,
   LogOut,
   Sparkles,
+  MessageSquareText,
 } from "lucide-react";
+import { FEEDBACK_PATH } from "@/lib/feedback";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/client";
 import { LocaleToggle } from "@/components/LocaleToggle";
@@ -74,6 +76,13 @@ export function Sidebar({ unread = 0 }: { unread?: number }) {
       </nav>
 
       <div className="mt-auto space-y-3">
+        <Link
+          href={FEEDBACK_PATH}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-brand-50/60 hover:text-forest"
+        >
+          <MessageSquareText size={18} className="text-muted" />
+          {t.landing.nav.feedback}
+        </Link>
         <LocaleToggle />
         <form action={signOut}>
           <button

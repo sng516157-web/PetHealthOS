@@ -20,8 +20,7 @@ import {
 import { PassportHeroMockup } from "@/components/landing/PassportHeroMockup";
 import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
 import { LandingMiniDashboards } from "@/components/landing/LandingMiniDashboards";
-import { FoundingLifetimeCtaLink } from "@/components/FoundingLifetimeCtaLink";
-import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
+import { FoundingBreederHomepageSection } from "@/components/landing/FoundingBreederHomepageSection";
 import {
   AuroraOrbs,
   MotionPop,
@@ -37,9 +36,15 @@ type Props = {
   t: Dictionary;
   /** Amber banner for `/demo/homepage-v2` — production `/` omits this. */
   previewBanner?: boolean;
+  founding?: {
+    limit: number;
+    claimed: number;
+    remaining: number;
+    soldOut: boolean;
+  } | null;
 };
 
-export function PassportHomepageLanding({ locale, t, previewBanner }: Props) {
+export function PassportHomepageLanding({ locale, t, previewBanner, founding }: Props) {
   const h = t.landing.homepageV2;
 
   return (
@@ -123,42 +128,14 @@ export function PassportHomepageLanding({ locale, t, previewBanner }: Props) {
         </div>
       </section>
 
-      <section className="border-b border-border bg-surface/60">
-        <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-10">
-          <MotionReveal>
-            <div className="overflow-hidden rounded-3xl border border-brand-200 bg-gradient-to-br from-brand-50/90 via-surface to-sand/30 p-8 shadow-soft md:p-10">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">
-                {h.foundingEyebrow}
-              </span>
-              <h2 className="mt-2 text-2xl font-extrabold text-forest md:text-3xl">
-                {h.foundingTitle}
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/70">{h.foundingCopy}</p>
-              <div className="mt-6 max-w-xl">
-                <BulletList items={h.foundingBullets} />
-              </div>
-              <p className="mt-4 text-sm font-semibold text-forest">
-                {t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}{" "}
-                {t.pricing.foundingLifetime.priceCadence}
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <FoundingLifetimeCtaLink
-                  href="/pricing#founding-breeder-lifetime"
-                  className="inline-flex items-center gap-2 rounded-2xl bg-forest px-6 py-3 text-sm font-semibold text-white shadow-ps-button transition hover:bg-forest/90"
-                >
-                  {h.foundingCta} <ArrowRight size={16} />
-                </FoundingLifetimeCtaLink>
-                <Link
-                  href={SHOP_SIGNUP_HREF}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-brand-300 bg-surface px-6 py-3 text-sm font-semibold text-forest transition hover:border-brand-400"
-                >
-                  {h.foundingSecondaryCta}
-                </Link>
-              </div>
-            </div>
-          </MotionReveal>
-        </div>
-      </section>
+      {founding && !founding.soldOut && (
+        <FoundingBreederHomepageSection
+          t={t}
+          h={h}
+          initial={founding}
+          shopSignupHref={SHOP_SIGNUP_HREF}
+        />
+      )}
 
       <section className="border-b border-border bg-surface/80">
         <div className="mx-auto max-w-6xl px-5 py-6 md:px-8">

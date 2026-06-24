@@ -5,11 +5,13 @@ import { Clock, LogOut } from "lucide-react";
 import { Sidebar, MobileNav } from "@/components/Sidebar";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { FeedbackNavLink } from "@/components/FeedbackNavLink";
 import { WorkspaceMotionShell } from "@/components/dashboard/DashboardMotion";
 import { signOut } from "@/app/actions";
 import { requireActiveOrg, getOrgUnreadCount } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { needsEmailVerification } from "@/lib/email-verify";
+import { hasFoundingIntent } from "@/lib/founding-intent-server";
 import { getI18n } from "@/lib/i18n/server";
 import { privateRobots } from "@/lib/seo";
 
@@ -27,12 +29,20 @@ export default async function AppLayout({
   // not signed in to a shop account (owners / logged-out) to the /shop landing.
   const org = await requireActiveOrg();
 
+  const foundingIntent = await hasFoundingIntent();
+  const skipKycForFounding =
+    foundingIntent &&
+    org.plan === "STARTER" &&
+    org.foundingBreederEligible &&
+    (org.verificationStatus === "UNVERIFIED" || org.verificationStatus === "REJECTED");
+
   // KYC gate: a shop must submit its business licence / proof before entering
   // the workspace. Pending & approved shops are allowed in (passport issuance
   // stays locked until approved — enforced in createTransfer).
+  // Founding-breeder checkout may proceed before KYC when intent cookie is set.
   if (
-    org.verificationStatus === "UNVERIFIED" ||
-    org.verificationStatus === "REJECTED"
+    !skipKycForFounding &&
+    (org.verificationStatus === "UNVERIFIED" || org.verificationStatus === "REJECTED")
   ) {
     redirect("/verify");
   }
@@ -53,6 +63,7 @@ export default async function AppLayout({
             </span>
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <FeedbackNavLink label={t.landing.nav.feedback} />
             <LocaleToggle compact />
             <form action={signOut}>
               <button
@@ -65,6 +76,11 @@ export default async function AppLayout({
             </form>
           </div>
         </header>
+        {skipKycForFounding && (
+          <div className="border-b border-brand-200 bg-brand-50/80 px-4 py-2.5 text-xs text-brand-900 sm:px-5">
+            {t.pricing.foundingLifetime.kycDeferBanner}
+          </div>
+        )}
         {pendingReview && (
           <Link
             href="/verify"

@@ -133,6 +133,9 @@ export const zh: Dictionary = {
     viewAll: "查看全部",
     upcomingReminders: "即将到来的提醒",
     noReminders: "暂无提醒安排。",
+    foundingPromo: {
+      subtitle: "一次性付款锁定繁育者终身访问权限——创始名额有限。",
+    },
   },
   pets: {
     title: "宠物",
@@ -492,6 +495,30 @@ export const zh: Dictionary = {
       SEND_FAILED: "邮件发送失败，请稍后再试。",
     },
   },
+  feedback: {
+    metaTitle: "反馈",
+    metaDescription: "向 PawSure 提交反馈、报告问题或提问。",
+    title: "提交反馈",
+    subtitle: "问题、缺陷或建议 —— 我们会阅读每一条消息。",
+    emailLabel: "您的邮箱",
+    emailPlaceholder: "you@example.com",
+    nameLabel: "您的姓名",
+    namePlaceholder: "选填",
+    messageLabel: "反馈内容",
+    messagePlaceholder: "请说明发生了什么、您期望的结果，或任何有助于我们的信息…",
+    submit: "发送反馈",
+    privacyNote: "我们仅将您的邮箱用于跟进此消息。反馈会私密发送给我们的团队。",
+    successTitle: "感谢 —— 我们已收到您的反馈。",
+    successBody: "如需后续跟进，请保存此参考编号。",
+    referenceLabel: "参考编号",
+    sendAnother: "再发一条",
+    errors: {
+      MESSAGE_REQUIRED: "请输入反馈内容。",
+      MESSAGE_TOO_SHORT: "请补充更多细节（至少 10 个字符）。",
+      NOT_CONFIGURED: "反馈邮件尚未配置，请稍后再试。",
+      SEND_FAILED: "发送失败，请稍后再试。",
+    },
+  },
   resetPassword: {
     title: "设置新密码",
     descLink: "为你的账号设置新密码。完成后将自动登录。",
@@ -832,10 +859,18 @@ export const zh: Dictionary = {
       smallPrint:
         "限量早期繁育者优惠，仅限一个繁育者/商家账户。未来非核心模块、定制搭建、批量导入或异常高用量可能需另行定价。",
       soldOut: "创始优惠名额已满",
+      spotsLabel: "剩余创始名额",
       spotsRemaining: (n: number) => `剩余 ${n} 个创始名额`,
+      spotsClaimed: (claimed: number, limit: number) =>
+        `已领取 ${claimed} / ${limit} 个创始名额`,
       activeBadge: "终身访问已激活",
       alreadyActive: "您的工作区已拥有终身访问权限。",
-      alreadySubscribed: "您已有生效中的商家订阅。",
+      forfeited: "创始优惠不可用",
+      forfeitedDetail:
+        "此工作区已选择按月或按年商家订阅，创始繁育者终身优惠已永久关闭。取消订阅也无法恢复资格。",
+      autoCheckoutBanner: "正在跳转到创始繁育者终身版安全结账…",
+      kycDeferBanner:
+        "请先完成创始繁育者付款——之后可在「套餐与账单」或认证页提交营业执照验证。",
       notBreeder: "此优惠仅面向繁育者与商家账户。",
     },
     foundingFaqTitle: "创始繁育者终身版 — 常见问题",
@@ -954,6 +989,8 @@ export const zh: Dictionary = {
     facilityStarterNote: (n: number) =>
       `新机构免费起步，最多照护 ${n} 只宠物——随时升级以扩大照护名额、添加团队成员。`,
     activeInterval: (label: string) => `生效中 · ${label}`,
+    foundingForfeitWarning:
+      "选择按月或按年订阅后，此工作区将永久失去创始繁育者终身优惠资格。",
   },
   landing: landingZh,
   verify: {

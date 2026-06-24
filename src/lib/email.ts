@@ -21,6 +21,7 @@ export async function sendEmail(msg: {
   subject: string;
   text: string;
   html?: string;
+  replyTo?: string | string[];
 }): Promise<SendEmailResult> {
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key) return { ok: false, error: "RESEND_API_KEY not set" };
@@ -33,6 +34,7 @@ export async function sendEmail(msg: {
       text: msg.text,
     };
     if (msg.html) payload.html = msg.html;
+    if (msg.replyTo) payload.reply_to = msg.replyTo;
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { confirmEmailVerification } from "@/lib/email-verify";
 import { setSession } from "@/lib/auth";
+import { FOUNDING_INTENT_COOKIE } from "@/lib/founding-intent";
+import { cookies } from "next/headers";
 
 function workspacePath(accountType: "owner" | "shop" | "facility"): string {
   return accountType === "owner" ? "/me" : "/app";
@@ -30,5 +32,9 @@ export async function GET(request: Request) {
   const dest = new URL(workspacePath(res.accountType), url.origin);
   dest.searchParams.set("verified", "1");
   dest.searchParams.set("account", res.accountType);
+  const jar = await cookies();
+  if (jar.get(FOUNDING_INTENT_COOKIE)?.value === "1" && res.accountType !== "owner") {
+    dest.searchParams.set("founding", "1");
+  }
   return NextResponse.redirect(dest);
 }

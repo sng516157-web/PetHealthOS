@@ -183,12 +183,15 @@ export async function activatePlan(
       : isStarter
         ? null
         : (interval ?? null);
+    const forfeitFounding =
+      planKey === "SHOP" && (interval === "month" || interval === "year");
     await prisma.organization.update({
       where: { id: scope.id },
       data: {
         plan: planKey,
         planInterval: resolvedInterval,
         planActivatedAt: isStarter ? null : new Date(),
+        ...(forfeitFounding ? { foundingBreederEligible: false } : {}),
       },
     });
   } else {
@@ -263,7 +266,7 @@ export async function buyFoundingBreederLifetime(opts: {
   const { orgId, baseUrl } = opts;
   const org = await prisma.organization.findUnique({
     where: { id: orgId },
-    select: { plan: true, kind: true },
+    select: { plan: true, kind: true, foundingBreederEligible: true },
   });
   if (!org) return { error: "NO_ORG" };
   if (org.kind === "HOSPITAL" || org.kind === "BOARDING") {
@@ -272,8 +275,8 @@ export async function buyFoundingBreederLifetime(opts: {
   if (isFoundingBreederLifetimePlan(org.plan)) {
     return { error: "ALREADY_LIFETIME" };
   }
-  if (org.plan === "SHOP") {
-    return { error: "ALREADY_SUBSCRIBED" };
+  if (!org.foundingBreederEligible || org.plan === "SHOP") {
+    return { error: "FOUNDING_FORFEITED" };
   }
 
   const availability = await getFoundingBreederLifetimeAvailability();

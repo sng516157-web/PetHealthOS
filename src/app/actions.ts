@@ -20,6 +20,7 @@ import {
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
 import type { AdminGrantKind } from "@/lib/admin-grants";
 import { notifyAdmins } from "@/lib/email";
+import { deliverFeedback, newFeedbackId } from "@/lib/feedback";
 import {
   sendVerificationEmail,
   needsEmailVerification,
@@ -1181,6 +1182,36 @@ export async function requestPasswordReset(formData: FormData) {
   };
 }
 
+export async function submitFeedback(formData: FormData) {
+  const email = normalizeEmail(String(formData.get("email") || ""));
+  const emailErr = validateEmail(email);
+  if (emailErr) return { error: emailErr };
+
+  const message = String(formData.get("message") || "").trim();
+  if (!message) return { error: "MESSAGE_REQUIRED" };
+  if (message.length < 10) return { error: "MESSAGE_TOO_SHORT" };
+
+  const nameRaw = String(formData.get("name") || "").trim();
+  const name = nameRaw.slice(0, 120) || null;
+
+  const user = await getCurrentUser();
+  const locale = await getLocale();
+  const id = newFeedbackId();
+
+  const res = await deliverFeedback({
+    id,
+    email,
+    name,
+    message: message.slice(0, 8000),
+    locale: isLocale(locale) ? locale : "en",
+    userId: user?.id ?? null,
+    orgId: user?.orgId ?? null,
+  });
+
+  if (!res.ok) return { error: res.error };
+  return { ok: true as const, id };
+}
+
 export async function resetPassword(formData: FormData) {
   const token = String(formData.get("token") || "").trim();
   const email = normalizeEmail(String(formData.get("email") || ""));
@@ -1693,6 +1724,11 @@ export async function startPlanCheckout(formData: FormData) {
 // Legacy — owner billing is Owner Plus (5 pets). Per-pet slots removed.
 export async function addOwnerPetSlot(_formData: FormData) {
   return { error: "NO_OVERAGE" };
+}
+
+export async function clearFoundingIntent() {
+  const { clearFoundingIntentCookie } = await import("@/lib/founding-intent-server");
+  await clearFoundingIntentCookie();
 }
 
 export async function startFoundingBreederLifetimeCheckout(formData: FormData) {

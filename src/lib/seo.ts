@@ -81,6 +81,7 @@ export const INDEXABLE_PATHS = [
   "/shop",
   "/facility",
   "/pricing",
+  "/feedback",
   "/terms",
   "/privacy",
   "/disclaimer",

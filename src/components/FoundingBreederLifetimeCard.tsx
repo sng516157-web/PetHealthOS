@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { startFoundingBreederLifetimeCheckout } from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
+import { FoundingBreederSpotCounter } from "@/components/FoundingBreederSpotCounter";
 import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
 import { useI18n } from "@/lib/i18n/client";
 import {
@@ -13,38 +14,58 @@ import {
   trackFoundingLifetimeCtaClicked,
 } from "@/lib/analytics";
 
+type Availability = {
+  limit: number;
+  claimed: number;
+  remaining: number;
+  soldOut: boolean;
+};
+
 type Props = {
   mode: "marketing" | "checkout";
-  soldOut?: boolean;
-  remaining?: number;
+  availability: Availability;
   active?: boolean;
+  blocked?: boolean;
   marketingHref?: string;
+  onSoldOut?: () => void;
 };
 
 export function FoundingBreederLifetimeCard({
   mode,
-  soldOut = false,
-  remaining,
+  availability: initialAvailability,
   active = false,
-  marketingHref = "/shop",
+  blocked = false,
+  marketingHref = "/shop?founding=1#signup",
+  onSoldOut,
 }: Props) {
   const { t } = useI18n();
   const f = t.pricing.foundingLifetime;
   const router = useRouter();
+  const [hidden, setHidden] = useState(initialAvailability.soldOut && !active && !blocked);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  if (hidden) return null;
 
   function mapError(code: string): string {
     const map: Record<string, string> = {
       FOUNDING_SOLD_OUT: f.soldOut,
       ALREADY_LIFETIME: f.alreadyActive,
-      ALREADY_SUBSCRIBED: f.alreadySubscribed,
+      FOUNDING_FORFEITED: f.forfeited,
+      ALREADY_SUBSCRIBED: f.forfeited,
       NOT_BREEDER: f.notBreeder,
       STRIPE_NOT_CONFIGURED: t.billing.providerComingSoon,
       PROVIDER_NOT_CONFIGURED: t.billing.providerComingSoon,
     };
     return map[code] ?? code;
+  }
+
+  function handleSoldOut() {
+    if (!active) {
+      setHidden(true);
+      onSoldOut?.();
+    }
   }
 
   function onMarketingClick() {
@@ -54,7 +75,7 @@ export function FoundingBreederLifetimeCard({
   function checkout() {
     setError(null);
     setNotice(null);
-    trackFoundingLifetimeCtaClicked("app_billing");
+    trackFoundingLifetimeCtaClicked(mode === "checkout" ? "app_billing" : "pricing");
     start(async () => {
       const fd = new FormData();
       fd.set("provider", "stripe");
@@ -70,6 +91,7 @@ export function FoundingBreederLifetimeCard({
         return;
       }
       if (res?.error) {
+        if (res.error === "FOUNDING_SOLD_OUT") handleSoldOut();
         setError(mapError(res.error));
         return;
       }
@@ -80,12 +102,14 @@ export function FoundingBreederLifetimeCard({
     });
   }
 
-  const disabled = soldOut || active;
-
   return (
     <div
       id="founding-breeder-lifetime"
-      className="relative flex h-full flex-col rounded-2xl border border-forest/25 bg-gradient-to-br from-sand/40 via-surface to-brand-50/30 p-6 shadow-soft"
+      className={`relative flex h-full flex-col rounded-2xl border p-6 shadow-soft ${
+        blocked
+          ? "border-border bg-paper/80 opacity-90"
+          : "border-forest/25 bg-gradient-to-br from-sand/40 via-surface to-brand-50/30"
+      }`}
     >
       <span className="inline-flex w-fit items-center gap-1 rounded-full border border-forest/20 bg-forest/5 px-2.5 py-0.5 text-[11px] font-semibold text-forest">
         <Sparkles size={11} /> {f.badge}
@@ -99,10 +123,12 @@ export function FoundingBreederLifetimeCard({
           {t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}
           <span className="text-sm font-normal text-muted"> {f.priceCadence}</span>
         </div>
-        {remaining != null && remaining > 0 && !active && (
-          <p className="mt-1 text-xs font-medium text-brand-700">
-            {f.spotsRemaining(remaining)}
-          </p>
+        {!active && !blocked && (
+          <FoundingBreederSpotCounter
+            initial={initialAvailability}
+            className="mt-3 rounded-xl border border-brand-200/80 bg-white/60 p-3"
+            onSoldOut={handleSoldOut}
+          />
         )}
       </div>
 
@@ -116,6 +142,12 @@ export function FoundingBreederLifetimeCard({
       </ul>
 
       <p className="mt-4 text-[11px] leading-relaxed text-muted">{f.smallPrint}</p>
+
+      {blocked && (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+          {f.forfeitedDetail}
+        </p>
+      )}
 
       {error && (
         <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
@@ -131,9 +163,9 @@ export function FoundingBreederLifetimeCard({
           <span className="inline-flex w-full items-center justify-center rounded-xl bg-forest/10 px-4 py-2.5 text-sm font-semibold text-forest">
             {f.activeBadge}
           </span>
-        ) : soldOut ? (
-          <span className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-paper px-4 py-2.5 text-sm font-medium text-muted">
-            {f.soldOut}
+        ) : blocked ? (
+          <span className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-slate-100 px-4 py-2.5 text-sm font-medium text-muted">
+            {f.forfeited}
           </span>
         ) : mode === "marketing" ? (
           <Link
@@ -148,7 +180,7 @@ export function FoundingBreederLifetimeCard({
             <button
               type="button"
               onClick={() => checkout()}
-              disabled={pending || disabled}
+              disabled={pending}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-forest px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-forest/90 disabled:opacity-60"
             >
               {pending ? "…" : f.cta} {!pending && <ArrowRight size={15} />}

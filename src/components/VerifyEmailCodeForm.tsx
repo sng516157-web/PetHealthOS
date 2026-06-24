@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound } from "lucide-react";
 import { confirmVerificationCode } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
+import { hasFoundingIntentClient } from "@/lib/founding-intent";
 
 export function VerifyEmailCodeForm() {
   const { t } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const foundingFromUrl = searchParams.get("founding") === "1";
   const [pending, start] = useTransition();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,9 @@ export function VerifyEmailCodeForm() {
         return;
       }
       const dest = res.accountType === "owner" ? "/me" : "/app";
-      router.push(`${dest}?verified=1&account=${res.accountType}`);
+      const founding =
+        foundingFromUrl || hasFoundingIntentClient() ? "&founding=1" : "";
+      router.push(`${dest}?verified=1&account=${res.accountType}${founding}`);
     });
   }
 

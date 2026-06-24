@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import type { LegalDocument } from "@/lib/legal";
 import { AuroraOrbs, MotionPop, MotionReveal } from "@/components/motion/aurora";
+import { LegalContactSection } from "@/components/LegalContactSection";
 
 export function LegalDocumentView({
   doc,
@@ -59,10 +60,7 @@ export function LegalDocumentView({
           ))}
 
           <MotionReveal delay={120 + doc.sections.length * 40}>
-            <section>
-              <h2 className="text-base font-bold text-forest">{doc.contactHeading}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-ink/75">{doc.contactBody}</p>
-            </section>
+            <LegalContactSection doc={doc} />
           </MotionReveal>
         </article>
       </div>

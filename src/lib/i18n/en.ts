@@ -138,6 +138,10 @@ export const en = {
     viewAll: "View all",
     upcomingReminders: "Upcoming reminders",
     noReminders: "No reminders scheduled.",
+    foundingPromo: {
+      subtitle:
+        "Lock in lifetime breeder access with a one-time payment — while founding spots last.",
+    },
   },
   pets: {
     title: "Pets",
@@ -500,6 +504,31 @@ export const en = {
       SEND_FAILED: "Couldn't send the email. Try again in a moment.",
     },
   },
+  feedback: {
+    metaTitle: "Feedback",
+    metaDescription: "Send feedback, report a problem, or ask a question about PawSure.",
+    title: "Send feedback",
+    subtitle: "Questions, bugs, or ideas — we read every message.",
+    emailLabel: "Your email",
+    emailPlaceholder: "you@example.com",
+    nameLabel: "Your name",
+    namePlaceholder: "Optional",
+    messageLabel: "Feedback",
+    messagePlaceholder: "Tell us what happened, what you expected, or what would help…",
+    submit: "Send feedback",
+    privacyNote:
+      "We use your email only to follow up on this message. Your feedback is sent privately to our team.",
+    successTitle: "Thanks — we got your feedback.",
+    successBody: "Save this reference ID if you need to follow up with us later.",
+    referenceLabel: "Reference ID",
+    sendAnother: "Send another message",
+    errors: {
+      MESSAGE_REQUIRED: "Please enter your feedback.",
+      MESSAGE_TOO_SHORT: "Please add a bit more detail (at least 10 characters).",
+      NOT_CONFIGURED: "Feedback email isn't configured yet. Try again later.",
+      SEND_FAILED: "Couldn't send your feedback. Try again in a moment.",
+    },
+  },
   resetPassword: {
     title: "Choose a new password",
     descLink: "Pick a new password for your account. You'll be signed in when done.",
@@ -850,11 +879,19 @@ export const en = {
       smallPrint:
         "Limited early breeder offer. Applies to one breeder/business account. Future non-core modules, custom setup, bulk imports, or unusually high usage may require separate pricing.",
       soldOut: "This founding offer is no longer available",
+      spotsLabel: "Founding spots left",
       spotsRemaining: (n: number) =>
         n === 1 ? "1 founding spot remaining" : `${n} founding spots remaining`,
+      spotsClaimed: (claimed: number, limit: number) =>
+        `${claimed} of ${limit} founding spots claimed`,
       activeBadge: "Lifetime access active",
       alreadyActive: "Your workspace already has lifetime access.",
-      alreadySubscribed: "You already have an active shop subscription.",
+      forfeited: "Founding deal unavailable",
+      forfeitedDetail:
+        "This workspace chose a monthly or yearly shop subscription, so the founding breeder lifetime offer is permanently closed. Canceling your subscription does not restore eligibility.",
+      autoCheckoutBanner: "Taking you to secure checkout for the founding breeder lifetime deal…",
+      kycDeferBanner:
+        "Complete founding breeder payment first — you can submit business verification afterward from Plan & billing or the verify page.",
       notBreeder: "This offer is for breeder and shop accounts only.",
     },
     foundingFaqTitle: "Founding breeder lifetime — FAQ",
@@ -976,6 +1013,8 @@ export const en = {
     facilityStarterNote: (n: number) =>
       `New facilities start free with up to ${n} pets in care — upgrade anytime for more capacity and team seats.`,
     activeInterval: (label: string) => `Active · ${label}`,
+    foundingForfeitWarning:
+      "Choosing monthly or yearly permanently closes the founding breeder lifetime offer for this workspace.",
   },
   landing: landingEn,
   verify: {

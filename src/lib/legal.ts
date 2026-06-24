@@ -3,12 +3,10 @@
 //
 // NOTE FOR OPERATORS: this is a general, good-faith template — NOT legal advice.
 // Have a qualified lawyer in your operating jurisdiction (e.g. HK / mainland
-// China) review and adapt it, and fill in CONTACT_EMAIL + governing law before
-// relying on it.
+// China) review and adapt it, and fill in governing law before relying on it.
 
 import type { Locale } from "./i18n/config";
 
-export const DISCLAIMER_CONTACT_EMAIL = "support@pethealthos.online";
 export const DISCLAIMER_UPDATED = "2026-06-08";
 
 export type DisclaimerSection = { heading: string; body: string[] };
@@ -19,6 +17,7 @@ export type LegalDocument = {
   sections: DisclaimerSection[];
   contactHeading: string;
   contactBody: string;
+  contactLinkLabel: string;
 };
 export type DisclaimerContent = LegalDocument;
 
@@ -106,7 +105,8 @@ const zh: DisclaimerContent = {
     },
   ],
   contactHeading: "12. 联系我们",
-  contactBody: `如对本免责声明有任何疑问，请联系：${DISCLAIMER_CONTACT_EMAIL}`,
+  contactBody: "如对本免责声明有任何疑问，请通过反馈表单联系我们。",
+  contactLinkLabel: "提交反馈",
 };
 
 const en: DisclaimerContent = {
@@ -193,7 +193,8 @@ const en: DisclaimerContent = {
     },
   ],
   contactHeading: "12. Contact us",
-  contactBody: `For any questions about this Disclaimer, contact: ${DISCLAIMER_CONTACT_EMAIL}`,
+  contactBody: "For any questions about this Disclaimer, send us feedback.",
+  contactLinkLabel: "Open feedback form",
 };
 
 export function getDisclaimer(locale: Locale): DisclaimerContent {

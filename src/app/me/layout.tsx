@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { needsEmailVerification } from "@/lib/email-verify";
 import { signOut } from "@/app/actions";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { FeedbackNavLink } from "@/components/FeedbackNavLink";
 import { WorkspaceMotionShell } from "@/components/dashboard/DashboardMotion";
 import { getI18n } from "@/lib/i18n/server";
 import { privateRobots } from "@/lib/seo";
@@ -40,6 +41,7 @@ export default async function MeLayout({
             </div>
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <FeedbackNavLink label={t.landing.nav.feedback} />
             <LocaleToggle compact />
             <Link
               href="/me/account"
