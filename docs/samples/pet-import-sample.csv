@@ -1,0 +1,6 @@
+name,species,breed,sex,birth_date,color,weight_kg,intake_date,sire_name,dam_name,microchip,last_vaccine_date,last_vaccine_notes,last_deworm_date,notes
+Mochi,CAT,Ragdoll,FEMALE,2025-11-12,Seal point,2.4,2025-11-15,Thunder,Luna,,2026-01-10,FVRCP booster (Nobivac),2026-01-08,Active litter — ready for handover Q2
+Biscuit,CAT,British Shorthair,MALE,2025-09-03,Blue,3.1,2025-09-05,Atlas,Misty,985112004567890,2025-12-20,Rabies + FVRCP,2025-12-18,Under observation after mild URI (resolved)
+Pearl,CAT,Ragdoll,FEMALE,2025-12-01,Cream,1.9,2025-12-03,Thunder,Luna,,2026-02-05,FVRCP first dose,2026-02-01,Neonate weight tracked weekly in old app
+Kumo,CAT,Scottish Fold,MALE,2025-07-22,Silver tabby,3.8,2025-07-25,,,985112009876543,2025-11-01,Annual FVRCP + rabies,2025-10-28,Retained for breeding — not for sale
+Daisy,DOG,Pomeranian,FEMALE,2025-10-08,Orange,1.6,2025-10-10,,,985112001122334,2026-01-15,DHPP + rabies,2026-01-12,Shop foster — owner pickup pending

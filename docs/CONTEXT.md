@@ -248,8 +248,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   validation.
 - Live Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) when ready. WeChat/Alipay
   deferred until incorporation — see `docs/PAYMENTS_WALLETS_DEFERRED.md`.
-- **Automated data import (AI).** v1 is manual: users upload CSV+PDF on `/app` or `/me`,
-  team processes via `/admin` → mark complete. Next: AI column-mapping + log/doc ingestion.
+- **Automated data import (AI).** v1 manual queue shipped; **admin import workspace** at
+  `/admin/imports/[id]` parses CSV, maps columns (incl. 宠舍管家-style headers), applies rows
+  → pets/logs/weight and PDFs → attachments; `processingState` JSON is the stable plan shape for
+  future AI. Next: AI column-mapping suggestions + doc classification.
 
 ---
 
@@ -257,6 +259,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-25** — **Admin import workspace (`/admin/imports/[id]`).** Why (user): ops tool to
+  view CSV rows + PDFs and assign data to pets, logs, weights, and document attachments — manual
+  today, same `DataImportProcessingState` JSON for future AI automation. Auto-parses CSV with
+  column alias map; per-row apply bypasses pet quota; PDFs copied from private blob to public
+  attachments. Linked from `/admin` import queue. Migration `20260625140000_data_import_processing_state`.
 - **2026-06-25** — **Manual data import queue (CSV + PDF).** Why (user): reduce switching
   friction from competitor apps / paper records without building full AI ingestion yet.
   `DataImportRequest` stores private doc refs; shop/owner dashboards expose upload UI with

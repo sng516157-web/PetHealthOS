@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Check, ExternalLink } from "lucide-react";
 import { completeDataImport } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
@@ -89,6 +90,14 @@ export function AdminDataImportItem({ row }: { row: AdminDataImport }) {
             {name}
           </a>
         ))}
+        {!done && (
+          <Link
+            href={`/admin/imports/${row.id}`}
+            className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700"
+          >
+            {t.admin.dataImportOpenWorkspace}
+          </Link>
+        )}
       </div>
 
       {!done && (
