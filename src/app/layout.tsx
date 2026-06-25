@@ -9,6 +9,7 @@ import { TimezoneProvider, TimezoneSync } from "@/lib/timezone/client";
 import { defaultSiteMetadata } from "@/lib/seo";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AnalyticsListener } from "@/components/AnalyticsListener";
+import { Analytics } from "@vercel/analytics/next";
 
 // Nunito gives the warm, rounded, trustworthy feel of the PawSure brand. CJK
 // text falls back to the system stack (PingFang/YaHei) to avoid shipping a
@@ -58,6 +59,7 @@ export default async function RootLayout({
             {children}
           </TimezoneProvider>
         </I18nProvider>
+        <Analytics />
       </body>
     </html>
   );
