@@ -143,6 +143,46 @@ export const en = {
         "Lock in lifetime breeder access with a one-time payment — while founding spots last.",
     },
   },
+  dataImport: {
+    button: "Import data",
+    cardTitle: "Bring your existing records",
+    cardDesc:
+      "Switching from another app or your own spreadsheets? Upload a CSV roster plus PDFs and we'll organize everything in your workspace.",
+    pendingTitle: "Import in progress",
+    pendingDesc:
+      "We're processing your files. You'll see new pets, documents, and records appear in your workspace as they're ready — most imports finish within a few hours.",
+    modalTitle: "Import your records",
+    modalDesc:
+      "Upload a pet roster (CSV) and any supporting PDFs — vaccine cards, competitor exports, or scanned notebooks.",
+    csvLabel: "Pet roster (CSV)",
+    csvHint:
+      "Export from your current app (e.g. 宠舍管家), a spreadsheet, or any table with pet names and basics.",
+    pdfsLabel: "Documents (PDF, optional)",
+    pdfsHint:
+      "Vaccine cards, lab results, handwritten log scans, or anything that isn't in the CSV.",
+    noteLabel: "Notes (optional)",
+    notePlaceholder: "Where this data came from, pet names to prioritize, anything we should know…",
+    slaNote:
+      "Clear exports are usually ready within a few hours. Messy or handwritten documents may take up to 24 hours.",
+    submit: "Submit for import",
+    cancel: "Cancel",
+    close: "Done",
+    successTitle: "Submitted — we're on it",
+    successDesc:
+      "Your files are in the queue. Most imports finish within a few hours; messy or handwritten documents can take up to 24 hours. New pets and records will appear in your workspace as they're processed.",
+    selectedFile: (name: string) => `Selected: ${name}`,
+    selectedCount: (n: number) => `${n} PDF${n === 1 ? "" : "s"} selected`,
+    errors: {
+      generic: "Couldn't submit — please try again.",
+      CSV_REQUIRED: "Please attach a CSV roster file.",
+      CSV_INVALID: "The roster file must be a .csv file.",
+      PDF_INVALID: "Supporting documents must be PDF files.",
+      FILE_TOO_BIG: "Each file must be 15 MB or smaller.",
+      TOO_MANY_FILES: "You can attach up to 20 PDFs.",
+      IMPORT_PENDING: "You already have an import in progress. We'll notify you when it's done.",
+      FORBIDDEN: "Please sign in and try again.",
+    },
+  },
   pets: {
     title: "Pets",
     inYourCare: (n: number) => `${n} in your care`,
@@ -1093,6 +1133,13 @@ export const en = {
     deathClaimReject: "Reject",
     deathClaimConfirmApprove: "Grant condolence credit to this owner?",
     deathClaimEmpty: "No memorial claims waiting for review.",
+    dataImportTitle: "Data imports",
+    dataImportDesc:
+      "Review uploaded CSV rosters and PDFs. Add pets, documents, and log entries in the workspace, then mark complete.",
+    dataImportEmpty: "No data imports waiting.",
+    dataImportMarkComplete: "Mark import complete",
+    dataImportAdminNote: "Internal note (optional)",
+    dataImportAdminNotePlaceholder: "e.g. Imported 12 pets from 宠舍管家 export",
     grantTitle: "Grant entitlement",
     grantDesc:
       "Comp a slot or SHOP plan by account email. Comped slots are not revoked when Stripe billing sync runs.",

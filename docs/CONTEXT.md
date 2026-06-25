@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-06-16
+Last updated: 2026-06-25
 
 ---
 
@@ -248,6 +248,8 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   validation.
 - Live Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) when ready. WeChat/Alipay
   deferred until incorporation — see `docs/PAYMENTS_WALLETS_DEFERRED.md`.
+- **Automated data import (AI).** v1 is manual: users upload CSV+PDF on `/app` or `/me`,
+  team processes via `/admin` → mark complete. Next: AI column-mapping + log/doc ingestion.
 
 ---
 
@@ -255,6 +257,19 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-25** — **Manual data import queue (CSV + PDF).** Why (user): reduce switching
+  friction from competitor apps / paper records without building full AI ingestion yet.
+  `DataImportRequest` stores private doc refs; shop/owner dashboards expose upload UI with
+  honest SLA copy (up to 24h for messy scans, no mention of manual ops); `/admin` review
+  queue with file proxy downloads; landing + `/shop` advertise import. AI automation is
+  explicit follow-up in pending work.
+- **2026-06-25** — **Breeder workflow demo video (1080p, ~2:00).** Why (user): one silent
+  screen recording of the **real app** for breeder marketing + later English VO. Output
+  `public/demos/breeders/breeder-workflow.{mp4,webm}` (1920×1080, trimmed to 120s); script in
+  `docs/BREEDER_DEMO_SCRIPT.md`. Playwright recorder `npm run record:breeder-workflow` (verify →
+  dashboard → Pearl log/tabs → transfer → passport); demo seed adds **Pearl** + `emailVerifiedAt`
+  on all demo users. Legacy four 9s synthetic clips (`record:breeder-demos`, `/demo/capture/breeder-*`)
+  superseded but left in repo.
 - **2026-06-17** — **Feedback form replaces public support email.** Why (user): avoid
   exposing operator inbox; `/feedback` collects email, optional name, and message with a
   UUID reference; Resend delivers to `FEEDBACK_INBOX_EMAIL`. Nav link on landing, pricing,

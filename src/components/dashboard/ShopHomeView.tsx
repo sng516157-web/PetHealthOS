@@ -21,6 +21,7 @@ import {
 } from "./DashboardMotion";
 import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
 import { FoundingBreederDashboardPromo } from "@/components/FoundingBreederDashboardPromo";
+import { DashboardDataImport } from "@/components/dashboard/DashboardDataImport";
 
 type FoundingAvailability = {
   limit: number;
@@ -61,6 +62,7 @@ export function ShopHomeView({
   attention,
   reminders,
   foundingPromo,
+  pendingImport,
   preview,
 }: {
   orgName: string;
@@ -68,6 +70,7 @@ export function ShopHomeView({
   attention: ShopPet[];
   reminders: ShopReminder[];
   foundingPromo?: FoundingAvailability;
+  pendingImport?: { submittedAt: string } | null;
   preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
   const { t } = useI18n();
@@ -140,6 +143,8 @@ export function ShopHomeView({
       {foundingPromo && !foundingPromo.soldOut && (
         <FoundingBreederDashboardPromo initial={foundingPromo} className="mt-8" />
       )}
+
+      <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
 
       <OrgAiPromoCard
         facility={false}

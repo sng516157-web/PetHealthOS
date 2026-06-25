@@ -14,6 +14,10 @@ import { FacilityHomeView } from "@/components/dashboard/FacilityHomeView";
 import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
 import { hasFoundingIntent } from "@/lib/founding-intent-server";
 import { FoundingBreederAutoCheckout } from "@/components/FoundingBreederAutoCheckout";
+import { getCurrentUser } from "@/lib/auth";
+import { getPendingDataImport } from "@/lib/data-import";
+import { formatDate } from "@/lib/format";
+import { getTimezone } from "@/lib/timezone/server";
 
 export default async function Dashboard({
   searchParams,
@@ -24,7 +28,9 @@ export default async function Dashboard({
   const params = await searchParams;
   const showVerified = params.verified === "1";
   const foundingIntent = params.founding === "1" || (await hasFoundingIntent());
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
+  const user = await getCurrentUser();
 
   if (isFacilityOrg(org)) {
     const [capacity, stays] = await Promise.all([
@@ -66,10 +72,13 @@ export default async function Dashboard({
     );
   }
 
-  const [pets, reminders, founding] = await Promise.all([
+  const [pets, reminders, founding, pendingImportRow] = await Promise.all([
     getActivePetsWithStats(),
     getUpcomingReminders(),
     getFoundingBreederLifetimeAvailability(),
+    user
+      ? getPendingDataImport({ userId: user.id, orgId: org.id })
+      : Promise.resolve(null),
   ]);
   const showFoundingPromo =
     org.plan === "STARTER" &&
@@ -139,6 +148,11 @@ export default async function Dashboard({
         attention={attentionItems}
         reminders={reminderItems}
         foundingPromo={showFoundingPromo ? founding : undefined}
+        pendingImport={
+          pendingImportRow
+            ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }
+            : null
+        }
       />
     </>
   );

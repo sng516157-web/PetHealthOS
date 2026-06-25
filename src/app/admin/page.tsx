@@ -16,6 +16,7 @@ import {
   AdminUnverifiedItem,
   type AdminUnverifiedUser,
 } from "@/components/AdminUnverifiedItem";
+import { AdminDataImportItem, type AdminDataImport } from "@/components/AdminDataImportItem";
 import { listUnverifiedSignups } from "@/lib/email-verify";
 import { readAllDocs } from "@/lib/docs";
 
@@ -115,6 +116,26 @@ export default async function AdminPage() {
     emailsSent: u._count.emailVerifications,
   }));
 
+  const importRowsRaw = await prisma.dataImportRequest.findMany({
+    where: { status: "PENDING" },
+    orderBy: { submittedAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true, phone: true, orgId: true } },
+      org: { select: { name: true } },
+    },
+  });
+  const pendingImports: AdminDataImport[] = importRowsRaw.map((row) => ({
+    id: row.id,
+    status: row.status,
+    accountLabel: row.orgId ? t.admin.unverifiedShop : t.admin.unverifiedOwner,
+    submitterName: row.user.name,
+    submitterEmail: row.user.email ?? row.user.phone,
+    orgName: row.org?.name ?? null,
+    fileNames: row.fileNames,
+    note: row.note,
+    submittedAt: formatDate(row.submittedAt, fmt),
+  }));
+
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       <LandingHeader t={t} />
@@ -208,6 +229,22 @@ export default async function AdminPage() {
         )}
 
         <AdminGrantPanel />
+
+        <h2 className="mt-10 text-sm font-semibold text-forest">
+          {t.admin.dataImportTitle} ({pendingImports.length})
+        </h2>
+        <p className="mt-1 text-xs text-muted">{t.admin.dataImportDesc}</p>
+        {pendingImports.length === 0 ? (
+          <p className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-8 text-center text-sm text-muted">
+            {t.admin.dataImportEmpty}
+          </p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {pendingImports.map((row) => (
+              <AdminDataImportItem key={row.id} row={row} />
+            ))}
+          </div>
+        )}
 
         <hr className="my-10 border-border" />
         <AdminDocs docs={docs} />

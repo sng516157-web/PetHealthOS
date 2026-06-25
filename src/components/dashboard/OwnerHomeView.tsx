@@ -7,6 +7,7 @@ import { petAge } from "@/lib/format";
 import { Badge, EmptyState, PetAvatar, Tone } from "@/components/ui";
 import { NotificationList } from "@/components/NotificationList";
 import { OwnerScanCard } from "@/components/OwnerScanCard";
+import { DashboardDataImport } from "@/components/dashboard/DashboardDataImport";
 import { PetStatus } from "@/lib/constants";
 import {
   DashboardCanvas,
@@ -52,6 +53,7 @@ export function OwnerHomeView({
   memorialPets,
   memorialTab,
   notifications,
+  pendingImport,
   preview,
 }: {
   userName: string;
@@ -59,6 +61,7 @@ export function OwnerHomeView({
   memorialPets: OwnerPet[];
   memorialTab: boolean;
   notifications: OwnerNotif[];
+  pendingImport?: { submittedAt: string } | null;
   /** Landing preview — same layout, in-frame navigation only. */
   preview?: { onPetSelect: (petId: string) => void };
 }) {
@@ -146,6 +149,10 @@ export function OwnerHomeView({
             toneClass={watchCount ? "bg-orange-50 text-orange-600" : "bg-emerald-50 text-emerald-600"}
           />
         </div>
+      )}
+
+      {!memorialTab && (
+        <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
       )}
 
       <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">

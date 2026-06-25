@@ -7,6 +7,10 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-06-25 — Data import from competitors.** Shop and owner dashboards now have **Import data** — upload a CSV roster plus PDFs (competitor exports, vaccine cards, scanned notes). Processing is queued (up to 24h for messy files); `/admin` lists pending imports with file downloads and a **Mark complete** action. Landing page and `/shop` advertise switching from other tools.
+
+- **2026-06-25 — Breeder workflow demo.** One ~2:00 silent 1080p screen recording of the real shop workflow (`public/demos/breeders/breeder-workflow.mp4`) — verify, log care, issue passport, buyer view — for marketing voiceover in post.
+
 ---
 
 - **2026-06-17 — Homepage fix.** Fixed a server error on `/` caused by passing i18n functions into a client component.

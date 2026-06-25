@@ -11,6 +11,16 @@ export const landingZh: typeof landingEn = {
   heroPrimary: "选择您的身份",
   heroSecondary: "查看示例护照",
   trustBullets: ["主人控制访问", "清晰的护理记录", "防篡改交接"],
+  importEyebrow: "正在从其他工具切换？",
+  importTitle: "迁入竞品应用或您自己的记录",
+  importDesc:
+    "上传 CSV 宠物清单和 PDF——疫苗卡、店铺导出或扫描的手写笔记。我们会将宠物、文档和护理记录整理到宠诺工作区，无需从零开始。",
+  importBullets: [
+    "支持宠舍管家、电子表格或店铺 POS 导出的 CSV",
+    "PDF 疫苗卡、化验单和手写日志",
+    "宠物、文档和日常记录为您整理好",
+    "过渡期间可继续使用旧工具",
+  ],
   howEyebrow: "宠诺如何运作",
   howTitle: "一本护照，照护各方共享",
   steps: [
@@ -53,6 +63,7 @@ export const landingZh: typeof landingEn = {
       desc: "商家工作区追踪照护中的每只宠物，标记需关注事项，并在宠物交给新主人时准备防篡改护照。",
       bullets: [
         "总览数据——照护中宠物、需关注项、到期提醒",
+        "从旧应用或纸质记录导入 CSV 与 PDF",
         "工作区 AI 覆盖整个名单——例如「哪些狗需要重点关注？」",
         "高严重度记录与观察中宠物的关注 feed",
         "签发护照二维码，在交接时冻结您的记录",
@@ -172,6 +183,7 @@ export const landingZh: typeof landingEn = {
     whyEyebrow: "商家为何选择宠诺",
     whyTitle: "用记录证明护理，而非空口承诺",
     whyItems: [
+      "从竞品应用或自有文件导入现有记录",
       "在购买前建立买家信任",
       "工作区 AI 覆盖全部照护宠物——优先关注谁需要留意",
       "疫苗、体重和文件井井有条",

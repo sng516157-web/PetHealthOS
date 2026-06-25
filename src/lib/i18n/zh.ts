@@ -137,6 +137,43 @@ export const zh: Dictionary = {
       subtitle: "一次性付款锁定繁育者终身访问权限——创始名额有限。",
     },
   },
+  dataImport: {
+    button: "导入数据",
+    cardTitle: "迁入现有记录",
+    cardDesc:
+      "正在从其他应用或自己的表格切换？上传 CSV 宠物清单和 PDF 文件，我们会帮您整理到工作区。",
+    pendingTitle: "导入处理中",
+    pendingDesc:
+      "我们正在处理您的文件。宠物、文档和记录会陆续出现在工作区——大多数导入在几小时内完成。",
+    modalTitle: "导入您的记录",
+    modalDesc:
+      "上传宠物清单（CSV）及支持的 PDF——疫苗卡、竞品导出或扫描的手写记录。",
+    csvLabel: "宠物清单（CSV）",
+    csvHint: "从当前应用（如宠舍管家）导出、电子表格或任何含宠物基本信息的表格。",
+    pdfsLabel: "文档（PDF，可选）",
+    pdfsHint: "疫苗卡、化验单、手写日志扫描，或 CSV 中未包含的内容。",
+    noteLabel: "备注（可选）",
+    notePlaceholder: "数据来源、优先处理的宠物、需要我们知道的信息…",
+    slaNote: "清晰的导出通常几小时内完成；杂乱或手写文档最多可能需要 24 小时。",
+    submit: "提交导入",
+    cancel: "取消",
+    close: "完成",
+    successTitle: "已提交，正在处理",
+    successDesc:
+      "您的文件已加入队列。大多数导入在几小时内完成；杂乱或手写文档最多可能需要 24 小时。处理完成后，宠物和记录会出现在工作区。",
+    selectedFile: (name: string) => `已选择：${name}`,
+    selectedCount: (n: number) => `已选择 ${n} 个 PDF`,
+    errors: {
+      generic: "提交失败，请重试。",
+      CSV_REQUIRED: "请上传 CSV 宠物清单。",
+      CSV_INVALID: "清单文件必须是 .csv 格式。",
+      PDF_INVALID: "支持文档必须是 PDF 格式。",
+      FILE_TOO_BIG: "每个文件不能超过 15 MB。",
+      TOO_MANY_FILES: "最多可上传 20 个 PDF。",
+      IMPORT_PENDING: "您已有一个导入正在处理，完成后即可再次提交。",
+      FORBIDDEN: "请登录后重试。",
+    },
+  },
   pets: {
     title: "宠物",
     inYourCare: (n: number) => `照护中 ${n} 只`,
@@ -1070,6 +1107,13 @@ export const zh: Dictionary = {
     deathClaimReject: "拒绝",
     deathClaimConfirmApprove: "确认向该主人发放慰问金？",
     deathClaimEmpty: "暂无待审核的纪念申请。",
+    dataImportTitle: "数据导入",
+    dataImportDesc:
+      "查看用户上传的 CSV 和 PDF。在工作区添加宠物、文档和记录后，标记为完成。",
+    dataImportEmpty: "暂无待处理的数据导入。",
+    dataImportMarkComplete: "标记导入完成",
+    dataImportAdminNote: "内部备注（可选）",
+    dataImportAdminNotePlaceholder: "例如：从宠舍管家导出导入了 12 只宠物",
     grantTitle: "赠送权益",
     grantDesc:
       "按账号邮箱赠送额外宠物位、照护名额或 SHOP 套餐。赠送名额标记为 comped，Stripe 账单同步时不会撤销。",

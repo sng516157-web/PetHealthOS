@@ -14,6 +14,16 @@ export const landingEn = {
     "Clear care history",
     "Tamper-evident handover",
   ],
+  importEyebrow: "Switching from another tool?",
+  importTitle: "Bring records from competitor apps or your own files",
+  importDesc:
+    "Upload a CSV roster plus PDFs — vaccine cards, shop exports, or scanned notebooks. We'll organize pets, documents, and care records in your PawSure workspace so you don't start from zero.",
+  importBullets: [
+    "CSV from 宠舍管家, spreadsheets, or shop POS exports",
+    "PDF vaccine cards, lab results, and handwritten logs",
+    "Pets, documents, and daily records organized for you",
+    "Keep using your old tool in parallel while you transition",
+  ],
   howEyebrow: "How PawSure works",
   howTitle: "One passport, shared by everyone who cares for the pet",
   steps: [
@@ -59,6 +69,7 @@ export const landingEn = {
       desc: "The shop workspace tracks every pet in your care, flags what needs attention, and prepares a tamper-evident passport when the pet goes to a new owner.",
       bullets: [
         "Overview stats — pets in care, attention items, due reminders",
+        "Import CSV + PDFs from your old app or paper records",
         "Workspace AI across your whole roster — e.g. “Which dogs should I keep an eye on?”",
         "Attention feed for high-severity logs and under-observation pets",
         "Issue a passport QR that freezes your records at handover",
@@ -203,6 +214,7 @@ export const landingEn = {
     whyEyebrow: "Why shops and breeders use PawSure",
     whyTitle: "Prove care — don't just claim it",
     whyItems: [
+      "Import existing records from competitor apps or your own files",
       "Build buyer trust before purchase",
       "Workspace AI across all pets in care — prioritize who needs attention",
       "Keep vaccines, weights, and documents organized",

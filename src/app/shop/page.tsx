@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Store } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Store, FileUp } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { SHOP_BILLING, USER_PLANS, OWNER_BILLING } from "@/lib/plans";
@@ -123,6 +123,23 @@ export default async function ShopLandingPage({
               </MotionReveal>
 
               <MotionReveal delay={120} className="mt-10">
+                <SectionHeading
+                  align="left"
+                  eyebrow={l.importEyebrow}
+                  title={l.importTitle}
+                  subtitle={l.importDesc}
+                />
+                <ul className="mt-4 space-y-2">
+                  {l.importBullets.map((b) => (
+                    <li key={b} className="flex items-start gap-2 text-sm text-ink/75">
+                      <FileUp size={16} className="mt-0.5 shrink-0 text-brand-600" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </MotionReveal>
+
+              <MotionReveal delay={160} className="mt-10">
                 <SectionHeading align="left" eyebrow={s.recordEyebrow} title={s.recordTitle} />
                 <div className="mt-4 flex flex-wrap gap-2">
                   {s.recordItems.map((item) => (
@@ -136,7 +153,7 @@ export default async function ShopLandingPage({
                 </div>
               </MotionReveal>
 
-              <MotionReveal delay={160} className="mt-10">
+              <MotionReveal delay={200} className="mt-10">
                 <SectionHeading align="left" eyebrow={s.handoverEyebrow} title={s.handoverTitle} />
                 <ol className="mt-4 space-y-3">
                   {s.handoverSteps.map((step, i) => (
@@ -150,7 +167,7 @@ export default async function ShopLandingPage({
                 </ol>
               </MotionReveal>
 
-              <MotionReveal delay={200} className="mt-10">
+              <MotionReveal delay={240} className="mt-10">
                 <SectionHeading align="left" eyebrow={s.diffTitle} title={s.diffSubtitle} />
                 <div
                   className={`mt-4 overflow-hidden rounded-3xl border border-border bg-surface shadow-soft ${motionCardHover}`}

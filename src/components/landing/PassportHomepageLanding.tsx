@@ -8,6 +8,7 @@ import {
   Building2,
   User,
   QrCode,
+  FileUp,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/en";
@@ -216,6 +217,32 @@ export function PassportHomepageLanding({ locale, t, previewBanner, founding }: 
           </MotionReveal>
           <MotionReveal delay={80} className="mt-8 max-w-2xl">
             <BulletList items={h.problemBullets} />
+          </MotionReveal>
+        </div>
+      </section>
+
+      <section className="border-t border-border bg-brand-50/30">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+          <MotionReveal>
+            <SectionHeading
+              align="left"
+              eyebrow={t.landing.importEyebrow}
+              title={t.landing.importTitle}
+              subtitle={t.landing.importDesc}
+            />
+          </MotionReveal>
+          <MotionReveal delay={80} className="mt-8">
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {t.landing.importBullets.map((b) => (
+                <li
+                  key={b}
+                  className="flex items-start gap-2 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-ink/75"
+                >
+                  <FileUp size={16} className="mt-0.5 shrink-0 text-brand-600" />
+                  {b}
+                </li>
+              ))}
+            </ul>
           </MotionReveal>
         </div>
       </section>

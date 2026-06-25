@@ -20,6 +20,11 @@ import {
 import { isAdmin, adminSignIn, adminSignOut } from "@/lib/admin";
 import type { AdminGrantKind } from "@/lib/admin-grants";
 import { notifyAdmins } from "@/lib/email";
+import {
+  DATA_IMPORT_MAX_FILE_BYTES,
+  DATA_IMPORT_MAX_PDFS,
+  getPendingDataImport,
+} from "@/lib/data-import";
 import { deliverFeedback, newFeedbackId } from "@/lib/feedback";
 import {
   sendVerificationEmail,
@@ -2042,5 +2047,95 @@ export async function reviewDeathClaim(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/me");
+  return { ok: true };
+}
+
+function isCsvFile(file: File) {
+  const name = file.name.toLowerCase();
+  return name.endsWith(".csv") || file.type === "text/csv" || file.type === "application/vnd.ms-excel";
+}
+
+function isPdfFile(file: File) {
+  const name = file.name.toLowerCase();
+  return name.endsWith(".pdf") || file.type === "application/pdf";
+}
+
+export async function submitDataImport(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "FORBIDDEN" };
+
+  const orgId = user.orgId ?? null;
+  const existing = await getPendingDataImport({ userId: user.id, orgId });
+  if (existing) return { error: "IMPORT_PENDING" };
+
+  const csv = formData.get("csv");
+  if (!(csv instanceof File) || csv.size === 0) return { error: "CSV_REQUIRED" };
+  if (!isCsvFile(csv)) return { error: "CSV_INVALID" };
+  if (csv.size > DATA_IMPORT_MAX_FILE_BYTES) return { error: "FILE_TOO_BIG" };
+
+  const pdfs = formData
+    .getAll("pdfs")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (pdfs.length > DATA_IMPORT_MAX_PDFS) return { error: "TOO_MANY_FILES" };
+  for (const file of pdfs) {
+    if (!isPdfFile(file)) return { error: "PDF_INVALID" };
+    if (file.size > DATA_IMPORT_MAX_FILE_BYTES) return { error: "FILE_TOO_BIG" };
+  }
+
+  const note = String(formData.get("note") || "").trim();
+  if (note.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const fileRefs: string[] = [await saveVerificationDoc(csv)];
+  const fileNames: string[] = [csv.name];
+  for (const file of pdfs) {
+    fileRefs.push(await saveVerificationDoc(file));
+    fileNames.push(file.name);
+  }
+
+  await prisma.dataImportRequest.create({
+    data: {
+      userId: user.id,
+      orgId,
+      fileRefs: JSON.stringify(fileRefs),
+      fileNames: JSON.stringify(fileNames),
+      note: note || null,
+    },
+  });
+
+  const accountLabel = orgId ? `shop org ${orgId}` : `owner ${user.email ?? user.phone ?? user.id}`;
+  await notifyAdmins(
+    "Data import submitted",
+    `A user submitted a data import request (${accountLabel}). Review files at /admin.`,
+  );
+
+  revalidatePath(orgId ? "/app" : "/me");
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+export async function completeDataImport(formData: FormData) {
+  if (!(await isAdmin())) return { error: "FORBIDDEN" };
+
+  const importId = String(formData.get("importId") || "");
+  if (!importId) return { error: "BAD_REQUEST" };
+
+  const adminNote = String(formData.get("adminNote") || "").trim() || null;
+  if (adminNote && adminNote.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const row = await prisma.dataImportRequest.findUnique({ where: { id: importId } });
+  if (!row || row.status !== "PENDING") return { error: "NOT_FOUND" };
+
+  await prisma.dataImportRequest.update({
+    where: { id: importId },
+    data: {
+      status: "COMPLETED",
+      adminNote,
+      completedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/admin");
+  if (row.orgId) revalidatePath("/app");
+  else revalidatePath("/me");
   return { ok: true };
 }

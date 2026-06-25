@@ -54,7 +54,8 @@ model Organization {
   members       User[] @relation("OrgMembers")
   notifications Notification[]
   stays         PetStay[] @relation("FacilityStays")
-  orgSlots      OrgSlot[]
+  orgSlots           OrgSlot[]
+  dataImportRequests DataImportRequest[]
 }
 
 // Purchased org capacity — shop extra pets (shop_pet) or facility care slots (care).
@@ -113,6 +114,7 @@ model User {
   notifications      Notification[]
   emailVerifications EmailVerification[]
   passwordResets     PasswordReset[]
+  dataImportRequests DataImportRequest[]
 
   @@index([orgId])
 }
@@ -477,6 +479,27 @@ model PetDeathClaim {
   refundGrantedAt DateTime?
 
   @@index([status, submittedAt])
+  @@index([userId])
+}
+
+// User-submitted bulk import (CSV roster + PDF/scanned records). Processed by the
+// team until automated AI import ships; files stored as private doc refs.
+model DataImportRequest {
+  id          String    @id @default(cuid())
+  status      String    @default("PENDING") // PENDING | COMPLETED
+  orgId       String?
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileRefs    String    // JSON string[] — private doc refs (csv first, then pdfs)
+  fileNames   String    // JSON string[] — parallel original filenames
+  note        String?
+  adminNote   String?
+  submittedAt DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([status, submittedAt])
+  @@index([orgId])
   @@index([userId])
 }
 

@@ -3,6 +3,9 @@ import { getOwnedPets, getOwnedMemorialPets, getUserNotifications } from "@/lib/
 import { getI18n } from "@/lib/i18n/server";
 import { EmailVerifiedBanner } from "@/components/EmailVerifiedBanner";
 import { OwnerHomeView } from "@/components/dashboard/OwnerHomeView";
+import { getPendingDataImport } from "@/lib/data-import";
+import { formatDate } from "@/lib/format";
+import { getTimezone } from "@/lib/timezone/server";
 
 export default async function MeHome({
   searchParams,
@@ -11,14 +14,16 @@ export default async function MeHome({
 }) {
   const user = await getCurrentUser();
   if (!user) return null;
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const timeZone = await getTimezone();
   const params = await searchParams;
   const showVerified = params.verified === "1";
   const memorialTab = params.tab === "memorial";
-  const [pets, memorialPets, notifications] = await Promise.all([
+  const [pets, memorialPets, notifications, pendingImportRow] = await Promise.all([
     getOwnedPets(user.id),
     getOwnedMemorialPets(user.id),
     getUserNotifications(user.id),
+    getPendingDataImport({ userId: user.id, orgId: null }),
   ]);
 
   const petItems = pets.map((pet) => ({
@@ -55,6 +60,11 @@ export default async function MeHome({
         memorialPets={memorialItems}
         memorialTab={memorialTab && memorialItems.length > 0}
         notifications={notifications}
+        pendingImport={
+          pendingImportRow
+            ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }
+            : null
+        }
       />
     </>
   );
