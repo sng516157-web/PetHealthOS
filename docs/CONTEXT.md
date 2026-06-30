@@ -265,6 +265,14 @@ Newest first. One entry per decision/change: date — what — why.
   Fixes: `viewport-fit=cover` + safe-area padding on headers/nav/modals; 16px mobile form
   inputs; iOS scroll-lock for overlays; `dvh` height utilities for chat/workspace shells;
   `ps-scroll-x` on tab strips.
+- **2026-06-25** — **Landing clarity + founding pricing + log date validation.** Why (user):
+  (1) Homepage hero and owner path copy now lead with **1 pet free forever** for owners.
+  (2) Founding breeder lifetime split into **$99 early** (25 spots, `FOUNDING_BREEDER_EARLY`)
+  shown above **$299 standard** (`FOUNDING_BREEDER_LIFETIME`); $299 stays available when early
+  sells out; auto-checkout prefers early. Env: `STRIPE_FOUNDING_BREEDER_EARLY_PRICE_ID`,
+  `FOUNDING_BREEDER_EARLY_LIMIT`.
+  (3) Health log `occurredAt` rejects future dates server-side (`resolveLogOccurredAt` →
+  `DATE_FUTURE`); reminders still allow future `dueAt`.
 - **2026-06-25** — **Admin import workspace (`/admin/imports/[id]`).** Why (user): ops tool to
   view CSV rows + PDFs and assign data to pets, logs, weights, and document attachments — manual
   today, same `DataImportProcessingState` JSON for future AI automation. Auto-parses CSV with

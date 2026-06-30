@@ -279,6 +279,16 @@ export function validatePetDates(
   return out.birth || out.intake ? out : null;
 }
 
+export function resolveLogOccurredAt(
+  raw?: string,
+): { date: Date } | { error: typeof VErr.DATE_INVALID | typeof VErr.DATE_FUTURE } {
+  const v = raw?.trim();
+  const date = v ? new Date(v) : new Date();
+  if (Number.isNaN(date.getTime())) return { error: VErr.DATE_INVALID };
+  if (date.getTime() > endOfToday()) return { error: VErr.DATE_FUTURE };
+  return { date };
+}
+
 /** A date that must be a real date and not in the future (birthDate, weigh-in). */
 export function validatePastOrToday(
   value: string,

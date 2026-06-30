@@ -2,16 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/client";
-
-type Availability = {
-  limit: number;
-  claimed: number;
-  remaining: number;
-  soldOut: boolean;
-};
+import type { FoundingSpotAvailability } from "@/lib/founding-breeder-lifetime";
 
 type Props = {
-  initial: Availability;
+  initial: FoundingSpotAvailability;
   className?: string;
   onSoldOut?: () => void;
 };
@@ -20,7 +14,7 @@ const POLL_MS = 30_000;
 
 export function FoundingBreederSpotCounter({ initial, className, onSoldOut }: Props) {
   const { t } = useI18n();
-  const f = t.pricing.foundingLifetime;
+  const f = t.pricing.foundingEarly;
   const [availability, setAvailability] = useState(initial);
 
   useEffect(() => {
@@ -32,10 +26,10 @@ export function FoundingBreederSpotCounter({ initial, className, onSoldOut }: Pr
       try {
         const res = await fetch("/api/founding-breeder-lifetime/availability");
         if (!res.ok || cancelled) return;
-        const next = (await res.json()) as Availability;
+        const next = (await res.json()) as { early: FoundingSpotAvailability };
         if (cancelled) return;
-        setAvailability(next);
-        if (next.soldOut) onSoldOut?.();
+        setAvailability(next.early);
+        if (next.early.soldOut) onSoldOut?.();
       } catch {
         /* ignore transient network errors */
       }

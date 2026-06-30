@@ -32,6 +32,16 @@ export const ORG_PLANS: Record<string, Plan> = {
     canIssuePassport: true,
     multiSeat: true,
   },
+  FOUNDING_BREEDER_EARLY: {
+    key: "FOUNDING_BREEDER_EARLY",
+    audience: "org",
+    includedPets: 50,
+    priceUsd: 99,
+    extraPetPriceUsd: 2.49,
+    petCap: null,
+    canIssuePassport: true,
+    multiSeat: true,
+  },
   FOUNDING_BREEDER_LIFETIME: {
     key: "FOUNDING_BREEDER_LIFETIME",
     audience: "org",

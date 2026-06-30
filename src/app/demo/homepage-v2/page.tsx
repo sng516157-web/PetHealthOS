@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { PassportHomepageLanding } from "@/components/landing/PassportHomepageLanding";
 import { pageMetadata, privateRobots } from "@/lib/seo";
-import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
+import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lifetime";
 
 export const metadata: Metadata = {
   ...pageMetadata({
@@ -21,7 +21,7 @@ export default async function HomepageV2PreviewPage() {
   if (user) redirect(user.orgId ? "/app" : "/me");
   const [{ locale, t }, founding] = await Promise.all([
     getI18n(),
-    getFoundingBreederLifetimeAvailability(),
+    getFoundingBreederOffersAvailability(),
   ]);
 
   return (
@@ -29,7 +29,7 @@ export default async function HomepageV2PreviewPage() {
       locale={locale}
       t={t}
       previewBanner
-      founding={founding.soldOut ? null : founding}
+      founding={founding}
     />
   );
 }

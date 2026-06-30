@@ -11,7 +11,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { EmailVerifiedBanner } from "@/components/EmailVerifiedBanner";
 import { ShopHomeView } from "@/components/dashboard/ShopHomeView";
 import { FacilityHomeView } from "@/components/dashboard/FacilityHomeView";
-import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
+import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lifetime";
 import { hasFoundingIntent } from "@/lib/founding-intent-server";
 import { FoundingBreederAutoCheckout } from "@/components/FoundingBreederAutoCheckout";
 import { getCurrentUser } from "@/lib/auth";
@@ -72,24 +72,18 @@ export default async function Dashboard({
     );
   }
 
-  const [pets, reminders, founding, pendingImportRow] = await Promise.all([
+  const [pets, reminders, foundingOffers, pendingImportRow] = await Promise.all([
     getActivePetsWithStats(),
     getUpcomingReminders(),
-    getFoundingBreederLifetimeAvailability(),
+    getFoundingBreederOffersAvailability(),
     user
       ? getPendingDataImport({ userId: user.id, orgId: org.id })
       : Promise.resolve(null),
   ]);
   const showFoundingPromo =
-    org.plan === "STARTER" &&
-    org.foundingBreederEligible &&
-    !founding.soldOut &&
-    !foundingIntent;
+    org.plan === "STARTER" && org.foundingBreederEligible && !foundingIntent;
   const autoFoundingCheckout =
-    foundingIntent &&
-    org.plan === "STARTER" &&
-    org.foundingBreederEligible &&
-    !founding.soldOut;
+    foundingIntent && org.plan === "STARTER" && org.foundingBreederEligible;
 
   const now = Date.now();
   const twoWeeks = 1000 * 60 * 60 * 24 * 14;
@@ -147,7 +141,7 @@ export default async function Dashboard({
         pets={petItems}
         attention={attentionItems}
         reminders={reminderItems}
-        foundingPromo={showFoundingPromo ? founding : undefined}
+        foundingPromo={showFoundingPromo ? foundingOffers.early : undefined}
         pendingImport={
           pendingImportRow
             ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }

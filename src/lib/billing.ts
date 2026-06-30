@@ -28,11 +28,17 @@ import {
 } from "./plans";
 import { toStripeCents } from "./money";
 import {
+  FOUNDING_BREEDER_EARLY_PLAN_KEY,
+  FOUNDING_BREEDER_EARLY_PRICE_USD,
   FOUNDING_BREEDER_LIFETIME_PLAN_KEY,
   FOUNDING_BREEDER_LIFETIME_PRICE_USD,
+  foundingBreederEarlyStripePriceId,
   foundingBreederLifetimeStripePriceId,
-  getFoundingBreederLifetimeAvailability,
-  isFoundingBreederLifetimePlan,
+  getFoundingBreederEarlyAvailability,
+  isFoundingBreederPaidLifetimePlan,
+  foundingBreederPlanKey,
+  foundingBreederPriceUsd,
+  type FoundingBreederTier,
 } from "./founding-breeder-lifetime";
 
 export type CheckoutScope =
@@ -178,7 +184,7 @@ export async function activatePlan(
 ): Promise<void> {
   if (scope.kind === "org") {
     const isStarter = planKey === "STARTER";
-    const resolvedInterval: PlanInterval | null = isFoundingBreederLifetimePlan(planKey)
+    const resolvedInterval: PlanInterval | null = isFoundingBreederPaidLifetimePlan(planKey)
       ? "lifetime"
       : isStarter
         ? null
@@ -257,13 +263,16 @@ async function createStripeCheckout(opts: {
   return { url: session.url };
 }
 
-/** One-time founding breeder lifetime deal ($299). */
-export async function buyFoundingBreederLifetime(opts: {
-  orgId: string;
-  baseUrl: string;
-  provider: Provider;
-}): Promise<CheckoutResult> {
-  const { orgId, baseUrl } = opts;
+/** One-time founding breeder lifetime deal (early $99 or standard $299). */
+async function buyFoundingBreederDeal(
+  opts: {
+    orgId: string;
+    baseUrl: string;
+    provider: Provider;
+    tier: FoundingBreederTier;
+  },
+): Promise<CheckoutResult> {
+  const { orgId, baseUrl, tier } = opts;
   const org = await prisma.organization.findUnique({
     where: { id: orgId },
     select: { plan: true, kind: true, foundingBreederEligible: true },
@@ -272,17 +281,19 @@ export async function buyFoundingBreederLifetime(opts: {
   if (org.kind === "HOSPITAL" || org.kind === "BOARDING") {
     return { error: "NOT_BREEDER" };
   }
-  if (isFoundingBreederLifetimePlan(org.plan)) {
+  if (isFoundingBreederPaidLifetimePlan(org.plan)) {
     return { error: "ALREADY_LIFETIME" };
   }
   if (!org.foundingBreederEligible || org.plan === "SHOP") {
     return { error: "FOUNDING_FORFEITED" };
   }
 
-  const availability = await getFoundingBreederLifetimeAvailability();
-  if (availability.soldOut) return { error: "FOUNDING_SOLD_OUT" };
+  if (tier === "early") {
+    const availability = await getFoundingBreederEarlyAvailability();
+    if (availability.soldOut) return { error: "FOUNDING_SOLD_OUT" };
+  }
 
-  const planKey = FOUNDING_BREEDER_LIFETIME_PLAN_KEY;
+  const planKey = foundingBreederPlanKey(tier);
   const metadata = {
     scopeKind: "org",
     scopeId: orgId,
@@ -298,16 +309,39 @@ export async function buyFoundingBreederLifetime(opts: {
   if (!stripeConfigured()) return { error: "STRIPE_NOT_CONFIGURED" };
 
   const stripeCustomerId = await getStripeCustomerId({ kind: "org", id: orgId });
-  const stripePriceId = foundingBreederLifetimeStripePriceId();
+  const stripePriceId =
+    tier === "early"
+      ? foundingBreederEarlyStripePriceId()
+      : foundingBreederLifetimeStripePriceId();
+  const productName =
+    tier === "early"
+      ? "PawSure — Founding Breeder Lifetime (Early)"
+      : "PawSure — Founding Breeder Lifetime";
 
   return createStripeCheckout({
-    amountUsd: FOUNDING_BREEDER_LIFETIME_PRICE_USD,
-    productName: "PawSure — Founding Breeder Lifetime",
+    amountUsd: foundingBreederPriceUsd(tier),
+    productName,
     metadata,
     baseUrl,
     stripeCustomerId,
     stripePriceId,
   });
+}
+
+export async function buyFoundingBreederEarly(opts: {
+  orgId: string;
+  baseUrl: string;
+  provider: Provider;
+}): Promise<CheckoutResult> {
+  return buyFoundingBreederDeal({ ...opts, tier: "early" });
+}
+
+export async function buyFoundingBreederLifetime(opts: {
+  orgId: string;
+  baseUrl: string;
+  provider: Provider;
+}): Promise<CheckoutResult> {
+  return buyFoundingBreederDeal({ ...opts, tier: "lifetime" });
 }
 
 export async function startCheckout(opts: {

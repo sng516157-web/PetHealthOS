@@ -140,8 +140,8 @@ export function ShopHomeView({
         />
       </div>
 
-      {foundingPromo && !foundingPromo.soldOut && (
-        <FoundingBreederDashboardPromo initial={foundingPromo} className="mt-8" />
+      {foundingPromo && (
+        <FoundingBreederDashboardPromo early={foundingPromo} className="mt-8" />
       )}
 
       <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />

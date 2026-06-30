@@ -139,8 +139,10 @@ export const en = {
     upcomingReminders: "Upcoming reminders",
     noReminders: "No reminders scheduled.",
     foundingPromo: {
+      eyebrow: "创始繁育者终身优惠",
+      title: "一次付费，终身使用",
       subtitle:
-        "Lock in lifetime breeder access with a one-time payment — while founding spots last.",
+        "早鸟 $99（25 个名额）或标准 $299 终身版——无需月费订阅。",
     },
   },
   dataImport: {
@@ -861,6 +863,7 @@ export const en = {
   plans: {
     STARTER: "Starter",
     SHOP: "Shop",
+    FOUNDING_BREEDER_EARLY: "Founding Breeder Early",
     FOUNDING_BREEDER_LIFETIME: "Founding Breeder Lifetime",
     FREE: "Owner's Account",
     PLUS: "Owner Plus",
@@ -901,6 +904,35 @@ export const en = {
     shopTagline: "For working catteries, kennels & shops.",
     freeTagline: "Keep your pet's lifelong health in one calm place.",
     plusTagline: "For owners with a larger household.",
+    foundingEarly: {
+      badge: "25 early spots",
+      title: "Founding Breeder Lifetime — Early",
+      subtitle:
+        "Lock in lifetime breeder passport access at the lowest price while early spots last.",
+      priceCadence: "one-time",
+      cta: "Claim $99 early spot",
+      features: [
+        "One breeder/business account",
+        "Lifetime core breeder passport features",
+        "Create and manage pet health passports",
+        "Transfer records to new owners",
+        "Same entitlements as the standard founding deal",
+      ],
+      smallPrint:
+        "Limited to 25 early breeder accounts. Non-transferable. Fair-use limits apply for AI/document-heavy usage.",
+      soldOut: "Early founding spots are sold out — see the standard lifetime offer below.",
+      spotsLabel: "Early spots left",
+      spotsRemaining: (n: number) =>
+        n === 1 ? "1 early spot remaining" : `${n} early spots remaining`,
+      spotsClaimed: (claimed: number, limit: number) =>
+        `${claimed} of ${limit} early spots claimed`,
+      activeBadge: "Lifetime access active",
+      alreadyActive: "Your workspace already has lifetime access.",
+      forfeited: "Founding deal unavailable",
+      forfeitedDetail:
+        "This workspace chose a monthly or yearly shop subscription, so founding lifetime offers are permanently closed.",
+      notBreeder: "This offer is for breeder and shop accounts only.",
+    },
     foundingLifetime: {
       badge: "Limited early breeder offer",
       title: "Founding Breeder Lifetime",

@@ -306,6 +306,7 @@ export const landingZh: typeof landingEn = {
     heroPrimary: "免费创建前 5 本宠物护照",
     heroSecondary: "查看示例护照",
     heroOwnerPrimary: "免费创建主人账户",
+    heroOwnerFreeBadge: "宠物主人 — 第一只宠物永久免费",
     heroOwnerCta: "我是宠物主人——扫描或认领护照",
     pathsEyebrow: "一本护照，两方使用",
     pathsTitle: "商家签发，主人延续",
@@ -317,12 +318,12 @@ export const landingZh: typeof landingEn = {
     pathsBreederCta: "创建商家工作区",
     pathsOwnerTitle: "宠物主人",
     pathsOwnerDesc:
-      "从繁育者或救助机构领养了带宠诺护照的宠物？扫码即可继承完整护理历史——疫苗、体重、文件与备注——并终身继续记录。",
+      "第一只宠物永久免费，无需信用卡。从繁育者或救助机构领养带宠诺护照的宠物？扫码即可继承疫苗、体重、文件与备注，并终身继续记录。",
     pathsOwnerBullets: [
+      "主人方案第一只宠物永久免费",
       "交接时扫描繁育者或救助机构的护照二维码",
       "继承疫苗、体重、文件与护理备注",
       "在一处设置提醒、记录健康并保存文件",
-      "第一只宠物免费——无护照也可自行建档",
     ],
     pathsOwnerCta: "免费创建主人账户",
     pathsOwnerScan: "扫描护照二维码",
@@ -368,9 +369,9 @@ export const landingZh: typeof landingEn = {
     dashboardSubtitle: "商家追踪交接前的宠物；主人在同一主页查看宠物、提醒与继承的护照。",
     dashboardHint: "可切换商家或主人——点击体验；不会保存数据。",
     foundingEyebrow: "限时创始繁育者优惠",
-    foundingTitle: "创始繁育者终身版",
-    foundingCopy:
-      "面向希望使用 PawSure 核心护照功能、又不想按月订阅的早期繁育伙伴。一个商家账户，终身使用健康护照、宠物档案与主人交接功能。",
+    foundingOffersTitle: "创始繁育者终身优惠",
+    foundingOffersSubtitle:
+      "一次付费，终身使用繁育者护照核心功能，无需月费。早鸟名额有限；售罄后仍可购买标准终身版。",
     foundingBullets: [
       "一个繁育/商家账户，不可转让",
       "为窝次创建并管理宠物健康护照",

@@ -134,7 +134,9 @@ export const zh: Dictionary = {
     upcomingReminders: "即将到来的提醒",
     noReminders: "暂无提醒安排。",
     foundingPromo: {
-      subtitle: "一次性付款锁定繁育者终身访问权限——创始名额有限。",
+      eyebrow: "创始繁育者终身优惠",
+      title: "一次付费，终身使用",
+      subtitle: "早鸟 $99（25 个名额）或标准 $299 终身版——无需月费订阅。",
     },
   },
   dataImport: {
@@ -842,6 +844,7 @@ export const zh: Dictionary = {
   plans: {
     STARTER: "入门版",
     SHOP: "商家版",
+    FOUNDING_BREEDER_EARLY: "创始繁育者早鸟版",
     FOUNDING_BREEDER_LIFETIME: "创始繁育者终身版",
     FREE: "主人账户",
     PLUS: "主人 Plus",
@@ -879,6 +882,33 @@ export const zh: Dictionary = {
     shopTagline: "适合在营的猫舍、犬舍与商家。",
     freeTagline: "把宠物一生的健康集中在一处。",
     plusTagline: "适合养了较多宠物的主人。",
+    foundingEarly: {
+      badge: "25 个早鸟名额",
+      title: "创始繁育者终身版 — 早鸟",
+      subtitle: "在早鸟名额售罄前，以最低价格锁定终身繁育护照权限。",
+      priceCadence: "一次性",
+      cta: "领取 $99 早鸟名额",
+      features: [
+        "一个繁育者/商家账户",
+        "终身核心繁育护照功能",
+        "创建与管理宠物健康护照",
+        "向新主人转移记录",
+        "与标准创始优惠相同权益",
+      ],
+      smallPrint:
+        "限 25 个早鸟商家账户，不可转让。AI/文档重度使用适用公平使用限制。",
+      soldOut: "早鸟名额已售罄——请查看下方标准终身版。",
+      spotsLabel: "早鸟名额剩余",
+      spotsRemaining: (n: number) => (n === 1 ? "剩余 1 个早鸟名额" : `剩余 ${n} 个早鸟名额`),
+      spotsClaimed: (claimed: number, limit: number) =>
+        `已领取 ${claimed} / ${limit} 个早鸟名额`,
+      activeBadge: "终身权限已激活",
+      alreadyActive: "您的工作区已拥有终身权限。",
+      forfeited: "创始优惠不可用",
+      forfeitedDetail:
+        "此工作区已选择月付或年付商家订阅，创始终身优惠已永久关闭。",
+      notBreeder: "此优惠仅面向繁育者与商家账户。",
+    },
     foundingLifetime: {
       badge: "限量早期繁育者优惠",
       title: "创始繁育者终身版",

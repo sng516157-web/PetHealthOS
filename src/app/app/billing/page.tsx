@@ -11,8 +11,10 @@ import { Check } from "lucide-react";
 import { ShopBilling } from "@/components/ShopBilling";
 import { FacilitySlots } from "@/components/FacilitySlots";
 import { FoundingBreederLifetimeCard } from "@/components/FoundingBreederLifetimeCard";
-import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
-import { isFoundingBreederLifetimePlan } from "@/lib/founding-breeder-lifetime";
+import {
+  getFoundingBreederOffersAvailability,
+  isFoundingBreederPaidLifetimePlan,
+} from "@/lib/founding-breeder-lifetime";
 import { getI18n } from "@/lib/i18n/server";
 
 export default async function OrgBillingPage() {
@@ -20,8 +22,8 @@ export default async function OrgBillingPage() {
   const { org, plan, count, limit } = await getOrgUsage();
   const facility = isFacilityOrg(org);
   const capacity = facility ? await getFacilityCapacity() : null;
-  const founding = !facility ? await getFoundingBreederLifetimeAvailability() : null;
-  const isLifetime = isFoundingBreederLifetimePlan(plan.key);
+  const offers = !facility ? await getFoundingBreederOffersAvailability() : null;
+  const isLifetime = isFoundingBreederPaidLifetimePlan(plan.key);
   const isShop = plan.key === "SHOP";
   const foundingBlocked = !org.foundingBreederEligible || isShop;
   const pct = Math.min(100, Math.round((count / Math.max(1, limit)) * 100));
@@ -76,20 +78,24 @@ export default async function OrgBillingPage() {
         </>
       )}
 
-      {!facility && (isLifetime || foundingBlocked || (founding && !founding.soldOut)) && (
-        <FoundingBreederLifetimeCard
-          mode="checkout"
-          blocked={foundingBlocked && !isLifetime}
-          availability={
-            founding ?? {
-              limit: 0,
-              claimed: 0,
-              remaining: 0,
-              soldOut: true,
-            }
-          }
-          active={isLifetime}
-        />
+      {!facility && (isLifetime || foundingBlocked || offers) && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {!isLifetime && !foundingBlocked && offers && !offers.early.soldOut && (
+            <FoundingBreederLifetimeCard
+              tier="early"
+              mode="checkout"
+              earlyAvailability={offers.early}
+            />
+          )}
+          {(isLifetime || !foundingBlocked) && (
+            <FoundingBreederLifetimeCard
+              tier="lifetime"
+              mode="checkout"
+              blocked={foundingBlocked && !isLifetime}
+              active={isLifetime}
+            />
+          )}
+        </div>
       )}
 
       {!facility && !isLifetime && (

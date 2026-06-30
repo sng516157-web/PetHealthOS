@@ -21,8 +21,7 @@ import {
 import { PassportHeroMockup } from "@/components/landing/PassportHeroMockup";
 import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
 import { LandingMiniDashboards } from "@/components/landing/LandingMiniDashboards";
-import { FoundingBreederHomepageSection } from "@/components/landing/FoundingBreederHomepageSection";
-import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
+import { FoundingBreederHomepageOffers } from "@/components/landing/FoundingBreederHomepageOffers";
 import {
   AuroraOrbs,
   MotionPop,
@@ -39,10 +38,12 @@ type Props = {
   /** Amber banner for `/demo/homepage-v2` — production `/` omits this. */
   previewBanner?: boolean;
   founding?: {
-    limit: number;
-    claimed: number;
-    remaining: number;
-    soldOut: boolean;
+    early: {
+      limit: number;
+      claimed: number;
+      remaining: number;
+      soldOut: boolean;
+    };
   } | null;
 };
 
@@ -105,6 +106,9 @@ export function PassportHomepageLanding({ locale, t, previewBanner, founding }: 
                   <User size={16} /> {h.heroOwnerPrimary}
                 </Link>
               </div>
+              <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-3 py-1.5 text-xs font-semibold text-brand-900">
+                {h.heroOwnerFreeBadge}
+              </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                 <a
                   href="#sample-passport"
@@ -130,13 +134,11 @@ export function PassportHomepageLanding({ locale, t, previewBanner, founding }: 
         </div>
       </section>
 
-      {founding && !founding.soldOut && (
-        <FoundingBreederHomepageSection
+      {founding && (
+        <FoundingBreederHomepageOffers
           h={h}
-          initial={founding}
+          early={founding.early}
           shopSignupHref={SHOP_SIGNUP_HREF}
-          priceLabel={t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}
-          priceCadence={t.pricing.foundingLifetime.priceCadence}
         />
       )}
 

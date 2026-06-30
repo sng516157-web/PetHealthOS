@@ -4,44 +4,53 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-import { startFoundingBreederLifetimeCheckout } from "@/app/actions";
+import {
+  startFoundingBreederEarlyCheckout,
+  startFoundingBreederLifetimeCheckout,
+} from "@/app/actions";
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { FoundingBreederSpotCounter } from "@/components/FoundingBreederSpotCounter";
-import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
+import {
+  FOUNDING_BREEDER_EARLY_PRICE_USD,
+  FOUNDING_BREEDER_LIFETIME_PRICE_USD,
+  type FoundingBreederTier,
+} from "@/lib/founding-breeder-lifetime.constants";
+import type { FoundingSpotAvailability } from "@/lib/founding-breeder-lifetime";
 import { useI18n } from "@/lib/i18n/client";
 import {
   trackBeginCheckout,
   trackFoundingLifetimeCtaClicked,
 } from "@/lib/analytics";
 
-type Availability = {
-  limit: number;
-  claimed: number;
-  remaining: number;
-  soldOut: boolean;
-};
-
 type Props = {
+  tier: FoundingBreederTier;
   mode: "marketing" | "checkout";
-  availability: Availability;
+  earlyAvailability?: FoundingSpotAvailability;
   active?: boolean;
   blocked?: boolean;
   marketingHref?: string;
-  onSoldOut?: () => void;
+  onEarlySoldOut?: () => void;
 };
 
 export function FoundingBreederLifetimeCard({
+  tier,
   mode,
-  availability: initialAvailability,
+  earlyAvailability,
   active = false,
   blocked = false,
   marketingHref = "/shop?founding=1#signup",
-  onSoldOut,
+  onEarlySoldOut,
 }: Props) {
   const { t } = useI18n();
-  const f = t.pricing.foundingLifetime;
+  const f = tier === "early" ? t.pricing.foundingEarly : t.pricing.foundingLifetime;
+  const priceUsd =
+    tier === "early" ? FOUNDING_BREEDER_EARLY_PRICE_USD : FOUNDING_BREEDER_LIFETIME_PRICE_USD;
+  const productKey =
+    tier === "early" ? "FOUNDING_BREEDER_EARLY" : "FOUNDING_BREEDER_LIFETIME";
   const router = useRouter();
-  const [hidden, setHidden] = useState(initialAvailability.soldOut && !active && !blocked);
+  const [hidden, setHidden] = useState(
+    tier === "early" && earlyAvailability?.soldOut && !active && !blocked,
+  );
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -61,37 +70,45 @@ export function FoundingBreederLifetimeCard({
     return map[code] ?? code;
   }
 
-  function handleSoldOut() {
+  function handleEarlySoldOut() {
+    if (tier !== "early") return;
     if (!active) {
       setHidden(true);
-      onSoldOut?.();
+      onEarlySoldOut?.();
     }
   }
 
   function onMarketingClick() {
-    trackFoundingLifetimeCtaClicked(mode === "checkout" ? "app_billing" : "pricing");
+    trackFoundingLifetimeCtaClicked(
+      mode === "checkout" ? `app_billing_${tier}` : `pricing_${tier}`,
+    );
   }
 
   function checkout() {
     setError(null);
     setNotice(null);
-    trackFoundingLifetimeCtaClicked(mode === "checkout" ? "app_billing" : "pricing");
+    trackFoundingLifetimeCtaClicked(
+      mode === "checkout" ? `app_billing_${tier}` : `pricing_${tier}`,
+    );
     start(async () => {
       const fd = new FormData();
       fd.set("provider", "stripe");
-      const res = await startFoundingBreederLifetimeCheckout(fd);
+      const res =
+        tier === "early"
+          ? await startFoundingBreederEarlyCheckout(fd)
+          : await startFoundingBreederLifetimeCheckout(fd);
       if (res?.url) {
         trackBeginCheckout({
           accountType: "shop",
-          product: "FOUNDING_BREEDER_LIFETIME",
-          valueUsd: FOUNDING_BREEDER_LIFETIME_PRICE_USD,
+          product: productKey,
+          valueUsd: priceUsd,
         });
         setNotice(t.billing.redirecting);
         window.location.href = res.url;
         return;
       }
       if (res?.error) {
-        if (res.error === "FOUNDING_SOLD_OUT") handleSoldOut();
+        if (res.error === "FOUNDING_SOLD_OUT") handleEarlySoldOut();
         setError(mapError(res.error));
         return;
       }
@@ -102,13 +119,18 @@ export function FoundingBreederLifetimeCard({
     });
   }
 
+  const href =
+    tier === "early" ? `${marketingHref}${marketingHref.includes("?") ? "&" : "?"}tier=early` : marketingHref;
+
   return (
     <div
-      id="founding-breeder-lifetime"
+      id={tier === "early" ? "founding-breeder-early" : "founding-breeder-lifetime"}
       className={`relative flex h-full flex-col rounded-2xl border p-6 shadow-soft ${
         blocked
           ? "border-border bg-paper/80 opacity-90"
-          : "border-forest/25 bg-gradient-to-br from-sand/40 via-surface to-brand-50/30"
+          : tier === "early"
+            ? "border-forest/30 bg-gradient-to-br from-brand-50/50 via-surface to-sand/40 ring-1 ring-forest/10"
+            : "border-forest/25 bg-gradient-to-br from-sand/40 via-surface to-brand-50/30"
       }`}
     >
       <span className="inline-flex w-fit items-center gap-1 rounded-full border border-forest/20 bg-forest/5 px-2.5 py-0.5 text-[11px] font-semibold text-forest">
@@ -120,14 +142,14 @@ export function FoundingBreederLifetimeCard({
 
       <div className="mt-4">
         <div className="text-3xl font-bold text-foreground">
-          {t.pricing.usd(FOUNDING_BREEDER_LIFETIME_PRICE_USD)}
+          {t.pricing.usd(priceUsd)}
           <span className="text-sm font-normal text-muted"> {f.priceCadence}</span>
         </div>
-        {!active && !blocked && (
+        {tier === "early" && earlyAvailability && !active && !blocked && (
           <FoundingBreederSpotCounter
-            initial={initialAvailability}
+            initial={earlyAvailability}
             className="mt-3 rounded-xl border border-brand-200/80 bg-white/60 p-3"
-            onSoldOut={handleSoldOut}
+            onSoldOut={handleEarlySoldOut}
           />
         )}
       </div>
@@ -169,7 +191,7 @@ export function FoundingBreederLifetimeCard({
           </span>
         ) : mode === "marketing" ? (
           <Link
-            href={marketingHref}
+            href={href}
             onClick={onMarketingClick}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-forest px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-forest/90"
           >

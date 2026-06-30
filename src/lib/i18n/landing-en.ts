@@ -349,6 +349,7 @@ export const landingEn = {
     heroPrimary: "Create your first 5 pet passports free",
     heroSecondary: "View sample passport",
     heroOwnerPrimary: "Create free owner account",
+    heroOwnerFreeBadge: "Pet owners — 1 pet free, forever",
     heroOwnerCta: "I'm a pet owner — scan or claim a passport",
     pathsEyebrow: "Two sides of one passport",
     pathsTitle: "Breeders issue it. Owners keep it.",
@@ -360,12 +361,12 @@ export const landingEn = {
     pathsBreederCta: "Create shop workspace",
     pathsOwnerTitle: "Pet owners",
     pathsOwnerDesc:
-      "Adopted or bought a pet with a PawSure passport? Scan the QR to inherit the full care history — vaccines, weights, documents, and notes — then keep logging for life.",
+      "Free for your first pet — no credit card. Adopted with a PawSure passport? Scan the QR to inherit vaccines, weights, documents, and notes, then keep logging for life.",
     pathsOwnerBullets: [
+      "1 pet free forever on the owner plan",
       "Scan a breeder or shelter passport QR at handover",
       "Inherit vaccines, weights, documents, and care notes",
       "Set reminders, log health, and store files in one place",
-      "First pet free — no passport required to start your own record",
     ],
     pathsOwnerCta: "Create free owner account",
     pathsOwnerScan: "Scan a passport QR",
@@ -424,9 +425,9 @@ export const landingEn = {
       "Shops track pets before handover; owners see every pet, reminder, and inherited passport in one home.",
     dashboardHint: "Switch shop or owner — click around; nothing is saved.",
     foundingEyebrow: "Limited early breeder offer",
-    foundingTitle: "Founding Breeder Lifetime",
-    foundingCopy:
-      "For early breeder partners who want core PawSure passport features without a recurring subscription. One business account, lifetime access to health passports, pet records, and owner handover.",
+    foundingOffersTitle: "Founding breeder lifetime deals",
+    foundingOffersSubtitle:
+      "Pay once for lifetime breeder passport access — no recurring subscription. Early spots are limited; the standard deal stays available after they sell out.",
     foundingBullets: [
       "One breeder/business account — not transferable",
       "Create and manage pet health passports for litters",

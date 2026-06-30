@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { startFoundingBreederLifetimeCheckout, clearFoundingIntent } from "@/app/actions";
-import { FOUNDING_BREEDER_LIFETIME_PRICE_USD } from "@/lib/founding-breeder-lifetime.constants";
+import { startFoundingBreederBestCheckout, clearFoundingIntent } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
 import { trackBeginCheckout, trackFoundingLifetimeCtaClicked } from "@/lib/analytics";
 
@@ -21,13 +20,13 @@ export function FoundingBreederAutoCheckout() {
     start(async () => {
       const fd = new FormData();
       fd.set("provider", "stripe");
-      const res = await startFoundingBreederLifetimeCheckout(fd);
+      const res = await startFoundingBreederBestCheckout(fd);
       await clearFoundingIntent();
       if (res?.url) {
         trackBeginCheckout({
           accountType: "shop",
-          product: "FOUNDING_BREEDER_LIFETIME",
-          valueUsd: FOUNDING_BREEDER_LIFETIME_PRICE_USD,
+          product: "FOUNDING_BREEDER",
+          valueUsd: 0,
         });
         window.location.href = res.url;
         return;

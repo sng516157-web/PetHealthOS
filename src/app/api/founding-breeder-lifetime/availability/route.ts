@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
+import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lifetime";
 
 export async function GET() {
-  const availability = await getFoundingBreederLifetimeAvailability();
-  return NextResponse.json(availability, {
+  const offers = await getFoundingBreederOffersAvailability();
+  return NextResponse.json(offers, {
     headers: { "Cache-Control": "no-store" },
   });
 }

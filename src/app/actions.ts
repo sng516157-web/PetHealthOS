@@ -83,6 +83,7 @@ import { legalAcceptanceFromForm } from "@/lib/legal-policies";
 import {
   startCheckout,
   buyFacilitySlot,
+  buyFoundingBreederEarly,
   buyFoundingBreederLifetime,
   type CheckoutScope,
   type Provider,
@@ -100,6 +101,7 @@ import {
   validatePetDates,
   parseWeightKg,
   validatePastOrToday,
+  resolveLogOccurredAt,
   validateDate,
   validatePositiveInt,
   isValidEmail,
@@ -317,12 +319,9 @@ export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
   if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
   const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
-  let occurredAt: Date | undefined;
-  if (occurredAtRaw) {
-    const parsed = new Date(occurredAtRaw);
-    if (Number.isNaN(parsed.getTime())) return { error: VErr.DATE_INVALID };
-    occurredAt = parsed;
-  }
+  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  if ("error" in occurredResolved) return { error: occurredResolved.error };
+  const occurredAt = occurredResolved.date;
   const hasText = Boolean(text);
 
   // Optional photo/video. Images inform the AI only when there's a written note
@@ -382,7 +381,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
       data: {
         petId,
         rawText: locale === "zh" ? "📷 照片记录" : "📷 Photo log",
-        occurredAt: occurredAt ?? new Date(),
+        occurredAt,
         imageUrl,
         imageMime,
         type: "OBSERVATION",
@@ -428,7 +427,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
     data: {
       petId,
       rawText: text,
-      occurredAt: occurredAt ?? new Date(),
+      occurredAt,
       imageUrl,
       imageMime,
       type: structured.type,
@@ -1734,6 +1733,34 @@ export async function addOwnerPetSlot(_formData: FormData) {
 export async function clearFoundingIntent() {
   const { clearFoundingIntentCookie } = await import("@/lib/founding-intent-server");
   await clearFoundingIntentCookie();
+}
+
+export async function startFoundingBreederEarlyCheckout(formData: FormData) {
+  const org = await requireActiveOrg();
+  const provider = String(formData.get("provider") || "stripe") as Provider;
+  const baseUrl = await checkoutBaseUrl();
+  const result = await buyFoundingBreederEarly({
+    orgId: org.id,
+    baseUrl,
+    provider,
+  });
+
+  if ("error" in result) return { error: result.error };
+  if ("url" in result) return { url: result.url };
+
+  revalidatePath("/app/billing");
+  revalidatePath("/app");
+  revalidatePath("/pricing");
+  return { ok: true, demo: result.demo ?? false };
+}
+
+export async function startFoundingBreederBestCheckout(formData: FormData) {
+  const { getFoundingBreederEarlyAvailability } = await import(
+    "@/lib/founding-breeder-lifetime"
+  );
+  const early = await getFoundingBreederEarlyAvailability();
+  if (!early.soldOut) return startFoundingBreederEarlyCheckout(formData);
+  return startFoundingBreederLifetimeCheckout(formData);
 }
 
 export async function startFoundingBreederLifetimeCheckout(formData: FormData) {

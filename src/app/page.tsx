@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { PassportHomepageLanding } from "@/components/landing/PassportHomepageLanding";
 import { pageMetadata } from "@/lib/seo";
-import { getFoundingBreederLifetimeAvailability } from "@/lib/founding-breeder-lifetime";
+import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lifetime";
 
 export const metadata: Metadata = pageMetadata({
   title: "Digital Pet Health Passports",
@@ -18,14 +18,14 @@ export default async function HomePage() {
   if (user) redirect(user.orgId ? "/app" : "/me");
   const [{ locale, t }, founding] = await Promise.all([
     getI18n(),
-    getFoundingBreederLifetimeAvailability(),
+    getFoundingBreederOffersAvailability(),
   ]);
 
   return (
     <PassportHomepageLanding
       locale={locale}
       t={t}
-      founding={founding.soldOut ? null : founding}
+      founding={founding}
     />
   );
 }
