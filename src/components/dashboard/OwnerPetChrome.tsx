@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronLeft, Lock } from "lucide-react";
 import { PetAvatar } from "@/components/ui";
 import { PetPhotoUpload } from "@/components/PetPhotoUpload";
+import { PetMicrochipField } from "@/components/PetMicrochipField";
 import { PetTabs } from "@/components/PetTabs";
 import {
   MotionPop,
@@ -18,6 +19,8 @@ export function OwnerPetChrome({
   breed,
   birthDateLabel,
   photoUrl,
+  microchip,
+  canEditMicrochip,
   ownershipNote,
   readOnly,
   canEditPhoto,
@@ -34,6 +37,8 @@ export function OwnerPetChrome({
   breed: string | null;
   birthDateLabel: string;
   photoUrl: string | null;
+  microchip: string | null;
+  canEditMicrochip: boolean;
   ownershipNote: string;
   readOnly: boolean;
   canEditPhoto: boolean;
@@ -72,6 +77,11 @@ export function OwnerPetChrome({
           <div className="min-w-0">
             <h1 className="text-3xl font-extrabold tracking-tight text-forest">{name}</h1>
             {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
+            <PetMicrochipField
+              petId={petId}
+              microchip={microchip}
+              canEdit={canEditMicrochip}
+            />
           </div>
         </div>
       </MotionPop>

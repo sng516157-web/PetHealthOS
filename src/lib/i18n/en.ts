@@ -209,6 +209,13 @@ export const en = {
     attentionDesc: (name: string) =>
       `${name} has high-severity items logged recently. Run a triage assessment to prepare for the vet.`,
     goToTriage: "Go to triage",
+    microchip: "Microchip",
+    microchipEmpty: "Not set",
+    microchipAdd: "Add",
+    microchipEdit: "Edit",
+    microchipPlaceholder: "e.g. 991002000123456",
+    microchipHint: "Letters, digits, spaces, and hyphens only. Leave blank to clear.",
+    microchipSave: "Save microchip",
   },
   tabs: {
     logs: "Logs",
@@ -1315,6 +1322,8 @@ export const en = {
       "Enter a birth date and/or an intake date (when the pet entered your care).",
     LEGAL_ACCEPT_REQUIRED:
       "You must accept the Terms of Service and Privacy Policy to create an account.",
+    MICROCHIP_TOO_LONG: "Microchip ID is too long.",
+    MICROCHIP_INVALID: "Use letters, digits, spaces, and hyphens only.",
   },
 };
 

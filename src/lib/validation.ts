@@ -24,6 +24,7 @@ export const NOTE_MAX = 2000;
 export const TITLE_MAX = 120;
 export const WEIGHT_MAX_KG = 200;
 export const GUARANTEE_DAYS_MAX = 3650; // 10 years
+export const MICROCHIP_MAX = 40;
 
 // Stable error codes. Keep in sync with the `validation` namespace in
 // `src/lib/i18n/en.ts` / `zh.ts`.
@@ -60,6 +61,8 @@ export const VErr = {
   PHOTO_TOO_BIG: "PHOTO_TOO_BIG",
   BIRTH_OR_INTAKE_REQUIRED: "BIRTH_OR_INTAKE_REQUIRED",
   LEGAL_ACCEPT_REQUIRED: "LEGAL_ACCEPT_REQUIRED",
+  MICROCHIP_TOO_LONG: "MICROCHIP_TOO_LONG",
+  MICROCHIP_INVALID: "MICROCHIP_INVALID",
 } as const;
 
 export type VErrCode = (typeof VErr)[keyof typeof VErr];
@@ -221,6 +224,20 @@ export function validatePetPhoto(file: File | null | undefined): VErrCode | null
   if (!file || file.size === 0) return null;
   if (file.size > 8 * 1024 * 1024) return VErr.PHOTO_TOO_BIG;
   return null;
+}
+
+/** ISO-style or legacy chip IDs — letters, digits, spaces, hyphens; empty clears. */
+export function validateMicrochip(value: string): VErrCode | null {
+  const v = value.trim();
+  if (!v) return null;
+  if (v.length > MICROCHIP_MAX) return VErr.MICROCHIP_TOO_LONG;
+  if (!/^[A-Za-z0-9][A-Za-z0-9\s-]*$/.test(v)) return VErr.MICROCHIP_INVALID;
+  return null;
+}
+
+export function normalizeMicrochip(value: string): string | null {
+  const v = value.trim();
+  return v || null;
 }
 
 export function validateWeightKg(

@@ -103,6 +103,8 @@ import {
   validatePastOrToday,
   resolveLogOccurredAt,
   validateDate,
+  validateMicrochip,
+  normalizeMicrochip,
   validatePositiveInt,
   isValidEmail,
   VErr,
@@ -807,6 +809,36 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
   revalidatePath("/app");
   revalidatePath("/me");
   return { ok: true, url };
+}
+
+export async function updatePetMicrochip(petId: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+
+  const actor = await getCurrentUser();
+  if (!actor) return { error: "Forbidden" };
+  if (actor.orgId) {
+    const org = await prisma.organization.findUnique({
+      where: { id: actor.orgId },
+      select: { kind: true },
+    });
+    if (isFacilityKind(org?.kind)) return { error: "Forbidden" };
+  }
+
+  const raw = String(formData.get("microchip") || "");
+  const chipErr = validateMicrochip(raw);
+  if (chipErr) return { error: chipErr };
+
+  await prisma.pet.update({
+    where: { id: petId },
+    data: { microchip: normalizeMicrochip(raw) },
+  });
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}`);
+  revalidatePath("/app/pets");
+  revalidatePath("/app");
+  revalidatePath("/me");
+  return { ok: true };
 }
 
 export async function updateAttachment(petId: string, id: string, formData: FormData) {

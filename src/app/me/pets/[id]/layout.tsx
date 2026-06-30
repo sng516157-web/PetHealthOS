@@ -42,6 +42,8 @@ export default async function MePetLayout({
       species={pet.species}
       breed={pet.breed}
       photoUrl={pet.photoUrl}
+      microchip={pet.microchip}
+      canEditMicrochip={canEditPhoto}
       birthDateLabel={pet.birthDate ? (petAge(pet.birthDate) ?? "") : ""}
       ownershipNote={
         isMemorial

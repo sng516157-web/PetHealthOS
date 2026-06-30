@@ -76,6 +76,8 @@ export default async function PetLayout({
       speciesLabel={pet.species === "DOG" ? t.species.DOG : t.species.CAT}
       metaLine={meta.join(" · ")}
       photoUrl={pet.photoUrl}
+      microchip={pet.microchip}
+      canEditMicrochip={!facility && !readOnly}
       facility={facility}
       badgeLabel={badgeLabel}
       badgeTone={badgeTone as Tone}

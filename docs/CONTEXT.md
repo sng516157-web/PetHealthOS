@@ -265,6 +265,10 @@ Newest first. One entry per decision/change: date — what — why.
   Fixes: `viewport-fit=cover` + safe-area padding on headers/nav/modals; 16px mobile form
   inputs; iOS scroll-lock for overlays; `dvh` height utilities for chat/workspace shells;
   `ps-scroll-x` on tab strips.
+- **2026-06-25** — **Post-add microchip ID on pet profiles.** Why (user): chip numbers are often
+  unknown at intake; shops and owners can now add or edit microchip on the pet header after
+  creation (`updatePetMicrochip`, `PetMicrochipField`). Facilities remain read-only; value
+  flows to passports.
 - **2026-06-25** — **Landing clarity + founding pricing + log date validation.** Why (user):
   (1) Homepage hero and owner path copy now lead with **1 pet free forever** for owners.
   (2) Founding breeder lifetime split into **$99 early** (25 spots, `FOUNDING_BREEDER_EARLY`)

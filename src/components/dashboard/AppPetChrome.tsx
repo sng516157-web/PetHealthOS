@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
 import { PetTabs } from "@/components/PetTabs";
 import { PetPhotoUpload } from "@/components/PetPhotoUpload";
+import { PetMicrochipField } from "@/components/PetMicrochipField";
 import {
   MotionPop,
   MotionReveal,
@@ -17,6 +18,8 @@ export function AppPetChrome({
   speciesLabel,
   metaLine,
   photoUrl,
+  microchip,
+  canEditMicrochip,
   facility,
   badgeLabel,
   badgeTone,
@@ -39,6 +42,8 @@ export function AppPetChrome({
   speciesLabel: string;
   metaLine: string;
   photoUrl: string | null;
+  microchip: string | null;
+  canEditMicrochip: boolean;
   facility: boolean;
   badgeLabel: string;
   badgeTone: Tone;
@@ -115,6 +120,11 @@ export function AppPetChrome({
                 )}
               </p>
             )}
+            <PetMicrochipField
+              petId={petId}
+              microchip={microchip}
+              canEdit={canEditMicrochip}
+            />
           </div>
         </div>
       </MotionPop>

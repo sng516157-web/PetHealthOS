@@ -199,6 +199,13 @@ export const zh: Dictionary = {
     attentionDesc: (name: string) =>
       `${name} 近期有高严重度的记录。运行一次分诊评估，为就诊做好准备。`,
     goToTriage: "前往分诊",
+    microchip: "芯片号",
+    microchipEmpty: "未填写",
+    microchipAdd: "添加",
+    microchipEdit: "编辑",
+    microchipPlaceholder: "例如 991002000123456",
+    microchipHint: "仅支持字母、数字、空格和连字符。留空可清除。",
+    microchipSave: "保存芯片号",
   },
   tabs: {
     logs: "记录",
@@ -1282,5 +1289,7 @@ export const zh: Dictionary = {
     PHOTO_TOO_BIG: "照片须小于 8 MB。",
     BIRTH_OR_INTAKE_REQUIRED: "请填写出生日期和/或入舍日期（宠物进入您照护的日期）。",
     LEGAL_ACCEPT_REQUIRED: "创建账户前须同意服务条款与隐私政策。",
+    MICROCHIP_TOO_LONG: "芯片号过长。",
+    MICROCHIP_INVALID: "仅可使用字母、数字、空格和连字符。",
   },
 };
