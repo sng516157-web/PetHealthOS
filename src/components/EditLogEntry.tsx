@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, X } from "lucide-react";
 import { updateLogEntry } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 import type { SerializedLog } from "@/components/LogTimeline";
 
 const inputCls =
@@ -24,6 +25,8 @@ export function EditLogEntry({
   const [text, setText] = useState(entry.rawText);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  useBodyScrollLock(true);
 
   function save() {
     if (!text.trim()) return;
@@ -45,9 +48,9 @@ export function EditLogEntry({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:items-center">
       <div
-        className="w-full max-w-lg rounded-2xl border border-border bg-surface p-5 shadow-soft"
+        className="w-full max-w-lg max-h-[min(90dvh,calc(100vh-2rem))] overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-soft"
         role="dialog"
         aria-labelledby="edit-log-title"
       >

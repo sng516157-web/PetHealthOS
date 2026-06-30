@@ -36,7 +36,7 @@ export function PetTabs({
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-1 overflow-x-auto border-b border-border pb-px">
+      <div className="flex gap-1 overflow-x-auto ps-scroll-x border-b border-border pb-px">
         {mainTabs.map((tab) => {
           const href =
             tab.id === "logs"

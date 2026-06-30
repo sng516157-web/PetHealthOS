@@ -53,9 +53,9 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen w-full min-w-0 max-w-full">
       <Sidebar unread={unread} />
-      <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0">
+      <main className="min-w-0 flex-1 overflow-x-clip pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         {/* Mobile-only top bar: the sidebar (with sign-out) is hidden on mobile. */}
-        <header className="sticky top-0 z-30 flex min-w-0 items-center gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur sm:gap-3 sm:px-5 md:hidden">
+        <header className="sticky top-0 z-30 flex min-w-0 items-center gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-5 md:hidden">
           <Link href="/app/account" className="flex min-w-0 flex-1 items-center gap-2">
             <PawSureMarkTile className="h-8 w-8 shrink-0" />
             <span className="truncate text-sm font-extrabold text-forest">

@@ -7,6 +7,8 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-06-25 — Mobile Safari fixes.** iPhone layouts no longer clip horizontally; form fields won't trigger page zoom on focus; bottom nav and modals respect the home-indicator safe area; chat panels size correctly when the browser chrome shows/hides.
+
 - **2026-06-25 — Admin import workspace.** Pending data imports on `/admin` open a workspace to map CSV rows to pets, logs, and weight, and PDFs to document attachments — same plan format reserved for future AI automation.
 
 - **2026-06-25 — Data import from competitors.** Shop and owner dashboards now have **Import data** — upload a CSV roster plus PDFs (competitor exports, vaccine cards, scanned notes). Processing is queued (up to 24h for messy files); `/admin` lists pending imports with file downloads and a **Mark complete** action. Landing page and `/shop` advertise switching from other tools.

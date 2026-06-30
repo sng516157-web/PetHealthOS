@@ -98,7 +98,7 @@ export function OrgChatPanel({
         "flex flex-col rounded-2xl border border-border bg-surface",
         preview
           ? "h-[min(240px,100%)] min-h-[200px]"
-          : "h-[min(520px,calc(100vh-16rem))] min-h-[360px]",
+          : "ps-h-org-chat-panel min-h-[320px] max-md:min-h-[280px]",
       )}
     >
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">

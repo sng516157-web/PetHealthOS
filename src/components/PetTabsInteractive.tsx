@@ -41,7 +41,7 @@ export function PetTabsInteractive({
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-0.5 overflow-x-auto border-b border-border pb-px">
+      <div className="flex gap-0.5 overflow-x-auto ps-scroll-x border-b border-border pb-px">
         {mainTabs.map((tab) => {
           const active = activeMain === tab.id;
           const Icon = tab.icon;

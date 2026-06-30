@@ -226,7 +226,7 @@ export function DocumentsPanel({
         </div>
       )}
 
-      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-border pb-px">
+      <div className="mt-4 flex gap-1 overflow-x-auto ps-scroll-x border-b border-border pb-px">
         {categoryTabs.map((tab) => {
           const active = category === tab.id;
           const count = counts[tab.id] ?? 0;

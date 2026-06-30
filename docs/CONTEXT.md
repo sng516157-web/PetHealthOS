@@ -259,6 +259,12 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-06-25** — **Mobile Safari / iPhone compatibility pass.** Why (user): layout and
+  interaction bugs on Safari/Chrome mobile — horizontal clip, input zoom, modal scroll bleed,
+  bottom nav hidden behind home indicator, and `100vh` panels taller than visible viewport.
+  Fixes: `viewport-fit=cover` + safe-area padding on headers/nav/modals; 16px mobile form
+  inputs; iOS scroll-lock for overlays; `dvh` height utilities for chat/workspace shells;
+  `ps-scroll-x` on tab strips.
 - **2026-06-25** — **Admin import workspace (`/admin/imports/[id]`).** Why (user): ops tool to
   view CSV rows + PDFs and assign data to pets, logs, weights, and document attachments — manual
   today, same `DataImportProcessingState` JSON for future AI automation. Auto-parses CSV with

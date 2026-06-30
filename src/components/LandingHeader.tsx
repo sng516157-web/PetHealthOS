@@ -7,7 +7,7 @@ import type { Dictionary } from "@/lib/i18n/en";
 
 export function LandingHeader({ t, locale = "en" }: { t: Dictionary; locale?: Locale }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border/70 bg-paper/85 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-border/70 bg-paper/85 backdrop-blur pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3 md:px-8">
         <Link href="/" className="flex items-center gap-2.5">
           <PawSureMarkTile className="h-9 w-9" />

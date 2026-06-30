@@ -52,6 +52,11 @@
   border-color: var(--color-border);
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  height: -webkit-fill-available;
+}
+
 html,
 body {
   background: var(--color-background);
@@ -62,8 +67,27 @@ body {
   overflow-x: clip;
 }
 
+@supports not (overflow: clip) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
 body {
   font-family: var(--font-sans);
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* iOS Safari: inputs smaller than 16px trigger page zoom on focus. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* iOS Safari: date/file inputs have a large intrinsic min-width and can spill
@@ -80,6 +104,36 @@ textarea {
 
 input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
+}
+
+/* Horizontal tab strips — scroll inside the row, not the page (iOS). */
+.ps-scroll-x {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
+}
+
+/* Reduce double-tap delay on touch browsers. */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* Dynamic viewport height — dvh with vh fallback for mobile browser chrome. */
+.ps-min-h-workspace {
+  min-height: calc(100vh - 3.5rem);
+  min-height: calc(100dvh - 3.5rem);
+}
+
+.ps-h-chat-panel {
+  height: calc(100vh - 22rem);
+  height: calc(100dvh - 22rem);
+}
+
+.ps-h-org-chat-panel {
+  height: min(520px, calc(100vh - 16rem));
+  height: min(520px, calc(100dvh - 16rem));
 }
 
 /* Chinese pages prefer CJK-optimised stack. */

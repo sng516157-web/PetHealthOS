@@ -174,12 +174,12 @@ export function OwnerHomeView({
             {showMemorialTab && !preview && (
               <div className="mt-3 flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-surface p-1">
                 <Link href="/me" className={tabCls(!memorialTab)}>
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5">
                     <PawPrint size={14} /> {t.me.tabActive} ({pets.length})
                   </span>
                 </Link>
                 <Link href="/me?tab=memorial" className={tabCls(memorialTab)}>
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5">
                     <Heart size={14} /> {t.me.tabMemorial} ({memorialPets.length})
                   </span>
                 </Link>

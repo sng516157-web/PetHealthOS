@@ -84,7 +84,7 @@ function RowEditor({
   };
 
   return (
-    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {(
         [
           ["name", m.name],
@@ -104,7 +104,7 @@ function RowEditor({
         <label key={key} className="block text-xs">
           <span className="font-medium text-forest">{key}</span>
           <input
-            className="mt-0.5 w-full rounded-lg border border-border px-2 py-1.5 text-xs"
+            className="mt-0.5 w-full min-w-0 rounded-lg border border-border px-2 py-1.5 text-sm"
             value={val}
             onChange={(e) => set(key, e.target.value)}
           />
@@ -113,7 +113,7 @@ function RowEditor({
       <label className="block text-xs sm:col-span-2 lg:col-span-3">
         <span className="font-medium text-forest">notes</span>
         <textarea
-          className="mt-0.5 w-full rounded-lg border border-border px-2 py-1.5 text-xs"
+          className="mt-0.5 w-full min-w-0 resize-y rounded-lg border border-border px-2 py-1.5 text-sm"
           rows={2}
           value={m.notes ?? ""}
           onChange={(e) => set("notes", e.target.value)}
@@ -224,7 +224,7 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
     }`;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8 md:px-8">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-5 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] md:px-8">
       <Link
         href="/admin"
         className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-forest"
@@ -419,7 +419,7 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
                   <label className="block text-xs">
                     <span className="font-medium text-forest">{w.assignPet}</span>
                     <select
-                      className="mt-1 w-full rounded-lg border border-border px-2 py-1.5 text-xs"
+                      className="mt-1 w-full min-w-0 rounded-lg border border-border px-2 py-1.5 text-sm"
                       value={doc.petId ?? ""}
                       disabled={doc.status !== "pending"}
                       onChange={(e) =>
@@ -439,7 +439,7 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
                   <label className="block text-xs">
                     <span className="font-medium text-forest">{w.docKind}</span>
                     <select
-                      className="mt-1 w-full rounded-lg border border-border px-2 py-1.5 text-xs"
+                      className="mt-1 w-full min-w-0 rounded-lg border border-border px-2 py-1.5 text-sm"
                       value={doc.kind}
                       disabled={doc.status !== "pending"}
                       onChange={(e) =>
@@ -458,7 +458,7 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
                   <label className="block text-xs">
                     <span className="font-medium text-forest">{w.docLabel}</span>
                     <input
-                      className="mt-1 w-full rounded-lg border border-border px-2 py-1.5 text-xs"
+                      className="mt-1 w-full min-w-0 rounded-lg border border-border px-2 py-1.5 text-sm"
                       value={doc.label}
                       disabled={doc.status !== "pending"}
                       onChange={(e) => updateDoc(doc.fileIndex, { label: e.target.value })}

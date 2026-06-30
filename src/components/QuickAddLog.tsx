@@ -7,6 +7,7 @@ import { addLogEntry } from "@/app/actions";
 import { Card, Badge, Tone } from "@/components/ui";
 import { LOG_TYPE_META, SEVERITY_META, LogType, Severity } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 export function QuickAddLog({
   petId,
@@ -29,6 +30,8 @@ export function QuickAddLog({
     title: string;
     tags: string[];
   } | null>(null);
+
+  useBodyScrollLock(confirmOpen);
 
   const isImage = file?.type.startsWith("image/") ?? false;
 
@@ -203,8 +206,8 @@ export function QuickAddLog({
       </Card>
 
       {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-5 shadow-soft">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:items-center">
+          <div className="w-full max-w-md max-h-[min(90dvh,calc(100vh-2rem))] overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-soft">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
                 <AlertTriangle size={20} />

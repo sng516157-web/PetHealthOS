@@ -78,7 +78,7 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex h-[calc(100vh-22rem)] min-h-[420px] flex-col rounded-2xl border border-border bg-surface">
+    <div className="flex ps-h-chat-panel min-h-[360px] max-md:min-h-[280px] flex-col rounded-2xl border border-border bg-surface">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
           <Bot size={17} />

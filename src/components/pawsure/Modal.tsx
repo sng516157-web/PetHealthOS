@@ -3,17 +3,14 @@
 import * as React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 function useEscToClose(open: boolean, onClose: () => void) {
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 }
 
@@ -35,10 +32,11 @@ export function Modal({
   className?: string;
 }) {
   useEscToClose(open, onClose);
+  useBodyScrollLock(open);
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div
         className="absolute inset-0 bg-ink/40 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
@@ -48,7 +46,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative w-full max-w-md animate-fade-in rounded-3xl border border-border bg-surface p-6 shadow-[0_24px_60px_rgba(36,89,76,0.22)]",
+          "relative w-full max-w-md max-h-[min(90dvh,calc(100vh-2rem))] overflow-y-auto animate-fade-in rounded-3xl border border-border bg-surface p-6 shadow-[0_24px_60px_rgba(36,89,76,0.22)]",
           className,
         )}
       >

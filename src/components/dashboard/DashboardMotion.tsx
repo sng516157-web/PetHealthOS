@@ -8,7 +8,7 @@ export { MotionPop, MotionReveal, motionCardHover };
 /** Workspace page wrapper — flat paper background; motion is on cards, not ambient orbs. */
 export function WorkspaceMotionShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative w-full min-w-0 max-w-full overflow-x-clip bg-paper min-h-[calc(100vh-3.5rem)]">
+    <div className="relative w-full min-w-0 max-w-full overflow-x-clip bg-paper ps-min-h-workspace">
       {children}
     </div>
   );

@@ -102,7 +102,7 @@ export function MobileNav({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
   const { t } = useI18n();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex min-w-0 items-stretch border-t border-border bg-surface/95 backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex min-w-0 items-stretch border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
       {NAV.map((item) => {
         const active = item.exact
           ? pathname === item.href
