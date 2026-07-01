@@ -42,26 +42,28 @@ export function I18nProvider({
     (next: Locale) => {
       if (next === locale) return;
       persistLocale(next);
-      setLocaleState(next);
       document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
       router.refresh();
     },
     [locale, router],
   );
 
+  // Server is source of truth after refresh — avoids client/server text mismatch.
+  useLayoutEffect(() => {
+    setLocaleState(initialLocale);
+    document.documentElement.lang = initialLocale === "zh" ? "zh-CN" : "en";
+  }, [initialLocale]);
+
   useLayoutEffect(() => {
     if (document.documentElement.dataset.seoBot === "true") return;
     const stored = readStoredLocale();
-    if (stored) {
-      if (stored !== locale) {
-        setLocaleState(stored);
-        document.documentElement.lang = stored === "zh" ? "zh-CN" : "en";
-        if (stored !== initialLocale) router.refresh();
-      }
+    if (stored && stored !== initialLocale) {
+      persistLocale(stored);
+      router.refresh();
       return;
     }
-    persistLocale(initialLocale);
-  }, [initialLocale, locale, router]);
+    if (!stored) persistLocale(initialLocale);
+  }, [initialLocale, router]);
 
   const value = useMemo(
     () => ({ locale, t: DICTS[locale], setLocale }),

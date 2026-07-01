@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "./prisma";
 import {
   FOUNDING_BREEDER_EARLY_PLAN_KEY,
@@ -54,10 +55,17 @@ export async function getFoundingBreederLifetimeAvailability(): Promise<Founding
   return getFoundingBreederEarlyAvailability();
 }
 
-export async function getFoundingBreederOffersAvailability(): Promise<{
+async function loadFoundingBreederOffersAvailability(): Promise<{
   early: FoundingSpotAvailability;
   lifetime: { available: true };
 }> {
   const early = await getFoundingBreederEarlyAvailability();
   return { early, lifetime: { available: true } };
 }
+
+/** Cached 60s — early-spot count changes rarely; avoids blocking dashboards on every request. */
+export const getFoundingBreederOffersAvailability = unstable_cache(
+  loadFoundingBreederOffersAvailability,
+  ["founding-breeder-offers"],
+  { revalidate: 60 },
+);

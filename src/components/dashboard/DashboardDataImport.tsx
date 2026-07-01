@@ -7,7 +7,7 @@ import { submitDataImport } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
 import { Button, Modal } from "@/components/pawsure";
 import { Card } from "@/components/ui";
-import { MotionReveal } from "./DashboardMotion";
+import { MotionPop } from "./DashboardMotion";
 
 type PendingImport = {
   submittedAt: string;
@@ -74,7 +74,7 @@ export function DashboardDataImport({
 
   if (pendingImport) {
     return (
-      <MotionReveal className={className}>
+      <MotionPop index={0} className={className}>
         <Card className="border-brand-200 bg-brand-50/40 p-5">
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 shadow-soft">
@@ -86,13 +86,13 @@ export function DashboardDataImport({
             </div>
           </div>
         </Card>
-      </MotionReveal>
+      </MotionPop>
     );
   }
 
   return (
     <>
-      <MotionReveal className={className}>
+      <MotionPop index={0} className={className}>
         <Card className="p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3">
@@ -119,7 +119,7 @@ export function DashboardDataImport({
             </Button>
           </div>
         </Card>
-      </MotionReveal>
+      </MotionPop>
 
       <Modal
         open={open}

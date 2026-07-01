@@ -35,23 +35,26 @@ export function MotionStagger({
   className = "",
   step = 80,
   itemClassName = "",
+  baseIndex = 0,
 }: {
   children: ReactNode;
   className?: string;
   step?: number;
   itemClassName?: string;
+  baseIndex?: number;
 }) {
   const items = Children.toArray(children).filter(Boolean);
   return (
     <div className={className}>
       {items.map((child, i) => (
-        <MotionReveal
+        <MotionPop
           key={i}
-          delay={i * step}
+          index={baseIndex + i}
+          stepMs={step}
           className={i > 0 ? itemClassName || "mt-5" : itemClassName}
         >
           {child}
-        </MotionReveal>
+        </MotionPop>
       ))}
     </div>
   );
@@ -77,16 +80,20 @@ export function DashboardStatCard({
   label,
   value,
   toneClass,
-  delay = 0,
+  delay,
+  index = 0,
 }: {
   icon: ReactNode;
   label: string;
   value: number;
   toneClass: string;
+  /** @deprecated use index — treated as index * 80ms */
   delay?: number;
+  index?: number;
 }) {
+  const stepIndex = index ?? (delay !== undefined ? Math.round(delay / 80) : 0);
   return (
-    <MotionReveal delay={delay}>
+    <MotionPop index={stepIndex} stepMs={80}>
       <div
         className={`w-full min-w-0 max-w-full rounded-2xl border border-border bg-surface/90 p-5 shadow-soft backdrop-blur ${motionCardHover}`}
       >
@@ -98,6 +105,6 @@ export function DashboardStatCard({
         <p className="mt-3 text-3xl font-bold text-forest">{value}</p>
         <p className="text-xs text-muted">{label}</p>
       </div>
-    </MotionReveal>
+    </MotionPop>
   );
 }

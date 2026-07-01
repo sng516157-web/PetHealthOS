@@ -107,7 +107,7 @@ export default async function PricingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" />
-                    {t.pricing.aiAssistant}
+                    {t.pricing.ownerAiAssistant}
                   </li>
                 </ul>
                 <Link
@@ -125,7 +125,7 @@ export default async function PricingPage() {
                 note={t.ownerBilling.planName}
                 features={[
                   t.pricing.ownerPlusIncluded(USER_PLANS.PLUS.includedPets),
-                  t.pricing.aiAssistant,
+                  t.pricing.ownerAiAssistant,
                 ]}
                 href="/owner"
               />
@@ -137,7 +137,7 @@ export default async function PricingPage() {
                 note={t.ownerBilling.planName}
                 features={[
                   t.pricing.ownerPlusIncluded(USER_PLANS.PLUS.includedPets),
-                  t.pricing.aiAssistant,
+                  t.pricing.ownerAiAssistant,
                 ]}
                 href="/owner"
                 highlight

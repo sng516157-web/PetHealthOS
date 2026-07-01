@@ -876,6 +876,7 @@ export const zh: Dictionary = {
     issuePassports: "签发健康护照（审核通过后）",
     multiSeat: "多员工席位",
     aiAssistant: "工作区 AI + 单宠助手与分诊",
+    ownerAiAssistant: "单宠 AI 助手与分诊",
     notForSale: "个人使用——不可签发护照",
     qrCheckin: "扫码登记，经主人授权",
     facilityNoPassport: "不可签发健康护照",

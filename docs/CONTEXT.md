@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-06-25
+Last updated: 2026-07-01
 
 ---
 
@@ -227,6 +227,13 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 - `zh.ts` must mirror `en.ts` exactly (type-enforced). Update both together.
 - **Dates before timezone cookie:** first paint may use `UTC` until `TimezoneSync`
   detects the browser zone and `router.refresh()` — one brief flash possible on cold load.
+- **pg SSL warning in dev:** Neon/Vercel URLs often use `sslmode=require`; `normalizePgConnectionString`
+  in `src/lib/pg-connection.ts` rewrites to `verify-full` before connect (same behavior as today,
+  silences pg v9 deprecation noise). Optional: set `sslmode=verify-full` in env directly.
+- **Workspace motion:** dashboards and pet chrome use `MotionPop` (load-time stagger),
+  not scroll-gated `MotionReveal` — avoids invisible UI until scroll.
+- **Founding spot count:** `getFoundingBreederOffersAvailability()` is cached 60s;
+  shop dashboard promo loads availability client-side so `/app` SSR stays fast.
 
 ---
 
@@ -259,6 +266,20 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-07-01** — **pg SSL connection string.** `normalizePgConnectionString` rewrites Neon
+  `sslmode=require` → `verify-full` before connect — same TLS behavior, silences pg v9
+  deprecation warning in dev.
+- **2026-07-01** — **UX bug-fix pass (motion, i18n, perf, routing, copy).** Why (review):
+  (1) Workspace UI used scroll-gated `MotionReveal` — pet tabs and dashboard sections
+  could stay `opacity-0` until scroll; switched to `MotionPop` on all workspace surfaces
+  (landing/marketing still uses `MotionReveal`). (2) Locale hydration: `setLocale` no
+  longer updates client state before `router.refresh()`; cookie + server `initialLocale`
+  are source of truth; stale cookie vs localStorage triggers one refresh. (3) Perf:
+  founding-breeder availability cached 60s; removed from `/app` SSR `Promise.all` —
+  `FoundingBreederDashboardPromo` fetches client-side. (4) `/me/pets` → redirect `/me`.
+  (5) Owner home duplicate subtitle removed. (6) Pricing/owner billing: `ownerAiAssistant`
+  copy (per-pet AI only — no workspace AI for owners). UX backlog in
+  `UX Improvement Waiting List/2026-07-01.md`.
 - **2026-06-25** — **Mobile Safari / iPhone compatibility pass.** Why (user): layout and
   interaction bugs on Safari/Chrome mobile — horizontal clip, input zoom, modal scroll bleed,
   bottom nav hidden behind home indicator, and `100vh` panels taller than visible viewport.

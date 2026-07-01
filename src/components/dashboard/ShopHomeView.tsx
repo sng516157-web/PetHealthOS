@@ -16,19 +16,11 @@ import {
   DashboardCanvas,
   DashboardStatCard,
   MotionPop,
-  MotionReveal,
   motionCardHover,
 } from "./DashboardMotion";
 import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
 import { FoundingBreederDashboardPromo } from "@/components/FoundingBreederDashboardPromo";
 import { DashboardDataImport } from "@/components/dashboard/DashboardDataImport";
-
-type FoundingAvailability = {
-  limit: number;
-  claimed: number;
-  remaining: number;
-  soldOut: boolean;
-};
 
 type ShopPet = {
   id: string;
@@ -69,7 +61,7 @@ export function ShopHomeView({
   pets: ShopPet[];
   attention: ShopPet[];
   reminders: ShopReminder[];
-  foundingPromo?: FoundingAvailability;
+  foundingPromo?: boolean;
   pendingImport?: { submittedAt: string } | null;
   preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
@@ -141,7 +133,7 @@ export function ShopHomeView({
       </div>
 
       {foundingPromo && (
-        <FoundingBreederDashboardPromo early={foundingPromo} className="mt-8" />
+        <FoundingBreederDashboardPromo className="mt-8" />
       )}
 
       <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
@@ -155,19 +147,19 @@ export function ShopHomeView({
 
       <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">
         <div className="min-w-0 space-y-6 xl:col-span-8">
-          <MotionReveal>
+          <MotionPop index={2}>
             <h2 className="text-sm font-semibold text-forest">{t.dashboard.needsAttention}</h2>
             <p className="text-xs text-muted">{t.dashboard.needsAttentionSub}</p>
-          </MotionReveal>
+          </MotionPop>
 
           {attention.length === 0 ? (
-            <MotionReveal delay={80}>
+            <MotionPop index={3}>
               <Card className="p-6 text-sm text-muted">{t.dashboard.allHealthy}</Card>
-            </MotionReveal>
+            </MotionPop>
           ) : (
             <div className="space-y-3">
               {attention.map((p, i) => (
-                <MotionReveal key={p.id} delay={i * 100}>
+                <MotionPop key={p.id} index={3 + i}>
                   {preview ? (
                     <button
                       type="button"
@@ -235,12 +227,12 @@ export function ShopHomeView({
                       </div>
                     </Link>
                   )}
-                </MotionReveal>
+                </MotionPop>
               ))}
             </div>
           )}
 
-          <MotionReveal delay={200}>
+          <MotionPop index={4}>
             <div className="flex items-center justify-between pt-2">
               <h2 className="text-sm font-semibold text-forest">{t.dashboard.allPets}</h2>
               {!preview && (
@@ -252,11 +244,11 @@ export function ShopHomeView({
                 </Link>
               )}
             </div>
-          </MotionReveal>
+          </MotionPop>
 
           <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {pets.slice(0, 6).map((p, i) => (
-              <MotionReveal key={p.id} delay={240 + i * 60}>
+              <MotionPop key={p.id} index={5 + i}>
                 {preview ? (
                   <button
                     type="button"
@@ -304,13 +296,13 @@ export function ShopHomeView({
                     </div>
                   </Link>
                 )}
-              </MotionReveal>
+              </MotionPop>
             ))}
           </div>
         </div>
 
         <div className="min-w-0 xl:col-span-4">
-          <MotionReveal delay={120}>
+          <MotionPop index={3}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-soft">
               <div className="border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-forest">
@@ -369,7 +361,7 @@ export function ShopHomeView({
                 </ul>
               )}
             </div>
-          </MotionReveal>
+          </MotionPop>
         </div>
       </div>
     </DashboardCanvas>

@@ -8,7 +8,6 @@ import { PetMicrochipField } from "@/components/PetMicrochipField";
 import { PetTabs } from "@/components/PetTabs";
 import {
   MotionPop,
-  MotionReveal,
   motionCardHover,
 } from "./DashboardMotion";
 
@@ -86,39 +85,39 @@ export function OwnerPetChrome({
         </div>
       </MotionPop>
 
-      <MotionReveal delay={80}>
+      <MotionPop index={2}>
         <div
           className={`flex items-start gap-2 rounded-2xl border border-brand-200 bg-brand-50/50 p-4 text-xs text-brand-800 shadow-soft ${motionCardHover}`}
         >
           <Lock size={14} className="mt-0.5 shrink-0" />
           {ownershipNote}
         </div>
-      </MotionReveal>
+      </MotionPop>
 
       {readOnly && (
-        <MotionReveal delay={120}>
+        <MotionPop index={3}>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-soft">
             {readOnlyBanner}
           </div>
-        </MotionReveal>
+        </MotionPop>
       )}
 
       {claimBanner && (
-        <MotionReveal delay={140}>
+        <MotionPop index={readOnly ? 4 : 3}>
           <div className="rounded-2xl border border-brand-200 bg-brand-50/60 px-4 py-3 text-sm text-brand-900 shadow-soft">
             {claimBanner}
           </div>
-        </MotionReveal>
+        </MotionPop>
       )}
 
-      <MotionReveal delay={160}>
+      <MotionPop index={readOnly && claimBanner ? 5 : readOnly || claimBanner ? 4 : 3}>
         <PetTabs
           petId={petId}
           base={`/me/pets/${petId}`}
           includeTransfer={false}
           includeCheckin={!isMemorial}
         />
-      </MotionReveal>
+      </MotionPop>
 
       <div>{children}</div>
     </div>

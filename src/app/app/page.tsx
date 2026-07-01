@@ -11,7 +11,6 @@ import { getI18n } from "@/lib/i18n/server";
 import { EmailVerifiedBanner } from "@/components/EmailVerifiedBanner";
 import { ShopHomeView } from "@/components/dashboard/ShopHomeView";
 import { FacilityHomeView } from "@/components/dashboard/FacilityHomeView";
-import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lifetime";
 import { hasFoundingIntent } from "@/lib/founding-intent-server";
 import { FoundingBreederAutoCheckout } from "@/components/FoundingBreederAutoCheckout";
 import { getCurrentUser } from "@/lib/auth";
@@ -72,10 +71,9 @@ export default async function Dashboard({
     );
   }
 
-  const [pets, reminders, foundingOffers, pendingImportRow] = await Promise.all([
+  const [pets, reminders, pendingImportRow] = await Promise.all([
     getActivePetsWithStats(),
     getUpcomingReminders(),
-    getFoundingBreederOffersAvailability(),
     user
       ? getPendingDataImport({ userId: user.id, orgId: org.id })
       : Promise.resolve(null),
@@ -141,7 +139,7 @@ export default async function Dashboard({
         pets={petItems}
         attention={attentionItems}
         reminders={reminderItems}
-        foundingPromo={showFoundingPromo ? foundingOffers.early : undefined}
+        foundingPromo={showFoundingPromo}
         pendingImport={
           pendingImportRow
             ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }

@@ -115,7 +115,7 @@ export function OwnerBilling({
           </li>
           <li className="flex items-center gap-1.5">
             <Check size={13} className="text-emerald-500" />
-            {t.pricing.aiAssistant}
+            {t.pricing.ownerAiAssistant}
           </li>
         </ul>
 

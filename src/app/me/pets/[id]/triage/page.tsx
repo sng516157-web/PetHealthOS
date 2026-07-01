@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui";
 import { GenerateTriageButton } from "@/components/GenerateTriageButton";
 import { TriageReport } from "@/components/TriageReport";
 import type { TriageResult } from "@/lib/ai";
-import { MotionReveal } from "@/components/dashboard/DashboardMotion";
+import { MotionPop } from "@/components/dashboard/DashboardMotion";
 import { getI18n } from "@/lib/i18n/server";
 import { getTimezone } from "@/lib/timezone/server";
 
@@ -38,7 +38,7 @@ export default async function MePetTriagePage({
 
   return (
     <div className="space-y-6">
-      <MotionReveal>
+      <MotionPop index={0}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-lg">
             <h2 className="text-lg font-semibold text-forest">{t.triage.title}</h2>
@@ -46,17 +46,17 @@ export default async function MePetTriagePage({
           </div>
           <GenerateTriageButton petId={pet.id} hasExisting={Boolean(latest)} />
         </div>
-      </MotionReveal>
+      </MotionPop>
 
       {!hasAI() && (
-        <MotionReveal delay={80}>
+        <MotionPop index={1}>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-soft">
             <strong>{t.common.demoBadge}:</strong> {t.triage.demoNote}
           </div>
-        </MotionReveal>
+        </MotionPop>
       )}
 
-      <MotionReveal delay={160}>
+      <MotionPop index={2}>
         {!report ? (
           <EmptyState
             icon={<Stethoscope size={40} />}
@@ -66,7 +66,7 @@ export default async function MePetTriagePage({
         ) : (
           <TriageReport t={t} report={report} createdAt={latest.createdAt} fmt={fmt} />
         )}
-      </MotionReveal>
+      </MotionPop>
     </div>
   );
 }

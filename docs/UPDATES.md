@@ -7,6 +7,8 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-07-01 — Workspace UX & speed fixes.** Dashboards and pet pages show content immediately (no scroll-to-reveal); language switching is more stable; shop home loads faster; `/me/pets` redirects to `/me`; owner pricing correctly lists per-pet AI only. Dev pg SSL deprecation warning silenced for Neon URLs.
+
 - **2026-06-25 — Microchip ID after pet creation.** Shops and owners can add or edit a pet's microchip number from the pet profile header — useful when the chip isn't known at intake.
 
 - **2026-06-25 — Landing & founding pricing.** Homepage now highlights **1 pet free** for owners; breeders see **$99 early lifetime** (25 spots) above the **$299** deal; health logs can't be dated in the future (reminders still can).

@@ -2,7 +2,11 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+import { normalizePgConnectionString } from "../src/lib/pg-connection";
+
+const adapter = new PrismaPg({
+  connectionString: normalizePgConnectionString(process.env.DATABASE_URL),
+});
 const prisma = new PrismaClient({ adapter });
 
 // Keep this demo shop UNVERIFIED so the /verify -> /admin pipeline stays testable.

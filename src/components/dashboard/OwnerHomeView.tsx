@@ -13,7 +13,6 @@ import {
   DashboardCanvas,
   DashboardStatCard,
   MotionPop,
-  MotionReveal,
   motionCardHover,
 } from "./DashboardMotion";
 
@@ -93,7 +92,6 @@ export function OwnerHomeView({
           <h1 className="mt-3 break-words text-2xl font-extrabold tracking-tight text-forest sm:text-3xl lg:text-4xl">
             {t.me.greeting(userName)}
           </h1>
-          <p className="mt-1 text-sm text-muted">{t.me.subtitle}</p>
         </MotionPop>
         <MotionPop index={1} className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
           {!memorialTab && (
@@ -157,7 +155,7 @@ export function OwnerHomeView({
 
       <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">
         <div className="min-w-0 space-y-4 xl:col-span-8">
-          <MotionReveal>
+          <MotionPop index={2}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-forest">
                 {memorialTab ? t.me.tabMemorial : t.me.yourPets}
@@ -185,22 +183,22 @@ export function OwnerHomeView({
                 </Link>
               </div>
             )}
-          </MotionReveal>
+          </MotionPop>
 
           {list.length === 0 ? (
-            <MotionReveal delay={80}>
+            <MotionPop index={3}>
               <EmptyState
                 icon={memorialTab ? <Heart size={22} /> : <PawPrint size={22} />}
                 title={memorialTab ? t.me.noMemorialTitle : t.me.noPetsTitle}
                 description={memorialTab ? t.me.noMemorialDesc : t.me.noPetsDesc}
               />
-            </MotionReveal>
+            </MotionPop>
           ) : (
             <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((pet, i) => {
                 const claimNote = memorialTab ? claimLabel(pet.claimStatus) : null;
                 return (
-                  <MotionReveal key={pet.id} delay={i * 90}>
+                  <MotionPop key={pet.id} index={3 + i}>
                     {preview ? (
                       <button
                         type="button"
@@ -264,7 +262,7 @@ export function OwnerHomeView({
                         </div>
                       </Link>
                     )}
-                  </MotionReveal>
+                  </MotionPop>
                 );
               })}
             </div>
@@ -273,16 +271,16 @@ export function OwnerHomeView({
 
         <div className="min-w-0 space-y-4 xl:col-span-4">
           {!memorialTab && (
-            <MotionReveal delay={120}>
+            <MotionPop index={3}>
               <div
                 className={`min-w-0 max-w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft ${motionCardHover}`}
               >
                 <OwnerScanCard embedded preview={!!preview} />
               </div>
-            </MotionReveal>
+            </MotionPop>
           )}
 
-          <MotionReveal delay={memorialTab ? 120 : 180}>
+          <MotionPop index={memorialTab ? 3 : 4}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-soft">
               <div className="border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-forest">{t.notifications.title}</h2>
@@ -295,7 +293,7 @@ export function OwnerHomeView({
                 />
               </div>
             </div>
-          </MotionReveal>
+          </MotionPop>
         </div>
       </div>
     </DashboardCanvas>

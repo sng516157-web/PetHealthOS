@@ -897,6 +897,7 @@ export const en = {
     issuePassports: "Issue health passports (once verified)",
     multiSeat: "Multiple staff seats",
     aiAssistant: "Workspace AI + per-pet assistant & triage",
+    ownerAiAssistant: "Per-pet AI assistant & triage",
     notForSale: "Personal use — cannot issue passports",
     qrCheckin: "QR check-in with owner consent",
     facilityNoPassport: "Cannot issue health passports",

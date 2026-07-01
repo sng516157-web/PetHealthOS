@@ -4,6 +4,6 @@ import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lif
 export async function GET() {
   const offers = await getFoundingBreederOffersAvailability();
   return NextResponse.json(offers, {
-    headers: { "Cache-Control": "no-store" },
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
   });
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/client";
-import { MotionReveal } from "./dashboard/DashboardMotion";
+import { MotionPop } from "./dashboard/DashboardMotion";
 
 export function OrgAiPromoCard({
   facility,
@@ -38,7 +38,7 @@ export function OrgAiPromoCard({
   );
 
   return (
-    <MotionReveal delay={120} className={className}>
+    <MotionPop index={2} className={className}>
       {preview ? (
         <button
           type="button"
@@ -52,6 +52,6 @@ export function OrgAiPromoCard({
           {body}
         </Link>
       )}
-    </MotionReveal>
+    </MotionPop>
   );
 }

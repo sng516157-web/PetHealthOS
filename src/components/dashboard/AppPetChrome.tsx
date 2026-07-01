@@ -6,10 +6,7 @@ import { Badge, PetAvatar, Tone } from "@/components/ui";
 import { PetTabs } from "@/components/PetTabs";
 import { PetPhotoUpload } from "@/components/PetPhotoUpload";
 import { PetMicrochipField } from "@/components/PetMicrochipField";
-import {
-  MotionPop,
-  MotionReveal,
-} from "./DashboardMotion";
+import { MotionPop } from "./DashboardMotion";
 
 export function AppPetChrome({
   petId,
@@ -130,21 +127,21 @@ export function AppPetChrome({
       </MotionPop>
 
       {slotReadOnly && (
-        <MotionReveal delay={80}>
+        <MotionPop index={2}>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-soft">
             {readOnlyBanner}
           </div>
-        </MotionReveal>
+        </MotionPop>
       )}
 
-      <MotionReveal delay={120}>
+      <MotionPop index={slotReadOnly ? 3 : 2}>
         <PetTabs
           petId={petId}
           includeTransfer={includeTransfer}
           includeAI={includeAI}
           includeTriage={includeTriage}
         />
-      </MotionReveal>
+      </MotionPop>
 
       <div>{children}</div>
     </div>

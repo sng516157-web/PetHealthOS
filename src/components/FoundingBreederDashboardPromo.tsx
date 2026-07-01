@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
 import {
@@ -10,7 +10,7 @@ import {
 import { BillingWalletNote } from "@/components/BillingWalletNote";
 import { FoundingBreederSpotCounter } from "@/components/FoundingBreederSpotCounter";
 import { Card } from "@/components/ui";
-import { MotionReveal } from "@/components/dashboard/DashboardMotion";
+import { MotionPop } from "@/components/dashboard/DashboardMotion";
 import {
   FOUNDING_BREEDER_EARLY_PRICE_USD,
   FOUNDING_BREEDER_LIFETIME_PRICE_USD,
@@ -20,21 +20,42 @@ import { useI18n } from "@/lib/i18n/client";
 import { trackBeginCheckout, trackFoundingLifetimeCtaClicked } from "@/lib/analytics";
 
 export function FoundingBreederDashboardPromo({
-  early,
+  early: initialEarly,
   className,
 }: {
-  early: FoundingSpotAvailability;
+  /** When omitted, loads availability client-side so the dashboard SSR stays fast. */
+  early?: FoundingSpotAvailability;
   className?: string;
 }) {
   const { t } = useI18n();
   const d = t.dashboard.foundingPromo;
   const router = useRouter();
-  const showEarly = !early.soldOut;
-  const [earlyHidden, setEarlyHidden] = useState(early.soldOut);
+  const [early, setEarly] = useState<FoundingSpotAvailability | null>(initialEarly ?? null);
+  const showEarly = early ? !early.soldOut : false;
+  const [earlyHidden, setEarlyHidden] = useState(early?.soldOut ?? false);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [tier, setTier] = useState<"early" | "lifetime">(showEarly ? "early" : "lifetime");
+
+  useEffect(() => {
+    if (initialEarly) return;
+    let cancelled = false;
+    fetch("/api/founding-breeder-lifetime/availability")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { early?: FoundingSpotAvailability } | null) => {
+        if (cancelled || !data?.early) return;
+        setEarly(data.early);
+        setEarlyHidden(data.early.soldOut);
+        if (!data.early.soldOut) setTier("early");
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [initialEarly]);
+
+  if (!early) return null;
 
   const f = tier === "early" ? t.pricing.foundingEarly : t.pricing.foundingLifetime;
   const priceUsd =
@@ -90,7 +111,7 @@ export function FoundingBreederDashboardPromo({
   }
 
   return (
-    <MotionReveal delay={100} className={className}>
+    <MotionPop index={2} className={className}>
       <Card className="overflow-hidden border-forest/20 bg-gradient-to-br from-sand/40 via-surface to-brand-50/40 p-5 shadow-soft sm:p-6">
         <div className="flex flex-col gap-5">
           <div className="min-w-0">
@@ -173,6 +194,6 @@ export function FoundingBreederDashboardPromo({
           </div>
         </div>
       </Card>
-    </MotionReveal>
+    </MotionPop>
   );
 }

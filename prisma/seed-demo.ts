@@ -9,7 +9,11 @@ import { PrismaClient } from "../src/generated/prisma/client";
 // unverified shop). Idempotent: re-running deletes & recreates these accounts by
 // their well-known emails. Does NOT touch other data. See docs/TestAccounts.md.
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+import { normalizePgConnectionString } from "../src/lib/pg-connection";
+
+const adapter = new PrismaPg({
+  connectionString: normalizePgConnectionString(process.env.DATABASE_URL),
+});
 const prisma = new PrismaClient({ adapter });
 
 // Mirror src/lib/auth.ts hashPassword (scrypt, "salt:hash").
@@ -88,7 +92,7 @@ async function main() {
 
   // 1) Owner account — free (1 pet included, ¥15/mo per extra, cap 10).
   const owner = await prisma.user.create({
-    data: { email: EMAILS.owner, name: "Demo Owner", passwordHash: pw, plan: "FREE" },
+    data: { email: EMAILS.owner, name: "Demo Owner", passwordHash: pw, plan: "FREE", emailVerifiedAt: new Date() },
   });
   // A pet for the owner, with a QR check-in token (used by the facility demo).
   const ownerPet = await prisma.pet.create({
@@ -126,6 +130,7 @@ async function main() {
       name: "Verified Shop Owner",
       passwordHash: pw,
       orgId: verifiedOrg.id,
+      emailVerifiedAt: new Date(),
     },
   });
   await prisma.pet.createMany({
@@ -150,9 +155,19 @@ async function main() {
         color: "Golden",
         status: "ACTIVE",
       },
+      {
+        orgId: verifiedOrg.id,
+        name: "Pearl",
+        species: "CAT",
+        breed: "Ragdoll",
+        sex: "FEMALE",
+        birthDate: daysAgo(120),
+        color: "Seal point",
+        status: "ACTIVE",
+      },
     ],
   });
-  console.log("✓ Verified shop:", EMAILS.verifiedShop, "(2 pets)");
+  console.log("✓ Verified shop:", EMAILS.verifiedShop, "(3 pets — use Pearl for passport demos)");
 
   // 3) Unverified shop — to exercise the /verify upload + /admin review pipeline.
   const unverifiedOrg = await prisma.organization.create({
@@ -169,6 +184,7 @@ async function main() {
       name: "Unverified Shop Owner",
       passwordHash: pw,
       orgId: unverifiedOrg.id,
+      emailVerifiedAt: new Date(),
     },
   });
   console.log("✓ Unverified shop:", EMAILS.unverifiedShop);
@@ -193,6 +209,7 @@ async function main() {
       name: "Facility Manager",
       passwordHash: pw,
       orgId: facilityOrg.id,
+      emailVerifiedAt: new Date(),
     },
   });
   await prisma.petStay.create({

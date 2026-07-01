@@ -11,7 +11,6 @@ import { SEVERITY_META } from "@/lib/constants";
 import {
   DashboardCanvas,
   MotionPop,
-  MotionReveal,
   motionCardHover,
 } from "./DashboardMotion";
 import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
@@ -74,7 +73,7 @@ export function FacilityHomeView({
         </div>
       </MotionPop>
 
-      <MotionReveal delay={100} className="mt-6">
+      <MotionPop index={1} className="mt-6">
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface px-4 py-4 shadow-soft sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:px-5">
           <div className="min-w-0 shrink-0">
             <p className="text-2xl font-bold text-forest">
@@ -92,7 +91,7 @@ export function FacilityHomeView({
             />
           </div>
         </div>
-      </MotionReveal>
+      </MotionPop>
 
       <OrgAiPromoCard
         facility
@@ -101,22 +100,22 @@ export function FacilityHomeView({
         preview={preview?.onOrgAiOpen ? { onOpen: preview.onOrgAiOpen } : undefined}
       />
 
-      <MotionReveal delay={160} className="mt-8">
+      <MotionPop index={2} className="mt-8">
         <h2 className="text-sm font-semibold text-forest">{t.facility.tabActive}</h2>
-      </MotionReveal>
+      </MotionPop>
 
       {pets.length === 0 ? (
-        <MotionReveal delay={200} className="mt-4">
+        <MotionPop index={3} className="mt-4">
           <EmptyState
             icon={<QrCode size={22} />}
             title={t.facility.noActive}
             description={t.facility.noActiveDesc}
           />
-        </MotionReveal>
+        </MotionPop>
       ) : (
         <div className="mt-4 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {pets.map((pet, i) => (
-            <MotionReveal key={pet.id} delay={200 + i * 80}>
+            <MotionPop key={pet.id} index={3 + i}>
               {preview ? (
                 <button
                   type="button"
@@ -198,12 +197,12 @@ export function FacilityHomeView({
                   </div>
                 </Link>
               )}
-            </MotionReveal>
+            </MotionPop>
           ))}
         </div>
       )}
 
-      <MotionReveal delay={400} className="mt-8">
+      <MotionPop index={4} className="mt-8">
         {preview ? (
           <span className="text-sm font-medium text-brand-700">{t.facility.tabArchived} →</span>
         ) : (
@@ -214,7 +213,7 @@ export function FacilityHomeView({
             {t.facility.tabArchived} →
           </Link>
         )}
-      </MotionReveal>
+      </MotionPop>
     </DashboardCanvas>
   );
 }
