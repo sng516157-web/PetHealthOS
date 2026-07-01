@@ -40,7 +40,80 @@ export const en = {
       notifications: "Alerts",
       billing: "Billing",
       account: "Account",
+      more: "More",
     },
+  },
+  onboarding: {
+    title: "Get started",
+    subtitle: "Three steps to your first health passport.",
+    progress: (done: number, total: number) => `${done}/${total} done`,
+    addPet: "Add your first pet",
+    logVaccine: "Log a vaccine or health note",
+    issuePassport: "Issue your first passport",
+  },
+  share: {
+    weChat: "WeChat",
+    passportMessage: (name: string) =>
+      name
+        ? `Health passport for ${name} — view records on PawSure`
+        : "View this pet's health passport on PawSure",
+  },
+  preview: {
+    title: "Buyer preview link",
+    desc: (name: string) =>
+      `Send ${name}'s live health record to a buyer before you issue the official passport.`,
+    generate: "Generate preview link",
+    generating: "Generating…",
+    open: "Open preview",
+    pageTitle: "Health record preview",
+    bannerTitle: "Preview only — not an official passport",
+    bannerDesc:
+      "This is a live snapshot for buyers before purchase. The official passport is issued separately.",
+    issuedBy: (org: string) => `Records from ${org}`,
+    healthLog: "Health log",
+    noLogs: "No health entries yet.",
+    weights: "Weight history",
+  },
+  handover: {
+    back: "Back to transfer",
+    title: "Health handover summary",
+    healthSummary: "Health log",
+    weightHistory: "Weight history",
+    passportIssued: (date: string) => `Passport issued ${date}`,
+    printPdf: "Print / save PDF",
+    qrNote: "Scan for digital passport",
+  },
+  litter: {
+    fieldLabel: "Litter name",
+    fieldPlaceholder: "e.g. Spring 2026 — Pearl",
+    allLitters: "All litters",
+    filterLabel: (name: string) => `Litter: ${name}`,
+    wholeLitter: (name: string) => `Whole litter — ${name}`,
+    selectTarget: "Choose litter",
+    applyTo: "Apply to",
+    bulkLogTitle: "Bulk log for litter",
+    bulkLogDesc: (name: string) => `Log the same note for every active pet in “${name}”.`,
+    bulkLog: "Log for whole litter",
+    logging: "Logging…",
+    bulkLogged: (n: number) => `Logged for ${n} pets.`,
+    logType: "Entry type",
+    logNote: "Note",
+    logPlaceholder: "e.g. Litter dewormed — Drontal",
+    typeVaccine: "Vaccine",
+    typeDeworming: "Deworming",
+    typeObservation: "Observation",
+  },
+  vaccineTemplates: {
+    title: "Vaccine schedule templates",
+    desc: "Apply a standard puppy/kitten schedule as reminders for a whole litter.",
+    tipTitle: "Litter required",
+    tipBody:
+      "Templates apply to a whole litter at once. When you add a pet, give it a litter name — then use the litter filter above to apply a schedule.",
+    addPetCta: "Add pet with litter name",
+    template: "Template",
+    apply: "Create reminders",
+    applying: "Applying…",
+    applied: (n: number) => `Created ${n} reminders.`,
   },
   species: { DOG: "Dog", CAT: "Cat", dogs: "Dogs", cats: "Cats", all: "All" },
   sex: { MALE: "Male", FEMALE: "Female", UNKNOWN: "Unknown" },
@@ -216,6 +289,14 @@ export const en = {
     microchipPlaceholder: "e.g. 991002000123456",
     microchipHint: "Letters, digits, spaces, and hyphens only. Leave blank to clear.",
     microchipSave: "Save microchip",
+    editProfile: "Edit profile",
+  },
+  editPet: {
+    title: "Edit profile",
+    subtitle: (name: string) => `Update ${name}'s details — same fields as when you first added them.`,
+    save: "Save changes",
+    saving: "Saving…",
+    photoHint: "Profile photo is updated on the pet page (tap the avatar). Microchip can be edited inline there too.",
   },
   tabs: {
     logs: "Logs",
@@ -641,6 +722,7 @@ export const en = {
     planLabel: (plan: string) => `Plan: ${plan}`,
     scanTitle: "Scan a passport",
     scanDesc: "Got a pet from a PawSure breeder or shop? Scan its passport to add it here.",
+    scanCta: "Scan passport",
     limitTitle: (limit: number) =>
       limit === 1 ? "Your free plan includes 1 pet" : `Your plan includes ${limit} pets`,
     limitDesc: (onPlus: boolean): string =>
@@ -1325,6 +1407,7 @@ export const en = {
       "You must accept the Terms of Service and Privacy Policy to create an account.",
     MICROCHIP_TOO_LONG: "Microchip ID is too long.",
     MICROCHIP_INVALID: "Use letters, digits, spaces, and hyphens only.",
+    SELF_PARENT: "A pet cannot be its own sire or dam.",
   },
 };
 

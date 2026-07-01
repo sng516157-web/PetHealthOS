@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Link2, Copy, Check, Send, Download } from "lucide-react";
+import { Link2, Copy, Check, Send, Download, FileText } from "lucide-react";
 import QRCode from "qrcode";
 import { createTransfer } from "@/app/actions";
 import { Card } from "@/components/ui";
+import { PassportShareButtons } from "@/components/PassportShareButtons";
 import { GUARANTEE_TYPES, type GuaranteeType } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
 import { FieldError } from "@/components/FieldError";
@@ -23,7 +24,7 @@ const inputCls =
   "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 const labelCls = "block text-xs font-medium text-muted mb-1.5";
 
-export function TransferForm({ petId }: { petId: string }) {
+export function TransferForm({ petId, petName }: { petId: string; petName: string }) {
   const router = useRouter();
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
@@ -135,14 +136,25 @@ export function TransferForm({ petId }: { petId: string }) {
             </a>
           </div>
         )}
-        <a
-          href={link}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-3 inline-block text-sm font-medium text-brand-600 hover:text-brand-700"
-        >
-          {t.transferForm.openPreview}
-        </a>
+        <PassportShareButtons url={link} petName={petName} className="mt-3" />
+        <div className="mt-3 flex flex-wrap gap-3">
+          <a
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            {t.transferForm.openPreview}
+          </a>
+          <a
+            href={`/app/pets/${petId}/handover`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            <FileText size={14} /> {t.handover.printPdf}
+          </a>
+        </div>
       </Card>
     );
   }

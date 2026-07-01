@@ -266,6 +266,18 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-07-01** — **Editable pet profiles.** `updatePet` + `/app/pets/[id]/edit` and
+  `/me/pets/[id]/edit` — same validation as create; shop includes litter + lineage; gated by
+  `requirePetWriteAccess` (not facility / memorial / slot read-only).
+- **2026-07-01** — **Breeder wedge + high-impact UX (2026-07-01 backlog).** Shipped: (1) owner
+  home scan CTA + non-collapsible scanner; (2) shop onboarding checklist on `/app`; (3) mobile
+  bottom nav “More” sheet (billing, account, feedback); (4) `Pet.litterName` + filter/bulk
+  log; (5) `VaccineScheduleTemplate` + default puppy/kitten schedules; (6) `Pet.previewToken`
+  + `/preview/[token]` buyer preview; (7) `/app/pets/[id]/handover` print/PDF; (8)
+  `PassportShareButtons` (WhatsApp + WeChat copy). Registry: `docs/FEATURES.md`. Migration:
+  `20260701120000_breeder_wedge_features`.
+- **2026-07-01** — **UX backlog doc location.** Moved product-review waiting list to
+  `docs/UX Improvement Waiting List/2026-07-01.md` (was briefly at repo root).
 - **2026-07-01** — **pg SSL connection string.** `normalizePgConnectionString` rewrites Neon
   `sslmode=require` → `verify-full` before connect — same TLS behavior, silences pg v9
   deprecation warning in dev.
@@ -279,7 +291,7 @@ Newest first. One entry per decision/change: date — what — why.
   `FoundingBreederDashboardPromo` fetches client-side. (4) `/me/pets` → redirect `/me`.
   (5) Owner home duplicate subtitle removed. (6) Pricing/owner billing: `ownerAiAssistant`
   copy (per-pet AI only — no workspace AI for owners). UX backlog in
-  `UX Improvement Waiting List/2026-07-01.md`.
+  `docs/UX Improvement Waiting List/2026-07-01.md`.
 - **2026-06-25** — **Mobile Safari / iPhone compatibility pass.** Why (user): layout and
   interaction bugs on Safari/Chrome mobile — horizontal clip, input zoom, modal scroll bleed,
   bottom nav hidden behind home indicator, and `100vh` panels taller than visible viewport.

@@ -63,6 +63,7 @@ export const VErr = {
   LEGAL_ACCEPT_REQUIRED: "LEGAL_ACCEPT_REQUIRED",
   MICROCHIP_TOO_LONG: "MICROCHIP_TOO_LONG",
   MICROCHIP_INVALID: "MICROCHIP_INVALID",
+  SELF_PARENT: "SELF_PARENT",
 } as const;
 
 export type VErrCode = (typeof VErr)[keyof typeof VErr];

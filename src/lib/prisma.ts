@@ -14,9 +14,19 @@ function createClient() {
   return new PrismaClient({ adapter });
 }
 
+// ponytail: Next dev HMR keeps globalForPrisma.prisma across `prisma generate` —
+// new model delegates are missing on the old instance until we drop it.
+function getClient(): PrismaClient {
+  const cached = globalForPrisma.prisma;
+  if (cached && typeof cached.vaccineScheduleTemplate?.findMany === "function") {
+    return cached;
+  }
+  const client = createClient();
+  globalForPrisma.prisma = client;
+  return client;
+}
+
 // Reuse a single client across requests (and across hot reloads in dev). On
 // Vercel Fluid Compute the instance is kept warm, so this also reuses the
 // underlying pg connection pool between invocations and avoids reconnecting.
-export const prisma = globalForPrisma.prisma ?? createClient();
-
-globalForPrisma.prisma = prisma;
+export const prisma = getClient();

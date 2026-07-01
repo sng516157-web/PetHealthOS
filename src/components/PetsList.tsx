@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Lightbulb } from "lucide-react";
 import { Badge, Card, PetAvatar, EmptyState, Tone } from "@/components/ui";
+import { BreederToolsPanel } from "@/components/BreederToolsPanel";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 import { petAge, relativeTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
@@ -17,6 +18,7 @@ type PetItem = {
   status: string;
   photoUrl: string | null;
   birthDate: string | null;
+  litterName: string | null;
   logCount: number;
   last?: {
     title: string | null;
@@ -38,24 +40,35 @@ export function PetsList({
   emptyTitle,
   emptyDescription,
   showAddAction = true,
+  vaccineTemplates = [],
 }: {
   pets: PetItem[];
   emptyTitle?: string;
   emptyDescription?: string;
   showAddAction?: boolean;
+  vaccineTemplates?: { id: string; name: string; species: string | null }[];
 }) {
   const { t } = useI18n();
   const [q, setQ] = useState("");
   const [species, setSpecies] = useState<"ALL" | "DOG" | "CAT">("ALL");
+  const litters = useMemo(() => {
+    const names = new Set<string>();
+    for (const p of pets) {
+      if (p.litterName) names.add(p.litterName);
+    }
+    return [...names].sort();
+  }, [pets]);
+  const [litter, setLitter] = useState<string>("ALL");
 
   const filtered = useMemo(() => {
     return pets.filter((p) => {
       if (species !== "ALL" && p.species !== species) return false;
+      if (litter !== "ALL" && p.litterName !== litter) return false;
       if (!q) return true;
-      const hay = `${p.name} ${p.breed ?? ""}`.toLowerCase();
+      const hay = `${p.name} ${p.breed ?? ""} ${p.litterName ?? ""}`.toLowerCase();
       return hay.includes(q.toLowerCase());
     });
-  }, [pets, q, species]);
+  }, [pets, q, species, litter]);
 
   return (
     <div>
@@ -82,7 +95,51 @@ export function PetsList({
             </button>
           ))}
         </div>
+        {litters.length > 0 && (
+          <select
+            value={litter}
+            onChange={(e) => setLitter(e.target.value)}
+            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+          >
+            <option value="ALL">{t.litter.allLitters}</option>
+            {litters.map((l) => (
+              <option key={l} value={l}>
+                {t.litter.filterLabel(l)}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
+
+      {vaccineTemplates.length > 0 && litters.length === 0 && (
+        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-dashed border-brand-200 bg-brand-50/40 p-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-3">
+            <Lightbulb size={18} className="mt-0.5 shrink-0 text-brand-600" />
+            <div>
+              <p className="text-sm font-semibold text-forest">{t.vaccineTemplates.tipTitle}</p>
+              <p className="mt-1 text-sm text-muted">{t.vaccineTemplates.tipBody}</p>
+            </div>
+          </div>
+          {showAddAction && (
+            <Link
+              href="/app/pets/new"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 sm:mt-0"
+            >
+              <Plus size={16} /> {t.vaccineTemplates.addPetCta}
+            </Link>
+          )}
+        </div>
+      )}
+
+      {litters.length > 0 && (
+        <div className="mt-6">
+          <BreederToolsPanel
+            templates={vaccineTemplates}
+            litters={litters}
+            selectedLitter={litter !== "ALL" ? litter : null}
+          />
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="mt-6">

@@ -56,6 +56,7 @@ model Organization {
   stays         PetStay[] @relation("FacilityStays")
   orgSlots           OrgSlot[]
   dataImportRequests DataImportRequest[]
+  vaccineTemplates   VaccineScheduleTemplate[]
 }
 
 // Purchased org capacity — shop extra pets (shop_pet) or facility care slots (care).
@@ -211,6 +212,11 @@ model Pet {
   ownerUserId String?
   ownerUser   User?    @relation("OwnerUser", fields: [ownerUserId], references: [id])
 
+  // Optional litter label for breeder bulk ops (filter + bulk log).
+  litterName String?
+  // View-only buyer preview before passport issue (/preview/[token]).
+  previewToken String? @unique
+
   // Basic lineage (breeder MVP) — full litter management is Phase 2.
   sireId    String?
   sire      Pet?      @relation("Sire", fields: [sireId], references: [id])
@@ -266,6 +272,19 @@ model PetStay {
   @@unique([petId, orgId])
   @@index([orgId])
   @@index([petId])
+}
+
+// Org-level vaccine schedule templates — breeders apply to a pet or whole litter.
+model VaccineScheduleTemplate {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name      String
+  species   String?  // DOG | CAT | null = both
+  items     Json     // [{ label, category, daysAfterAnchor, note? }]
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
 }
 
 // Per-pet weight tracking — the daily-use ritual for breeders (neonate/growth

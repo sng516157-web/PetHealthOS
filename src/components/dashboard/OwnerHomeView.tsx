@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, Bell, Heart, PawPrint, Plus, Sparkles, UserCircle } from "lucide-react";
+import { Activity, Bell, Heart, PawPrint, Plus, QrCode, Sparkles, UserCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { petAge } from "@/lib/format";
 import { Badge, EmptyState, PetAvatar, Tone } from "@/components/ui";
@@ -108,6 +108,14 @@ export function OwnerHomeView({
               </Link>
             )
           )}
+          {!memorialTab && !preview && (
+            <a
+              href="#owner-scan"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-800 transition hover:bg-brand-100 sm:w-auto"
+            >
+              <QrCode size={16} /> {t.me.scanCta}
+            </a>
+          )}
           {preview ? (
             <span className="inline-flex w-full cursor-default items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-forest sm:w-auto">
               <UserCircle size={16} /> {t.account.nav}
@@ -151,6 +159,17 @@ export function OwnerHomeView({
 
       {!memorialTab && (
         <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
+      )}
+
+      {!memorialTab && !preview && (
+        <MotionPop index={2} className="mt-8">
+          <div
+            id="owner-scan"
+            className="scroll-mt-24 overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft"
+          >
+            <OwnerScanCard collapsible={false} />
+          </div>
+        </MotionPop>
       )}
 
       <div className="mt-10 grid w-full min-w-0 max-w-full grid-cols-1 gap-8 xl:grid-cols-12">
@@ -270,16 +289,13 @@ export function OwnerHomeView({
         </div>
 
         <div className="min-w-0 space-y-4 xl:col-span-4">
-          {!memorialTab && (
+          {preview && !memorialTab && (
             <MotionPop index={3}>
-              <div
-                className={`min-w-0 max-w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft ${motionCardHover}`}
-              >
-                <OwnerScanCard embedded preview={!!preview} />
+              <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50/80 to-surface shadow-soft">
+                <OwnerScanCard embedded preview />
               </div>
             </MotionPop>
           )}
-
           <MotionPop index={memorialTab ? 3 : 4}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-soft">
               <div className="border-b border-border px-4 py-3">

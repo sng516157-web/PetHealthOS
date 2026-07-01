@@ -7,6 +7,10 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-07-01 — Editable pet profiles.** Shops and owners can edit intake details (name, breed, dates, weight, notes, etc.) from **Edit profile** on the pet page; shops also get litter name and lineage. Photo and microchip stay on the profile header.
+
+- **2026-07-01 — Breeder wedge + UX backlog shipped.** Owner home: scan passport is a primary CTA with camera always visible. Shops: onboarding checklist on dashboard; mobile nav uses a “More” sheet (billing, account, feedback). Breeders: litter name + filter, bulk litter log, vaccine schedule templates, buyer preview link (`/preview/…`), print handover PDF, WhatsApp/WeChat share on passports. Feature registry: `docs/FEATURES.md`.
+
 - **2026-07-01 — Workspace UX & speed fixes.** Dashboards and pet pages show content immediately (no scroll-to-reveal); language switching is more stable; shop home loads faster; `/me/pets` redirects to `/me`; owner pricing correctly lists per-pet AI only. Dev pg SSL deprecation warning silenced for Neon URLs.
 
 - **2026-06-25 — Microchip ID after pet creation.** Shops and owners can add or edit a pet's microchip number from the pet profile header — useful when the chip isn't known at intake.

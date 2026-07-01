@@ -17,6 +17,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getPendingDataImport } from "@/lib/data-import";
 import { formatDate } from "@/lib/format";
 import { getTimezone } from "@/lib/timezone/server";
+import { getShopOnboardingProgress } from "@/lib/shop-onboarding";
 
 export default async function Dashboard({
   searchParams,
@@ -71,12 +72,13 @@ export default async function Dashboard({
     );
   }
 
-  const [pets, reminders, pendingImportRow] = await Promise.all([
+  const [pets, reminders, pendingImportRow, onboarding] = await Promise.all([
     getActivePetsWithStats(),
     getUpcomingReminders(),
     user
       ? getPendingDataImport({ userId: user.id, orgId: org.id })
       : Promise.resolve(null),
+    getShopOnboardingProgress(org.id),
   ]);
   const showFoundingPromo =
     org.plan === "STARTER" && org.foundingBreederEligible && !foundingIntent;
@@ -145,6 +147,7 @@ export default async function Dashboard({
             ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }
             : null
         }
+        onboarding={onboarding}
       />
     </>
   );

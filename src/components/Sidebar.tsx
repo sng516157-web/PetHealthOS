@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutDashboard,
   PawPrint,
@@ -12,12 +13,14 @@ import {
   LogOut,
   Sparkles,
   MessageSquareText,
+  MoreHorizontal,
 } from "lucide-react";
 import { FEEDBACK_PATH } from "@/lib/feedback";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/client";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { PawSureMarkTile } from "@/components/PawSureLogo";
+import { BottomSheet } from "@/components/pawsure/BottomSheet";
 import { signOut } from "@/app/actions";
 
 const NAV = [
@@ -29,6 +32,9 @@ const NAV = [
   { href: "/app/billing", key: "billing" as const, icon: CreditCard },
   { href: "/app/account", key: "account" as const, icon: UserCircle },
 ];
+
+const MOBILE_PRIMARY = NAV.slice(0, 5);
+const MOBILE_MORE = NAV.slice(5);
 
 export function Sidebar({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
@@ -101,32 +107,78 @@ export function Sidebar({ unread = 0 }: { unread?: number }) {
 export function MobileNav({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreActive = MOBILE_MORE.some((item) =>
+    item.exact ? pathname === item.href : pathname.startsWith(item.href),
+  );
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex min-w-0 items-stretch border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-      {NAV.map((item) => {
-        const active = item.exact
-          ? pathname === item.href
-          : pathname.startsWith(item.href);
-        const Icon = item.icon;
-        const label = t.nav.mobile[item.key];
-        return (
+    <>
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex min-w-0 items-stretch border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+        {MOBILE_PRIMARY.map((item) => {
+          const active = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
+          const Icon = item.icon;
+          const label = t.nav.mobile[item.key];
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={t.nav[item.key]}
+              className={cn(
+                "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-medium leading-tight",
+                active ? "text-brand-700" : "text-muted",
+              )}
+            >
+              <Icon size={20} className="shrink-0" />
+              <span className="max-w-full truncate">{label}</span>
+              {item.key === "notifications" && unread > 0 && (
+                <span className="absolute right-1/4 top-1.5 h-2 w-2 rounded-full bg-brand-600" />
+              )}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          title={t.nav.mobile.more}
+          className={cn(
+            "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-medium leading-tight",
+            moreActive ? "text-brand-700" : "text-muted",
+          )}
+        >
+          <MoreHorizontal size={20} className="shrink-0" />
+          <span className="max-w-full truncate">{t.nav.mobile.more}</span>
+        </button>
+      </nav>
+
+      <BottomSheet open={moreOpen} onClose={() => setMoreOpen(false)} title={t.nav.mobile.more}>
+        <nav className="flex flex-col gap-1">
+          {MOBILE_MORE.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-brand-50"
+              >
+                <Icon size={18} className="text-muted" />
+                {t.nav[item.key]}
+              </Link>
+            );
+          })}
           <Link
-            key={item.href}
-            href={item.href}
-            title={t.nav[item.key]}
-            className={cn(
-              "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-medium leading-tight",
-              active ? "text-brand-700" : "text-muted",
-            )}
+            href={FEEDBACK_PATH}
+            onClick={() => setMoreOpen(false)}
+            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-brand-50"
           >
-            <Icon size={20} className="shrink-0" />
-            <span className="max-w-full truncate">{label}</span>
-            {item.key === "notifications" && unread > 0 && (
-              <span className="absolute right-1/4 top-1.5 h-2 w-2 rounded-full bg-brand-600" />
-            )}
+            <MessageSquareText size={18} className="text-muted" />
+            {t.landing.nav.feedback}
           </Link>
-        );
-      })}
-    </nav>
+        </nav>
+      </BottomSheet>
+    </>
   );
 }

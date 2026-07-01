@@ -10,6 +10,7 @@ import {
 import { PetsList } from "@/components/PetsList";
 import { AdmitScanner } from "@/components/AdmitScanner";
 import { getI18n } from "@/lib/i18n/server";
+import { getOrgVaccineTemplates } from "@/lib/vaccine-templates";
 
 type FacilityStays = Awaited<ReturnType<typeof getFacilityPets>>;
 function serializeFacilityPets(stays: FacilityStays, status: string) {
@@ -21,6 +22,7 @@ function serializeFacilityPets(stays: FacilityStays, status: string) {
     status,
     photoUrl: pet.photoUrl,
     birthDate: pet.birthDate ? pet.birthDate.toISOString() : null,
+    litterName: null as string | null,
     logCount: pet._count.logs,
     last: pet.logs[0]
       ? {
@@ -44,6 +46,7 @@ function serializePets(
     status: p.status,
     photoUrl: p.photoUrl,
     birthDate: p.birthDate ? p.birthDate.toISOString() : null,
+    litterName: p.litterName,
     logCount: p._count.logs,
     last: p.logs[0]
       ? {
@@ -111,9 +114,10 @@ export default async function PetsPage({
     );
   }
 
-  const [activePets, archivedPets] = await Promise.all([
+  const [activePets, archivedPets, vaccineTemplates] = await Promise.all([
     getActivePetsWithStats(),
     getArchivedPetsWithStats(),
+    archived ? Promise.resolve([]) : getOrgVaccineTemplates(org.id),
   ]);
   const pets = archived ? archivedPets : activePets;
   const items = serializePets(pets);
@@ -154,6 +158,7 @@ export default async function PetsPage({
           emptyTitle={archived ? t.pets.noArchived : t.pets.noPetsFound}
           emptyDescription={archived ? t.pets.noArchivedDesc : t.pets.addFirst}
           showAddAction={!archived}
+          vaccineTemplates={archived ? [] : vaccineTemplates}
         />
       </div>
     </div>

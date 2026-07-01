@@ -59,6 +59,7 @@ export default async function MePetLayout({
       backHref={isMemorial ? "/me?tab=memorial" : "/me"}
       readOnlyBanner={t.account.petReadOnly}
       claimBanner={claimBanner}
+      editHref={!readOnly && canEditPhoto ? `/me/pets/${pet.id}/edit` : null}
     >
       {children}
     </OwnerPetChrome>

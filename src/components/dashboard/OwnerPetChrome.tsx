@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, Lock } from "lucide-react";
+import { ChevronLeft, Lock, Pencil } from "lucide-react";
+import { useI18n } from "@/lib/i18n/client";
 import { PetAvatar } from "@/components/ui";
 import { PetPhotoUpload } from "@/components/PetPhotoUpload";
 import { PetMicrochipField } from "@/components/PetMicrochipField";
@@ -28,6 +29,7 @@ export function OwnerPetChrome({
   backHref = "/me",
   readOnlyBanner,
   claimBanner,
+  editHref,
   children,
 }: {
   petId: string;
@@ -46,8 +48,10 @@ export function OwnerPetChrome({
   backHref?: string;
   readOnlyBanner: string;
   claimBanner?: string | null;
+  editHref?: string | null;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const subtitle = [breed, birthDateLabel].filter(Boolean).join(" · ");
 
   return (
@@ -81,6 +85,14 @@ export function OwnerPetChrome({
               microchip={microchip}
               canEdit={canEditMicrochip}
             />
+            {editHref && (
+              <Link
+                href={editHref}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-800"
+              >
+                <Pencil size={13} /> {t.petDetail.editProfile}
+              </Link>
+            )}
           </div>
         </div>
       </MotionPop>

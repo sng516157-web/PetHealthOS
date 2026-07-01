@@ -3,6 +3,7 @@ import { Link2, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card, Badge } from "@/components/ui";
 import { TransferForm } from "@/components/TransferForm";
+import { BuyerPreviewCard } from "@/components/BuyerPreviewCard";
 import { formatDate } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
 import { getTimezone } from "@/lib/timezone/server";
@@ -69,12 +70,29 @@ export default async function TransferPage({
         </div>
       ) : (
         <>
+          <BuyerPreviewCard
+            petId={pet.id}
+            petName={pet.name}
+            initialToken={pet.previewToken}
+          />
+
           <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 text-sm text-brand-900">
             {t.transferPage.includes}
             <strong> {t.transferPage.notInclude}</strong> {t.transferPage.includesEnd}
           </div>
 
-          <TransferForm petId={pet.id} />
+          <p className="text-sm">
+            <a
+              href={`/app/pets/${pet.id}/handover`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-brand-600 hover:underline"
+            >
+              {t.handover.printPdf}
+            </a>
+          </p>
+
+          <TransferForm petId={pet.id} petName={pet.name} />
         </>
       )}
 

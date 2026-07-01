@@ -127,6 +127,7 @@ type PetFields = {
   intakeAt: Date | null;
   weightKg: number;
   notes: string | null;
+  litterName: string | null;
 };
 
 // Shared validation for the pet create forms (breeder + owner). Every field is
@@ -172,6 +173,9 @@ function readPetFields(formData: FormData): { error: string } | { data: PetField
   const weightKg = parseWeightKg(weightRaw);
   if (weightKg == null) return { error: VErr.WEIGHT_INVALID };
 
+  const litterRaw = String(formData.get("litterName") || "").trim();
+  const litterName = litterRaw ? litterRaw.slice(0, NAME_MAX) : null;
+
   return {
     data: {
       name,
@@ -183,6 +187,7 @@ function readPetFields(formData: FormData): { error: string } | { data: PetField
       intakeAt: intakeAtRaw ? new Date(intakeAtRaw) : null,
       weightKg,
       notes: notes || null,
+      litterName,
     },
   };
 }
@@ -835,6 +840,68 @@ export async function updatePetMicrochip(petId: string, formData: FormData) {
   });
   revalidatePath(`/app/pets/${petId}`);
   revalidatePath(`/me/pets/${petId}`);
+  revalidatePath("/app/pets");
+  revalidatePath("/app");
+  revalidatePath("/me");
+  return { ok: true };
+}
+
+export async function updatePet(petId: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+
+  const actor = await getCurrentUser();
+  if (!actor) return { error: "Forbidden" };
+
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { orgId: true, ownerUserId: true, status: true },
+  });
+  if (!pet) return { error: "Pet not found" };
+  if (pet.status === "DECEASED") return { error: "Forbidden" };
+
+  if (actor.orgId) {
+    const org = await prisma.organization.findUnique({
+      where: { id: actor.orgId },
+      select: { kind: true },
+    });
+    if (isFacilityKind(org?.kind)) return { error: "Forbidden" };
+    if (pet.orgId !== actor.orgId) return { error: "Forbidden" };
+  } else if (pet.ownerUserId !== actor.id) {
+    return { error: "Forbidden" };
+  }
+
+  const fields = readPetFields(formData);
+  if ("error" in fields) return { error: fields.error };
+
+  const sireId = String(formData.get("sireId") || "") || null;
+  const damId = String(formData.get("damId") || "") || null;
+  if (sireId === petId || damId === petId) return { error: VErr.SELF_PARENT };
+
+  const shopEdit = Boolean(pet.orgId && actor.orgId);
+
+  await prisma.pet.update({
+    where: { id: petId },
+    data: {
+      name: fields.data.name,
+      species: fields.data.species,
+      sex: fields.data.sex,
+      breed: fields.data.breed,
+      color: fields.data.color,
+      birthDate: fields.data.birthDate,
+      intakeAt: fields.data.intakeAt,
+      weightKg: fields.data.weightKg,
+      notes: fields.data.notes,
+      ...(shopEdit
+        ? { sireId, damId, litterName: fields.data.litterName }
+        : {}),
+    },
+  });
+
+  revalidatePath(`/app/pets/${petId}`);
+  revalidatePath(`/app/pets/${petId}/edit`);
+  revalidatePath(`/me/pets/${petId}`);
+  revalidatePath(`/me/pets/${petId}/edit`);
   revalidatePath("/app/pets");
   revalidatePath("/app");
   revalidatePath("/me");
@@ -2197,4 +2264,141 @@ export async function completeDataImport(formData: FormData) {
   if (row.orgId) revalidatePath("/app");
   else revalidatePath("/me");
   return { ok: true };
+}
+
+/** View-only buyer preview link before passport issue. */
+export async function ensurePetPreviewToken(petId: string) {
+  const org = await requireActiveOrg();
+  const pet = await prisma.pet.findUnique({
+    where: { id: petId },
+    select: { orgId: true, previewToken: true, transfers: { select: { id: true }, take: 1 } },
+  });
+  if (!pet || pet.orgId !== org.id) return { error: "Forbidden" };
+  if (pet.transfers.length > 0) return { error: "ALREADY_ISSUED" };
+  if (pet.previewToken) return { token: pet.previewToken };
+  const token = randomBytes(8).toString("hex");
+  await prisma.pet.update({ where: { id: petId }, data: { previewToken: token } });
+  revalidatePath(`/app/pets/${petId}/transfer`);
+  return { token };
+}
+
+async function ensureOrgVaccineTemplates(orgId: string) {
+  const count = await prisma.vaccineScheduleTemplate.count({ where: { orgId } });
+  if (count > 0) return;
+  const { DEFAULT_VACCINE_TEMPLATES } = await import("@/lib/vaccine-templates");
+  await prisma.vaccineScheduleTemplate.createMany({
+    data: DEFAULT_VACCINE_TEMPLATES.map((t) => ({
+      orgId,
+      name: t.name,
+      species: t.species,
+      items: t.items,
+    })),
+  });
+}
+
+/** Apply a vaccine schedule template to one pet or a whole litter (creates reminders). */
+export async function applyVaccineTemplate(formData: FormData) {
+  const org = await requireActiveOrg();
+  await ensureOrgVaccineTemplates(org.id);
+
+  const templateId = String(formData.get("templateId") || "");
+  const target = String(formData.get("target") || "");
+  const template = await prisma.vaccineScheduleTemplate.findFirst({
+    where: { id: templateId, orgId: org.id },
+  });
+  if (!template) return { error: "NOT_FOUND" };
+
+  let petIds: string[] = [];
+  if (target.startsWith("litter:")) {
+    const litterName = target.slice("litter:".length);
+    const pets = await prisma.pet.findMany({
+      where: {
+        orgId: org.id,
+        litterName,
+        status: { in: ["ACTIVE", "UNDER_OBSERVATION"] },
+      },
+      select: { id: true },
+    });
+    petIds = pets.map((p) => p.id);
+  } else if (target.startsWith("pet:")) {
+    petIds = [target.slice("pet:".length)];
+  }
+  if (petIds.length === 0) return { error: "NOT_FOUND" };
+
+  const items = template.items as Array<{
+    label: string;
+    category: string;
+    daysAfterAnchor: number;
+    note?: string;
+  }>;
+
+  const pets = await prisma.pet.findMany({
+    where: { id: { in: petIds }, orgId: org.id },
+    select: { id: true, birthDate: true, intakeAt: true, createdAt: true, species: true },
+  });
+  const { anchorDateForPet } = await import("@/lib/vaccine-templates");
+
+  let reminderCount = 0;
+  for (const pet of pets) {
+    if (template.species && pet.species !== template.species) continue;
+    const anchor = anchorDateForPet(pet);
+    for (const item of items) {
+      const dueAt = new Date(anchor.getTime() + item.daysAfterAnchor * 86400000);
+      await prisma.reminder.create({
+        data: {
+          petId: pet.id,
+          title: item.label,
+          category: item.category,
+          dueAt,
+          notes: item.note ?? null,
+        },
+      });
+      reminderCount++;
+    }
+  }
+
+  revalidatePath("/app/pets");
+  revalidatePath("/app/reminders");
+  return { count: reminderCount };
+}
+
+/** Log the same health note for every active pet in a litter. */
+export async function bulkLitterLog(formData: FormData) {
+  const org = await requireActiveOrg();
+  const litterName = String(formData.get("litterName") || "").trim();
+  const rawText = String(formData.get("rawText") || "").trim();
+  const type = String(formData.get("type") || "OBSERVATION");
+  if (!litterName) return { error: VErr.REQUIRED };
+  if (!rawText) return { error: "Entry cannot be empty" };
+  if (rawText.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const pets = await prisma.pet.findMany({
+    where: {
+      orgId: org.id,
+      litterName,
+      status: { in: ["ACTIVE", "UNDER_OBSERVATION"] },
+    },
+    select: { id: true },
+  });
+  if (pets.length === 0) return { error: "NOT_FOUND" };
+
+  const now = new Date();
+  for (const pet of pets) {
+    await prisma.logEntry.create({
+      data: {
+        petId: pet.id,
+        occurredAt: now,
+        rawText,
+        type,
+        severity: "NONE",
+        title: rawText.slice(0, 80),
+        summary: rawText,
+        aiProcessed: true,
+      },
+    });
+  }
+
+  revalidatePath("/app/pets");
+  revalidatePath("/app");
+  return { count: pets.length };
 }

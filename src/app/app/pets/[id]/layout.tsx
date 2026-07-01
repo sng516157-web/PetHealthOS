@@ -92,6 +92,7 @@ export default async function PetLayout({
       damLabel={t.petDetail.dam}
       backLabel={t.petDetail.back}
       readOnlyBanner={t.account.petReadOnly}
+      editHref={!facility && !readOnly ? `/app/pets/${pet.id}/edit` : null}
     >
       {children}
     </AppPetChrome>

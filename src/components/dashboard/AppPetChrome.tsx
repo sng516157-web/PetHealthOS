@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import { Badge, PetAvatar, Tone } from "@/components/ui";
 import { PetTabs } from "@/components/PetTabs";
 import { PetPhotoUpload } from "@/components/PetPhotoUpload";
 import { PetMicrochipField } from "@/components/PetMicrochipField";
+import { useI18n } from "@/lib/i18n/client";
 import { MotionPop } from "./DashboardMotion";
 
 export function AppPetChrome({
@@ -31,6 +32,7 @@ export function AppPetChrome({
   damLabel,
   backLabel,
   readOnlyBanner,
+  editHref,
   children,
 }: {
   petId: string;
@@ -55,8 +57,10 @@ export function AppPetChrome({
   damLabel: string;
   backLabel: string;
   readOnlyBanner: string;
+  editHref?: string | null;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6 py-8">
       <MotionPop index={0}>
@@ -122,6 +126,14 @@ export function AppPetChrome({
               microchip={microchip}
               canEdit={canEditMicrochip}
             />
+            {editHref && (
+              <Link
+                href={editHref}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-800"
+              >
+                <Pencil size={13} /> {t.petDetail.editProfile}
+              </Link>
+            )}
           </div>
         </div>
       </MotionPop>

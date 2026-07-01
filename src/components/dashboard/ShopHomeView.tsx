@@ -21,6 +21,8 @@ import {
 import { OrgAiPromoCard } from "@/components/OrgAiPromoCard";
 import { FoundingBreederDashboardPromo } from "@/components/FoundingBreederDashboardPromo";
 import { DashboardDataImport } from "@/components/dashboard/DashboardDataImport";
+import { ShopOnboardingChecklist } from "@/components/ShopOnboardingChecklist";
+import type { ShopOnboardingProgress } from "@/lib/shop-onboarding";
 
 type ShopPet = {
   id: string;
@@ -55,6 +57,7 @@ export function ShopHomeView({
   reminders,
   foundingPromo,
   pendingImport,
+  onboarding,
   preview,
 }: {
   orgName: string;
@@ -63,6 +66,7 @@ export function ShopHomeView({
   reminders: ShopReminder[];
   foundingPromo?: boolean;
   pendingImport?: { submittedAt: string } | null;
+  onboarding?: ShopOnboardingProgress;
   preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
   const { t } = useI18n();
@@ -134,6 +138,12 @@ export function ShopHomeView({
 
       {foundingPromo && (
         <FoundingBreederDashboardPromo className="mt-8" />
+      )}
+
+      {onboarding && !preview && (
+        <div className="mt-8">
+          <ShopOnboardingChecklist progress={onboarding} />
+        </div>
       )}
 
       <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
