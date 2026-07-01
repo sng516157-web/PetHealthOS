@@ -343,12 +343,6 @@ export const en = {
     title: "Log a note",
     aiStructures: "AI structures it automatically",
     placeholder: "Just write naturally — e.g. 'Threw up after breakfast, seems a bit tired but drinking water'",
-    suggestions: [
-      "Vomited once this morning, still active",
-      "Ate full meal, energetic on walk",
-      "Slight limp on back leg after playing",
-      "Gave monthly flea & tick treatment",
-    ],
     saveHint: "⌘/Ctrl + Enter to save",
     save: "Save entry",
     structuring: "Structuring…",
@@ -811,9 +805,16 @@ export const en = {
   chat: {
     assistant: (name: string) => `${name}'s assistant`,
     grounded: "Grounded in this pet's health log + general breeding knowledge",
+    ownerGrounded: "Grounded in this pet's health log, food & activity records",
     askAnything: (name: string) => `Ask anything about ${name}`,
     askDesc: (name: string) => `I'll answer using everything in ${name}'s health log.`,
-    starters: [
+    ownerStarters: [
+      "What should I tell the vet at our next visit?",
+      "Summarize the last two weeks of health logs",
+      "Are any vaccines or meds due soon?",
+      "Should I be worried about recent symptoms?",
+    ],
+    shopStarters: [
       "What's the latest on this pet's condition?",
       "Should I be worried about anything?",
       "Summarize the health history for a new owner.",

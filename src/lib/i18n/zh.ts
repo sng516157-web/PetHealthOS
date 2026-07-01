@@ -329,12 +329,6 @@ export const zh: Dictionary = {
     title: "记一条",
     aiStructures: "AI 会自动整理",
     placeholder: "用自然语言书写即可 —— 例如『早饭后吐了一次，看起来有点累但还在喝水』",
-    suggestions: [
-      "今早吐了一次，仍然活跃",
-      "吃完整份饭，散步精神好",
-      "玩耍后后腿轻微跛行",
-      "进行了每月一次的体内外驱虫",
-    ],
     saveHint: "⌘/Ctrl + Enter 保存",
     save: "保存记录",
     structuring: "整理中…",
@@ -792,9 +786,16 @@ export const zh: Dictionary = {
   chat: {
     assistant: (name: string) => `${name} 的助手`,
     grounded: "基于这只宠物的健康记录 + 通用繁育知识",
+    ownerGrounded: "基于这只宠物的健康、饮食与活动记录",
     askAnything: (name: string) => `关于 ${name}，尽管问`,
     askDesc: (name: string) => `我会根据 ${name} 健康记录中的全部内容来回答。`,
-    starters: [
+    ownerStarters: [
+      "下次看兽医时我该说什么？",
+      "总结最近两周的健康记录",
+      "有没有快到期的疫苗或用药？",
+      "最近的症状需要担心吗？",
+    ],
+    shopStarters: [
       "这只宠物最近的状况如何？",
       "有什么需要担心的吗？",
       "为新主人总结一下健康历史。",

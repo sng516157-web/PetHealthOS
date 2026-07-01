@@ -140,19 +140,6 @@ export function QuickAddLog({
           </div>
         )}
 
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {t.quickLog.suggestions.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setText(s)}
-              className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-slate-500 transition hover:border-brand-300 hover:text-brand-700"
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
         <div className="mt-3 flex items-center justify-between gap-3">
           <button
             type="button"

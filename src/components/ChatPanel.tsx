@@ -11,13 +11,16 @@ export function ChatPanel({
   petId,
   petName,
   aiEnabled,
+  audience = "shop",
 }: {
   petId: string;
   petName: string;
   aiEnabled: boolean;
+  audience?: "owner" | "shop";
 }) {
   const { t, locale } = useI18n();
-  const STARTERS = t.chat.starters;
+  const starters = audience === "owner" ? t.chat.ownerStarters : t.chat.shopStarters;
+  const grounded = audience === "owner" ? t.chat.ownerGrounded : t.chat.grounded;
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -86,7 +89,7 @@ export function ChatPanel({
         <div>
           <div className="text-sm font-semibold text-foreground">{t.chat.assistant(petName)}</div>
           <div className="text-[11px] text-muted">
-            {t.chat.grounded}
+            {grounded}
           </div>
         </div>
         {!aiEnabled && (
@@ -109,7 +112,7 @@ export function ChatPanel({
               {t.chat.askDesc(petName)}
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {STARTERS.map((s) => (
+              {starters.map((s) => (
                 <button
                   key={s}
                   onClick={() => send(s)}

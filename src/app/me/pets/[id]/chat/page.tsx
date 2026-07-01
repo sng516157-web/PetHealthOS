@@ -30,7 +30,7 @@ export default async function MePetChatPage({
         </MotionPop>
       )}
       <MotionPop index={1}>
-        <ChatPanel petId={pet.id} petName={pet.name} aiEnabled={hasAI()} />
+        <ChatPanel petId={pet.id} petName={pet.name} aiEnabled={hasAI()} audience="owner" />
       </MotionPop>
     </div>
   );

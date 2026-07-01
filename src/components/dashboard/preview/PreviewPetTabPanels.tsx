@@ -83,7 +83,7 @@ export function PreviewPetTabPanels({
         </div>
         <p className="mt-2 text-sm text-muted">{t.chat.askDesc(pet.name)}</p>
         <div className="mt-3 rounded-xl bg-brand-50 p-3 text-sm text-brand-900">
-          {t.chat.starters[0]}
+          {role === "owner" ? t.chat.ownerStarters[0] : t.chat.shopStarters[0]}
         </div>
       </Card>
     );

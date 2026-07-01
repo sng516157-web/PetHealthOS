@@ -266,6 +266,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 Newest first. One entry per decision/change: date — what — why.
 
+- **2026-07-01** — **Owner AI prompt suggestions.** `ChatPanel` `audience=owner` uses
+  `chat.ownerStarters` + `ownerGrounded`; shop uses `shopStarters`. Removed quick-log
+  suggestion chips entirely.
 - **2026-07-01** — **Editable pet profiles.** `updatePet` + `/app/pets/[id]/edit` and
   `/me/pets/[id]/edit` — same validation as create; shop includes litter + lineage; gated by
   `requirePetWriteAccess` (not facility / memorial / slot read-only).
