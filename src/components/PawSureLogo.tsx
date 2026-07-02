@@ -1,6 +1,6 @@
-// PawSure 宠诺 logo — raster mark (squircle paw + heart check) from public/brand/.
+// PawSure 宠诺 logo — transparent raster mark + optional paper tile.
 
-const MARK_SRC = "/brand/app-icon-512.png";
+const MARK_SRC = "/brand/pawsure-mark-512.png";
 
 export function PawSureMark({ className = "h-10 w-10" }: { className?: string }) {
   return (
@@ -16,13 +16,18 @@ export function PawSureMark({ className = "h-10 w-10" }: { className?: string })
   );
 }
 
-// App-icon squircle already includes the paper tile — no extra wrapper needed.
 export function PawSureMarkTile({
   className = "h-10 w-10",
 }: {
   className?: string;
 }) {
-  return <PawSureMark className={className} />;
+  return (
+    <span
+      className={`inline-flex items-center justify-center rounded-2xl bg-paper shadow-soft ring-1 ring-inset ring-border ${className}`}
+    >
+      <PawSureMark className="h-[72%] w-[72%]" />
+    </span>
+  );
 }
 
 export function PawSureLogo({

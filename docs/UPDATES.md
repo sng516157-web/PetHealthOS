@@ -7,6 +7,8 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-07-01 — Transparent logo mark.** In-app logo uses the background-free paw mark on the paper tile; favicons keep the cream squircle.
+
 - **2026-07-01 — New brand logo.** Squircle paw mark with heart + check replaces all app icons, favicons, and in-app logo components.
 
 - **2026-07-01 — Owner AI prompt copy.** Pet AI chat uses owner-specific starters (vet prep, recent logs, reminders); shop keeps breeder starters. Quick log no longer shows suggestion chips.
