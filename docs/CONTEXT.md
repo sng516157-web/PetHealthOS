@@ -199,8 +199,9 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   (bg), Sand, Ink, Promise Gold, Calm Blue, Gentle Alert. Soft shadows, rounded
   surfaces, warm cream cards.
 - Fonts: **Nunito** (en) + system CJK (zh) — no heavy CJK web font shipped.
-- Logo: `src/components/PawSureLogo.tsx` (custom SVG mark). App icons/favicons via
-  `src/app/icon.png` + `apple-icon.png`; assets in `public/brand/`.
+- Logo: `src/components/PawSureLogo.tsx` (raster squircle mark from
+  `public/brand/app-icon-*.png`). App icons/favicons via
+  `src/app/icon.png` + `apple-icon.png`; master `app-icon-1024.png`.
 - Reusable component kit: `src/components/pawsure/` (Button, Input/Search,
   Chip/StatusBadge, Card/PetCard/ProfileCard, Modal, BottomSheet, Toast,
   TopAppBar, BottomTabBar, EmptyState, OnboardingCard). Review all of it at `/brand`.
@@ -263,6 +264,11 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 ---
 
 ## Decision log
+
+- **2026-07-01** — **Brand logo refresh.** Replaced inline SVG paw/shield mark with the
+  new gradient heart-check squircle (`#FAF3EB` tile). Regenerated `public/brand/app-icon-*`
+  sizes, `src/app/icon.png` / `apple-icon.png`, and SVG lockups embed the raster mark.
+  `scripts/generate-brand-icons.mjs` resizes from `app-icon-1024.png`.
 
 Newest first. One entry per decision/change: date — what — why.
 
