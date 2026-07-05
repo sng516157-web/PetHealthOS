@@ -45,7 +45,9 @@ export function PreviewPetWorkspace({
           ? `${base}/food`
           : logSubTab === "activity"
             ? `${base}/activity`
-            : base,
+            : logSubTab === "medication"
+              ? `${base}/medication`
+              : base,
       );
     } else {
       onUrlChange(`${base}/${mainTab}`);

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Send, ImagePlus, X, AlertTriangle } from "lucide-react";
 import { addLogEntry } from "@/app/actions";
 import { Card, Badge, Tone } from "@/components/ui";
-import { LOG_TYPE_META, SEVERITY_META, LogType, Severity } from "@/lib/constants";
+import { LOG_TYPE_META, SEVERITY_META, LOG_BUCKET_META, LogType, Severity, LogBucket } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n/client";
 import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
@@ -25,10 +25,13 @@ export function QuickAddLog({
   const [pending, start] = useTransition();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lastResult, setLastResult] = useState<{
-    type: string;
-    severity: string;
+    route: LogBucket;
     title: string;
-    tags: string[];
+    type?: string;
+    severity?: string;
+    tags?: string[];
+    mealType?: string;
+    activityType?: string;
   } | null>(null);
 
   useBodyScrollLock(confirmOpen);
@@ -50,20 +53,40 @@ export function QuickAddLog({
     if (!text.trim() && !file) return;
     const fd = new FormData();
     fd.set("rawText", text);
-    fd.set("occurredAt", new Date().toISOString());
+    // Server parses natural time from the note; omit client clock unless we add an override field later.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz) fd.set("timeZone", tz);
     fd.set("locale", locale);
     if (file) fd.set("photo", file);
     start(async () => {
       const res = await addLogEntry(petId, fd);
-      if (res?.ok && res.structured) {
-        setLastResult({
-          type: res.structured.type,
-          severity: res.structured.severity,
-          title: res.structured.title,
-          tags: res.structured.tags,
-        });
+      if (res?.ok) {
+        if (res.route === "health" && res.structured) {
+          setLastResult({
+            route: "health",
+            title: res.structured.title,
+            type: res.structured.type,
+            severity: res.structured.severity,
+            tags: res.structured.tags,
+          });
+        } else if (res.route === "food") {
+          setLastResult({
+            route: "food",
+            title: res.title ?? "",
+            mealType: res.mealType,
+          });
+        } else if (res.route === "activity") {
+          setLastResult({
+            route: "activity",
+            title: res.title ?? "",
+            activityType: res.activityType,
+          });
+        } else if (res.route === "medication") {
+          setLastResult({
+            route: "medication",
+            title: res.title ?? "",
+          });
+        }
         setText("");
         clearFile();
         setConfirmOpen(false);
@@ -175,18 +198,32 @@ export function QuickAddLog({
               <Sparkles size={13} /> {t.quickLog.savedAs}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge tone="slate">
-                {LOG_TYPE_META[lastResult.type as LogType].emoji}{" "}
-                {t.logType[lastResult.type as LogType]}
+              <Badge tone={LOG_BUCKET_META[lastResult.route].color as Tone}>
+                {LOG_BUCKET_META[lastResult.route].emoji}{" "}
+                {t.logBucket[lastResult.route]}
               </Badge>
-              <Badge tone={SEVERITY_META[lastResult.severity as Severity].color as Tone}>
-                {t.severity[lastResult.severity as Severity]}
-              </Badge>
-              {lastResult.tags.map((tag) => (
-                <span key={tag} className="text-xs text-muted">
-                  #{tag}
-                </span>
-              ))}
+              <span className="text-sm font-medium text-foreground">{lastResult.title}</span>
+              {lastResult.route === "health" && lastResult.type && (
+                <>
+                  <Badge tone="slate">
+                    {LOG_TYPE_META[lastResult.type as LogType].emoji}{" "}
+                    {t.logType[lastResult.type as LogType]}
+                  </Badge>
+                  {lastResult.severity && lastResult.severity !== "NONE" && (
+                    <Badge tone={SEVERITY_META[lastResult.severity as Severity].color as Tone}>
+                      {t.severity[lastResult.severity as Severity]}
+                    </Badge>
+                  )}
+                  {lastResult.tags?.map((tag) => (
+                    <span key={tag} className="text-xs text-muted">
+                      #{tag}
+                    </span>
+                  ))}
+                </>
+              )}
+              {lastResult.route === "food" && lastResult.mealType && (
+                <Badge tone="amber">{t.mealType[lastResult.mealType as keyof typeof t.mealType]}</Badge>
+              )}
             </div>
           </div>
         )}

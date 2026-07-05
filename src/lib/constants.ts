@@ -70,6 +70,23 @@ export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 export const ACTIVITY_INTENSITIES = ["LIGHT", "MODERATE", "VIGOROUS"] as const;
 export type ActivityIntensity = (typeof ACTIVITY_INTENSITIES)[number];
 
+export const MEDICATION_ROUTES = ["ORAL", "TOPICAL", "INJECTION", "OTHER"] as const;
+export type MedicationRoute = (typeof MEDICATION_ROUTES)[number];
+
+/** Top-level log buckets shown in Quick Log unified timeline. */
+export const LOG_BUCKETS = ["health", "food", "activity", "medication"] as const;
+export type LogBucket = (typeof LOG_BUCKETS)[number];
+
+export const LOG_BUCKET_META: Record<
+  LogBucket,
+  { label: string; emoji: string; color: string }
+> = {
+  health: { label: "Health", emoji: "🩺", color: "sky" },
+  food: { label: "Food & Nutrition", emoji: "🍽️", color: "amber" },
+  activity: { label: "Activity & Walks", emoji: "🐾", color: "emerald" },
+  medication: { label: "Medication", emoji: "💊", color: "violet" },
+};
+
 export const SEVERITY = ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type Severity = (typeof SEVERITY)[number];
 

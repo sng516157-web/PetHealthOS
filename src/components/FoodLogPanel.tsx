@@ -14,6 +14,7 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { useTimezone } from "@/lib/timezone/client";
+import { LogOccurredAtField, logFormInputCls } from "@/components/LogOccurredAtField";
 
 export type SerializedFoodLog = {
   id: string;
@@ -25,9 +26,6 @@ export type SerializedFoodLog = {
   notes: string;
   lockedAt?: string | null;
 };
-
-const inputCls =
-  "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 
 export function FoodLogPanel({
   petId,
@@ -70,7 +68,7 @@ export function FoodLogPanel({
           <form action={submit} className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="block text-xs font-medium text-slate-600">
               {t.foodLog.mealType}
-              <select name="mealType" defaultValue="BREAKFAST" className={`${inputCls} mt-1`}>
+              <select name="mealType" defaultValue="BREAKFAST" className={`${logFormInputCls} mt-1`}>
                 {MEAL_TYPES.map((m) => (
                   <option key={m} value={m}>
                     {t.mealType[m]}
@@ -80,7 +78,7 @@ export function FoodLogPanel({
             </label>
             <label className="block text-xs font-medium text-slate-600">
               {t.foodLog.appetite}
-              <select name="appetite" defaultValue="NORMAL" className={`${inputCls} mt-1`}>
+              <select name="appetite" defaultValue="NORMAL" className={`${logFormInputCls} mt-1`}>
                 {APPETITE_LEVELS.map((a) => (
                   <option key={a} value={a}>
                     {t.appetiteLevel[a]}
@@ -94,7 +92,7 @@ export function FoodLogPanel({
                 name="foodName"
                 required
                 placeholder={t.foodLog.foodNamePlaceholder}
-                className={`${inputCls} mt-1`}
+                className={`${logFormInputCls} mt-1`}
               />
             </label>
             <label className="block text-xs font-medium text-slate-600">
@@ -102,15 +100,16 @@ export function FoodLogPanel({
               <input
                 name="amount"
                 placeholder={t.foodLog.portionPlaceholder}
-                className={`${inputCls} mt-1`}
+                className={`${logFormInputCls} mt-1`}
               />
             </label>
+            <LogOccurredAtField />
             <label className="block text-xs font-medium text-slate-600 sm:col-span-2">
               {t.foodLog.notes}
               <input
                 name="notes"
                 placeholder={t.foodLog.notesPlaceholder}
-                className={`${inputCls} mt-1`}
+                className={`${logFormInputCls} mt-1`}
               />
             </label>
             <div className="sm:col-span-2">

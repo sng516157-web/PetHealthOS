@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-07-01
+Last updated: 2026-07-05
 
 ---
 
@@ -264,6 +264,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 ---
 
 ## Decision log
+
+- **2026-07-05** — **Unified quick log + medication tab.** Quick Log merges health, food,
+  activity, and medication entries in one timeline with bucket badges; freeform notes are
+  AI/heuristic-routed to the right table (`FoodLogEntry`, `ActivityLogEntry`,
+  `MedicationLogEntry`, or `LogEntry`). Natural-language time hints (e.g. "11 am", "昨天
+  下午") set `occurredAt`; category forms get an explicit date/time field. New
+  `MedicationLogEntry` model + `/food|/activity|/medication` sub-tabs. Migration:
+  `20260705140000_medication_logs`.
 
 - **2026-07-01** — **Transparent brand mark.** UI uses background-free
   `pawsure-mark-*.png` (tile wrapper restored in `PawSureMarkTile`); favicons/OG

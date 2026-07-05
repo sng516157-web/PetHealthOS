@@ -230,9 +230,10 @@ model Pet {
   // Set when the owner archives a pet after passing (read-only memorial).
   deceasedAt DateTime?
 
-  logs          LogEntry[]
-  foodLogs      FoodLogEntry[]
-  activityLogs  ActivityLogEntry[]
+  logs            LogEntry[]
+  foodLogs        FoodLogEntry[]
+  activityLogs    ActivityLogEntry[]
+  medicationLogs  MedicationLogEntry[]
   reminders     Reminder[]
   conversations Conversation[]
   reports       TriageReport[]
@@ -385,6 +386,23 @@ model ActivityLogEntry {
   loggedByOrgId String?
   loggedByName  String?
   createdAt     DateTime  @default(now())
+
+  @@index([petId, occurredAt])
+}
+
+model MedicationLogEntry {
+  id             String    @id @default(cuid())
+  petId          String
+  pet            Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  occurredAt     DateTime  @default(now())
+  medicationName String
+  dose           String?
+  route          String?   // ORAL | TOPICAL | INJECTION | OTHER
+  notes          String?
+  lockedAt       DateTime?
+  loggedByOrgId  String?
+  loggedByName   String?
+  createdAt      DateTime  @default(now())
 
   @@index([petId, occurredAt])
 }

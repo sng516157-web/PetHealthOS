@@ -6,8 +6,18 @@ import {
   LOG_TYPES,
   SEVERITY,
   URGENCY,
+  MEAL_TYPES,
+  APPETITE_LEVELS,
+  ACTIVITY_TYPES,
+  ACTIVITY_INTENSITIES,
+  MEDICATION_ROUTES,
   type AttachmentKind,
 } from "./constants";
+import {
+  heuristicClassifyQuickLog,
+  sanitizeQuickLogClassification,
+  type QuickLogClassification,
+} from "./quick-log-classify";
 import { formatDateTime, petAge } from "./format";
 import { fetchStoredFileBytes, isVisionMime } from "./uploads";
 import { DEFAULT_LOCALE, type Locale } from "./i18n/config";
@@ -381,6 +391,71 @@ export function heuristicStructure(raw: string): StructuredLogResult {
     summary: raw.length > 140 ? raw.slice(0, 137) + "…" : raw,
     tags,
   };
+}
+
+const QuickLogSchema = z.object({
+  route: z.enum(["health", "food", "activity", "medication"]),
+  mealType: z.enum(MEAL_TYPES).optional(),
+  foodName: z.string().optional(),
+  amount: z.string().nullable().optional(),
+  appetite: z.enum(APPETITE_LEVELS).optional(),
+  foodNotes: z.string().nullable().optional(),
+  activityType: z.enum(ACTIVITY_TYPES).optional(),
+  durationMin: z.number().nullable().optional(),
+  distanceKm: z.number().nullable().optional(),
+  intensity: z.enum(ACTIVITY_INTENSITIES).optional(),
+  activityNotes: z.string().nullable().optional(),
+  medicationName: z.string().optional(),
+  dose: z.string().nullable().optional(),
+  medRoute: z.enum(MEDICATION_ROUTES).optional(),
+  medNotes: z.string().nullable().optional(),
+  type: z.enum(LOG_TYPES).optional(),
+  severity: z.enum(SEVERITY).optional(),
+  title: z.string().optional(),
+  summary: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+/** Classify a freeform quick note into health / food / activity / medication buckets. */
+export async function classifyQuickLogEntry(
+  rawText: string,
+  pet: PetLike,
+  locale: Locale = DEFAULT_LOCALE,
+  image?: LogImage,
+): Promise<QuickLogClassification> {
+  if (!hasAI()) return heuristicClassifyQuickLog(rawText);
+  try {
+    const system =
+      "You route a freeform pet-care note into exactly one bucket: health (symptoms, vet, observations), food (meals, appetite, treats), activity (walks, play, training), or medication (pills, doses, injections). Fill the fields for that bucket only. Be conservative on health severity. " +
+      languageInstruction(locale);
+    const promptText = `Pet: ${petSummaryLine(pet)}\n\nNote: "${rawText}"`;
+
+    const { object } = image
+      ? await generateObject({
+          model: getModel({ vision: true }),
+          schema: QuickLogSchema,
+          system,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: promptText },
+                { type: "image", image: image.data, mediaType: image.mediaType },
+              ],
+            },
+          ],
+        })
+      : await generateObject({
+          model: getModel(),
+          schema: QuickLogSchema,
+          system,
+          prompt: promptText,
+        });
+    return sanitizeQuickLogClassification(object);
+  } catch (e) {
+    console.error("classifyQuickLogEntry failed, using heuristic", e);
+    return heuristicClassifyQuickLog(rawText);
+  }
 }
 
 // ---------- Proactive health watch (the guardian) ----------

@@ -24,7 +24,7 @@ export function PetTabs({
   const pathname = usePathname();
   const { t } = useI18n();
 
-  const logPaths = [base, `${base}/food`, `${base}/activity`];
+  const logPaths = [base, `${base}/food`, `${base}/activity`, `${base}/medication`];
   const onLogSection = logPaths.includes(pathname);
 
   const { mainTabs, logSubTabs } = buildPetTabModel(t.tabs, {
@@ -69,7 +69,11 @@ export function PetTabs({
       {onLogSection && (
         <div className="flex flex-wrap gap-1.5">
           {logSubTabs.map((tab) => {
-            const href = petTabHref(base, "logs", tab.id as "quick" | "food" | "activity");
+            const href = petTabHref(
+              base,
+              "logs",
+              tab.id as "quick" | "food" | "activity" | "medication",
+            );
             const active = pathname === href || pathname.startsWith(`${href}/`);
             const Icon = tab.icon;
             return (

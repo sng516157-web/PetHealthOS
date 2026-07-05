@@ -39,12 +39,15 @@ import {
 } from "@/lib/password-reset";
 import {
   structureLogEntry,
+  classifyQuickLogEntry,
   generateTriage,
   generateOrgWardTriage,
   heuristicStructure,
   hasAI,
   type OrgWardTriageResult,
 } from "@/lib/ai";
+import { parseNaturalLogTime } from "@/lib/log-time";
+import { heuristicClassifyQuickLog } from "@/lib/quick-log-classify";
 import { getLocale } from "@/lib/i18n/server";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import {
@@ -326,9 +329,6 @@ export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
   if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
   const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
-  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
-  if ("error" in occurredResolved) return { error: occurredResolved.error };
-  const occurredAt = occurredResolved.date;
   const hasText = Boolean(text);
 
   // Optional photo/video. Images inform the AI only when there's a written note
@@ -341,13 +341,11 @@ export async function addLogEntry(petId: string, formData: FormData) {
   if (media && media.size > 0 && media.size <= 10 * 1024 * 1024) {
     imageUrl = await saveUpload(media);
     imageMime = media.type || null;
-    // Only read the bytes for AI when there's text to ground the image.
     if (hasText && media.type?.startsWith("image/")) {
       imageBytes = Buffer.from(await media.arrayBuffer());
     }
   }
 
-  // Need either a note or a photo to log something.
   if (!hasText && !imageUrl) return { error: "Entry cannot be empty" };
 
   const pet = await prisma.pet.findUnique({ where: { id: petId } });
@@ -356,9 +354,6 @@ export async function addLogEntry(petId: string, formData: FormData) {
   const ent = await getPetEntitlements(petId);
   if (ent && !ent.canLog) return { error: "SLOT_READONLY" };
 
-  // Facility (hospital/boarding) attribution: when a facility logs during a
-  // stay, require an ACTIVE stay and tag the entry with the facility's name so
-  // the owner can see who recorded it.
   let loggedByOrgId: string | null = null;
   let loggedByName: string | null = null;
   const actor = await getCurrentUser();
@@ -380,8 +375,13 @@ export async function addLogEntry(petId: string, formData: FormData) {
 
   const locale = await resolveLocale(String(formData.get("locale") || ""));
 
-  // Photo-only entry: log it as-is with NO AI. Vision without a written note can
-  // hallucinate misleading tags/observations, so we just record "Photo log".
+  const naturalTime = hasText ? parseNaturalLogTime(text) : null;
+  const occurredResolved = resolveLogOccurredAt(
+    naturalTime?.toISOString() ?? occurredAtRaw,
+  );
+  if ("error" in occurredResolved) return { error: occurredResolved.error };
+  const occurredAt = occurredResolved.date;
+
   if (!hasText) {
     const photoTitle = locale === "zh" ? "照片记录" : "Photo log";
     await prisma.logEntry.create({
@@ -402,31 +402,99 @@ export async function addLogEntry(petId: string, formData: FormData) {
       },
     });
     await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
-    revalidatePath(`/app/pets/${petId}`);
-    revalidatePath(`/me/pets/${petId}`);
-    revalidatePath("/app");
+    revalidatePetPaths(petId);
     return {
       ok: true,
+      route: "health" as const,
       structured: { type: "OBSERVATION", severity: "NONE", title: photoTitle, tags: [] },
       imageUrl,
     };
   }
 
-  // Let the AI finish structuring before we return, so the user only ever sees
-  // the final, AI-structured entry (smoother than showing a rough heuristic that
-  // visibly changes a moment later). Fall back to the local heuristic if there's
-  // no AI key or the model call fails.
-  let structured = heuristicStructure(text);
-  let aiProcessed = false;
+  const aiImage = imageBytes
+    ? { data: new Uint8Array(imageBytes), mediaType: imageMime ?? "image/jpeg" }
+    : undefined;
+
+  const classified = hasAI()
+    ? await classifyQuickLogEntry(text, pet, locale, aiImage)
+    : heuristicClassifyQuickLog(text);
+
+  if (classified.route === "food") {
+    const { food } = classified;
+    await prisma.foodLogEntry.create({
+      data: {
+        petId,
+        occurredAt,
+        mealType: food.mealType,
+        foodName: food.foodName,
+        amount: food.amount,
+        appetite: food.appetite,
+        notes: food.notes ?? text,
+        loggedByOrgId,
+        loggedByName,
+      },
+    });
+    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+    revalidatePetPaths(petId);
+    return { ok: true, route: "food" as const, title: food.foodName, mealType: food.mealType };
+  }
+
+  if (classified.route === "activity") {
+    const { activity } = classified;
+    await prisma.activityLogEntry.create({
+      data: {
+        petId,
+        occurredAt,
+        activityType: activity.activityType,
+        durationMin: activity.durationMin,
+        distanceKm: activity.distanceKm,
+        intensity: activity.intensity,
+        notes: activity.notes ?? text,
+        loggedByOrgId,
+        loggedByName,
+      },
+    });
+    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+    revalidatePetPaths(petId);
+    return {
+      ok: true,
+      route: "activity" as const,
+      title: activity.activityType,
+      activityType: activity.activityType,
+    };
+  }
+
+  if (classified.route === "medication") {
+    const { medication } = classified;
+    await prisma.medicationLogEntry.create({
+      data: {
+        petId,
+        occurredAt,
+        medicationName: medication.medicationName,
+        dose: medication.dose,
+        route: medication.route,
+        notes: medication.notes ?? text,
+        loggedByOrgId,
+        loggedByName,
+      },
+    });
+    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+    revalidatePetPaths(petId);
+    return {
+      ok: true,
+      route: "medication" as const,
+      title: medication.medicationName,
+    };
+  }
+
+  let structured = classified.health;
+  let aiProcessed = hasAI();
   if (hasAI()) {
-    const aiImage = imageBytes
-      ? { data: new Uint8Array(imageBytes), mediaType: imageMime ?? "image/jpeg" }
-      : undefined;
     try {
       structured = await structureLogEntry(text, pet, locale, aiImage);
-      aiProcessed = true;
     } catch (e) {
-      console.error("log structuring failed, using heuristic", e);
+      console.error("log structuring failed, using classification", e);
+      aiProcessed = false;
     }
   }
 
@@ -449,11 +517,8 @@ export async function addLogEntry(petId: string, formData: FormData) {
   });
 
   await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
-
-  revalidatePath(`/app/pets/${petId}`);
-  revalidatePath(`/me/pets/${petId}`);
-  revalidatePath("/app");
-  return { ok: true, structured, imageUrl };
+  revalidatePetPaths(petId);
+  return { ok: true, route: "health" as const, structured, imageUrl };
 }
 
 export async function deleteLogEntry(petId: string, id: string) {
@@ -569,9 +634,14 @@ export async function addFoodLogEntry(petId: string, formData: FormData) {
   const logger = await resolveFacilityLogger(petId);
   if ("error" in logger) return { error: logger.error };
 
+  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
+  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  if ("error" in occurredResolved) return { error: occurredResolved.error };
+
   await prisma.foodLogEntry.create({
     data: {
       petId,
+      occurredAt: occurredResolved.date,
       mealType,
       foodName,
       amount: amount || null,
@@ -621,9 +691,14 @@ export async function addActivityLogEntry(petId: string, formData: FormData) {
   const logger = await resolveFacilityLogger(petId);
   if ("error" in logger) return { error: logger.error };
 
+  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
+  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  if ("error" in occurredResolved) return { error: occurredResolved.error };
+
   await prisma.activityLogEntry.create({
     data: {
       petId,
+      occurredAt: occurredResolved.date,
       activityType,
       durationMin,
       distanceKm,
@@ -647,6 +722,57 @@ export async function deleteActivityLogEntry(petId: string, id: string) {
   if (!entry || entry.petId !== petId) return { error: "Not found" };
   if (entry.lockedAt) return { error: "LOCKED" };
   await prisma.activityLogEntry.delete({ where: { id } });
+  revalidatePetPaths(petId);
+  return { ok: true };
+}
+
+export async function addMedicationLogEntry(petId: string, formData: FormData) {
+  const gate = await requirePetWriteAccess(petId);
+  if (gate) return gate;
+
+  const medicationName = String(formData.get("medicationName") || "").trim();
+  if (!medicationName) return { error: "Medication name required" };
+  if (medicationName.length > TITLE_MAX) return { error: VErr.TITLE_TOO_LONG };
+
+  const route = String(formData.get("route") || "ORAL");
+  const dose = String(formData.get("dose") || "").trim();
+  if (dose.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+  const notes = String(formData.get("notes") || "").trim();
+  if (notes.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
+
+  const logger = await resolveFacilityLogger(petId);
+  if ("error" in logger) return { error: logger.error };
+
+  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
+  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  if ("error" in occurredResolved) return { error: occurredResolved.error };
+
+  await prisma.medicationLogEntry.create({
+    data: {
+      petId,
+      occurredAt: occurredResolved.date,
+      medicationName,
+      dose: dose || null,
+      route,
+      notes: notes || null,
+      loggedByOrgId: logger.loggedByOrgId,
+      loggedByName: logger.loggedByName,
+    },
+  });
+
+  await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
+  revalidatePetPaths(petId);
+  return { ok: true };
+}
+
+export async function deleteMedicationLogEntry(petId: string, id: string) {
+  if (!(await canAccessPet(petId))) return { error: "Forbidden" };
+  const user = await getCurrentUser();
+  if (!user || user.orgId || (await currentActorIsFacility())) return { error: "Forbidden" };
+  const entry = await prisma.medicationLogEntry.findUnique({ where: { id } });
+  if (!entry || entry.petId !== petId) return { error: "Not found" };
+  if (entry.lockedAt) return { error: "LOCKED" };
+  await prisma.medicationLogEntry.delete({ where: { id } });
   revalidatePetPaths(petId);
   return { ok: true };
 }

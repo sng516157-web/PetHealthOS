@@ -1,40 +1,34 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Badge, Card, EmptyState, type Tone } from "@/components/ui";
-import { addActivityLogEntry, deleteActivityLogEntry } from "@/app/actions";
-import {
-  ACTIVITY_TYPES,
-  ACTIVITY_INTENSITIES,
-  type ActivityType,
-  type ActivityIntensity,
-} from "@/lib/constants";
+import { addMedicationLogEntry, deleteMedicationLogEntry } from "@/app/actions";
+import { MEDICATION_ROUTES, type MedicationRoute } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { useTimezone } from "@/lib/timezone/client";
 import { LogOccurredAtField, logFormInputCls } from "@/components/LogOccurredAtField";
 
-export type SerializedActivityLog = {
+export type SerializedMedicationLog = {
   id: string;
   occurredAt: string;
-  activityType: string;
-  durationMin: number | null;
-  distanceKm: number | null;
-  intensity: string;
+  medicationName: string;
+  dose: string;
+  route: string;
   notes: string;
   lockedAt?: string | null;
 };
 
-export function ActivityLogPanel({
+export function MedicationLogPanel({
   petId,
   entries,
   readOnly = false,
   canDelete = false,
 }: {
   petId: string;
-  entries: SerializedActivityLog[];
+  entries: SerializedMedicationLog[];
   readOnly?: boolean;
   canDelete?: boolean;
 }) {
@@ -46,15 +40,15 @@ export function ActivityLogPanel({
 
   function submit(formData: FormData) {
     start(async () => {
-      await addActivityLogEntry(petId, formData);
+      await addMedicationLogEntry(petId, formData);
       router.refresh();
     });
   }
 
   function remove(id: string) {
-    if (!confirm(t.activityLog.deleteConfirm)) return;
+    if (!confirm(t.medicationLog.deleteConfirm)) return;
     start(async () => {
-      await deleteActivityLogEntry(petId, id);
+      await deleteMedicationLogEntry(petId, id);
       router.refresh();
     });
   }
@@ -63,57 +57,42 @@ export function ActivityLogPanel({
     <div className="space-y-5">
       {!readOnly && (
         <Card className="p-5">
-          <h2 className="text-sm font-semibold text-forest">{t.activityLog.title}</h2>
-          <p className="mt-1 text-xs text-muted">{t.activityLog.subtitle}</p>
+          <h2 className="text-sm font-semibold text-forest">{t.medicationLog.title}</h2>
+          <p className="mt-1 text-xs text-muted">{t.medicationLog.subtitle}</p>
           <form action={submit} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="block text-xs font-medium text-slate-600">
-              {t.activityLog.activityType}
-              <select name="activityType" defaultValue="WALK" className={`${logFormInputCls} mt-1`}>
-                {ACTIVITY_TYPES.map((a) => (
-                  <option key={a} value={a}>
-                    {t.activityType[a]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-xs font-medium text-slate-600">
-              {t.activityLog.intensity}
-              <select name="intensity" defaultValue="MODERATE" className={`${logFormInputCls} mt-1`}>
-                {ACTIVITY_INTENSITIES.map((i) => (
-                  <option key={i} value={i}>
-                    {t.activityIntensity[i]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-xs font-medium text-slate-600">
-              {t.activityLog.duration}
+            <label className="block text-xs font-medium text-slate-600 sm:col-span-2">
+              {t.medicationLog.medicationName}
               <input
-                name="durationMin"
-                type="number"
-                min={1}
+                name="medicationName"
                 required
-                placeholder={t.activityLog.durationPlaceholder}
+                placeholder={t.medicationLog.medicationNamePlaceholder}
                 className={`${logFormInputCls} mt-1`}
               />
             </label>
             <label className="block text-xs font-medium text-slate-600">
-              {t.activityLog.distance}
+              {t.medicationLog.dose}
               <input
-                name="distanceKm"
-                type="number"
-                step="0.1"
-                min={0}
-                placeholder={t.activityLog.distancePlaceholder}
+                name="dose"
+                placeholder={t.medicationLog.dosePlaceholder}
                 className={`${logFormInputCls} mt-1`}
               />
+            </label>
+            <label className="block text-xs font-medium text-slate-600">
+              {t.medicationLog.route}
+              <select name="route" defaultValue="ORAL" className={`${logFormInputCls} mt-1`}>
+                {MEDICATION_ROUTES.map((r) => (
+                  <option key={r} value={r}>
+                    {t.medicationRoute[r]}
+                  </option>
+                ))}
+              </select>
             </label>
             <LogOccurredAtField />
             <label className="block text-xs font-medium text-slate-600 sm:col-span-2">
-              {t.activityLog.notes}
+              {t.medicationLog.notes}
               <input
                 name="notes"
-                placeholder={t.activityLog.notesPlaceholder}
+                placeholder={t.medicationLog.notesPlaceholder}
                 className={`${logFormInputCls} mt-1`}
               />
             </label>
@@ -123,7 +102,7 @@ export function ActivityLogPanel({
                 disabled={pending}
                 className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
-                {pending ? "…" : t.activityLog.save}
+                {pending ? "…" : t.medicationLog.save}
               </button>
             </div>
           </form>
@@ -131,7 +110,10 @@ export function ActivityLogPanel({
       )}
 
       {entries.length === 0 ? (
-        <EmptyState title={t.activityLog.noEntries} description={t.activityLog.noEntriesDesc} />
+        <EmptyState
+          title={t.medicationLog.noEntries}
+          description={t.medicationLog.noEntriesDesc}
+        />
       ) : (
         <ol className="space-y-3">
           {entries.map((e) => (
@@ -140,19 +122,10 @@ export function ActivityLogPanel({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-forest">
-                        {t.activityType[e.activityType as ActivityType]}
-                      </span>
-                      {e.durationMin != null && (
-                        <Badge tone="brand">{e.durationMin} min</Badge>
-                      )}
-                      <Badge tone={intensityTone(e.intensity)}>
-                        {t.activityIntensity[e.intensity as ActivityIntensity]}
-                      </Badge>
+                      <span className="font-medium text-forest">{e.medicationName}</span>
+                      <Badge tone="violet">{t.medicationRoute[e.route as MedicationRoute]}</Badge>
+                      {e.dose && <Badge tone="slate">{e.dose}</Badge>}
                     </div>
-                    {e.distanceKm != null && (
-                      <p className="mt-1 text-sm text-slate-600">{e.distanceKm} km</p>
-                    )}
                     {e.notes && <p className="mt-1 text-sm text-slate-500">{e.notes}</p>}
                     <p className="mt-2 text-xs text-muted">
                       {formatDateTime(new Date(e.occurredAt), fmt)}
@@ -176,10 +149,4 @@ export function ActivityLogPanel({
       )}
     </div>
   );
-}
-
-function intensityTone(intensity: string): Tone {
-  if (intensity === "VIGOROUS") return "rose";
-  if (intensity === "MODERATE") return "amber";
-  return "sky";
 }

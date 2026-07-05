@@ -2,8 +2,14 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnedPet, getPetEntitlements } from "@/lib/data";
 import { QuickAddLog } from "@/components/QuickAddLog";
-import { LogTimeline } from "@/components/LogTimeline";
-import { serializeHealthLogs } from "@/lib/pet-serialize";
+import { UnifiedLogTimeline } from "@/components/UnifiedLogTimeline";
+import {
+  serializeHealthLogs,
+  serializeFoodLogs,
+  serializeActivityLogs,
+  serializeMedicationLogs,
+} from "@/lib/pet-serialize";
+import { buildUnifiedLogTimeline } from "@/lib/unified-logs";
 import { MotionStagger } from "@/components/dashboard/DashboardMotion";
 
 export default async function MePetQuickLogPage({
@@ -21,13 +27,19 @@ export default async function MePetQuickLogPage({
   const ent = await getPetEntitlements(id);
   const canLog = !isMemorial && (ent?.canLog ?? true);
   const logs = serializeHealthLogs(pet.logs);
+  const timeline = buildUnifiedLogTimeline({
+    health: logs,
+    food: serializeFoodLogs(pet.foodLogs),
+    activity: serializeActivityLogs(pet.activityLogs),
+    medication: serializeMedicationLogs(pet.medicationLogs ?? []),
+  });
 
   return (
     <MotionStagger className="space-y-5" step={90} itemClassName="">
       {canLog ? <QuickAddLog petId={pet.id} ownerConfirm /> : null}
-      <LogTimeline
+      <UnifiedLogTimeline
         petId={pet.id}
-        logs={logs}
+        items={timeline}
         canDelete={canLog}
         canEdit={canLog}
       />

@@ -135,3 +135,25 @@ export function serializeActivityLogs(
     lockedAt: e.lockedAt?.toISOString() ?? null,
   }));
 }
+
+export function serializeMedicationLogs(
+  entries: {
+    id: string;
+    occurredAt: Date;
+    medicationName: string;
+    dose: string | null;
+    route: string | null;
+    notes: string | null;
+    lockedAt?: Date | null;
+  }[],
+) {
+  return entries.map((e) => ({
+    id: e.id,
+    occurredAt: e.occurredAt.toISOString(),
+    medicationName: e.medicationName,
+    dose: e.dose ?? "",
+    route: e.route ?? "ORAL",
+    notes: e.notes ?? "",
+    lockedAt: e.lockedAt?.toISOString() ?? null,
+  }));
+}

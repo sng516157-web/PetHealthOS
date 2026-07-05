@@ -74,6 +74,10 @@ export function PreviewPetTabPanels({
     return <PreviewActivityPanel fmt={fmt} />;
   }
 
+  if (mainTab === "logs" && logSubTab === "medication") {
+    return <PreviewMedicationPanel fmt={fmt} />;
+  }
+
   if (mainTab === "chat") {
     return (
       <Card className="p-4">
@@ -188,6 +192,17 @@ function PreviewActivityPanel({ fmt }: { fmt: FormatOpts }) {
           </li>
         ))}
       </ul>
+    </Card>
+  );
+}
+
+function PreviewMedicationPanel(_props: { fmt: FormatOpts }) {
+  const { t } = useI18n();
+  return (
+    <Card className="p-4">
+      <h2 className="text-sm font-semibold text-forest">{t.medicationLog.title}</h2>
+      <p className="mt-0.5 text-xs text-muted">{t.medicationLog.subtitle}</p>
+      <p className="mt-4 text-sm text-muted">{t.medicationLog.noEntriesDesc}</p>
     </Card>
   );
 }

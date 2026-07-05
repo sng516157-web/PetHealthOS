@@ -10,6 +10,7 @@ import {
   Hospital,
   UtensilsCrossed,
   Footprints,
+  Pill,
 } from "lucide-react";
 
 /** Shared tab ids for PetTabs + landing preview — keep in sync when adding pet tabs. */
@@ -23,7 +24,7 @@ export type PetMainTabId =
   | "checkin"
   | "transfer";
 
-export type PetLogSubTabId = "quick" | "food" | "activity";
+export type PetLogSubTabId = "quick" | "food" | "activity" | "medication";
 
 export type PetTabDef = {
   id: PetMainTabId | PetLogSubTabId;
@@ -50,6 +51,7 @@ type TabLabels = {
   quickLog: string;
   foodLog: string;
   activityLog: string;
+  medicationLog: string;
 };
 
 /** Single source of truth for pet major + log sub-tabs (labels/icons/order). */
@@ -85,6 +87,7 @@ export function buildPetTabModel(
     { id: "quick", label: labels.quickLog, icon: NotebookPen },
     { id: "food", label: labels.foodLog, icon: UtensilsCrossed },
     { id: "activity", label: labels.activityLog, icon: Footprints },
+    { id: "medication", label: labels.medicationLog, icon: Pill },
   ];
 
   return { mainTabs, logSubTabs };
@@ -98,6 +101,7 @@ export function petTabHref(
   if (mainTab === "logs") {
     if (logSubTab === "food") return `${base}/food`;
     if (logSubTab === "activity") return `${base}/activity`;
+    if (logSubTab === "medication") return `${base}/medication`;
     return base;
   }
   return `${base}/${mainTab}`;
@@ -113,6 +117,9 @@ export function matchPetPath(
   }
   if (pathname === `${base}/activity` || pathname.startsWith(`${base}/activity/`)) {
     return { mainTab: "logs", logSubTab: "activity" };
+  }
+  if (pathname === `${base}/medication` || pathname.startsWith(`${base}/medication/`)) {
+    return { mainTab: "logs", logSubTab: "medication" };
   }
   if (logPaths.includes(pathname) || pathname === base) {
     return { mainTab: "logs", logSubTab: "quick" };

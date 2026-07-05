@@ -168,6 +168,21 @@ export const en = {
     MODERATE: "Moderate",
     VIGOROUS: "Vigorous",
   },
+  medicationRoute: {
+    ORAL: "Oral",
+    TOPICAL: "Topical",
+    INJECTION: "Injection",
+    OTHER: "Other",
+  },
+  logBucket: {
+    health: "Health",
+    food: "Food & Nutrition",
+    activity: "Activity & Walks",
+    medication: "Medication",
+  },
+  logCommon: {
+    dateTime: "Date & time",
+  },
   severity: {
     NONE: "None",
     LOW: "Low",
@@ -307,6 +322,7 @@ export const en = {
     transfer: "Transfer",
     foodLog: "Food & Nutrition",
     activityLog: "Activity & Walks",
+    medicationLog: "Medication",
     reminders: "Reminders",
     remindersDesc: "Vaccines, medications, and appointments for this pet.",
     weight: "Weight",
@@ -342,7 +358,7 @@ export const en = {
   quickLog: {
     title: "Log a note",
     aiStructures: "AI structures it automatically",
-    placeholder: "Just write naturally — e.g. 'Threw up after breakfast, seems a bit tired but drinking water'",
+    placeholder: "Just write naturally — e.g. 'Walked 30 min at 11 am' or 'Gave antibiotic pill after breakfast'",
     saveHint: "⌘/Ctrl + Enter to save",
     save: "Save entry",
     structuring: "Structuring…",
@@ -361,7 +377,7 @@ export const en = {
   },
   timeline: {
     noEntries: "No log entries yet",
-    noEntriesDesc: "Add your first note above. The AI will categorize it and build this pet's health timeline.",
+    noEntriesDesc: "Add a note above — meals, walks, meds, and health events all appear here with their category.",
     all: (n: number) => `All (${n})`,
     deleteEntry: "Delete entry",
     deleteConfirm: "Delete this log entry? This cannot be undone.",
@@ -402,6 +418,21 @@ export const en = {
     noEntries: "No activity entries yet",
     noEntriesDesc: "Log walks and play so triage can connect energy levels with health.",
     deleteConfirm: "Delete this activity entry?",
+  },
+  medicationLog: {
+    title: "Log medication",
+    subtitle: "Track doses given — name, amount, and route.",
+    medicationName: "Medication",
+    medicationNamePlaceholder: "e.g. Amoxicillin, flea drops",
+    dose: "Dose",
+    dosePlaceholder: "e.g. 1 tablet, 5 ml",
+    route: "Route",
+    notes: "Notes",
+    notesPlaceholder: "e.g. with food, left ear",
+    save: "Save dose",
+    noEntries: "No medication entries yet",
+    noEntriesDesc: "Log doses so triage and reminders stay aligned with what was actually given.",
+    deleteConfirm: "Delete this medication entry?",
   },
   demoNav: {
     placeholderBody:

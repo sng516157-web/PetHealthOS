@@ -9,10 +9,16 @@ import {
   getPetEntitlements,
 } from "@/lib/data";
 import { QuickAddLog } from "@/components/QuickAddLog";
-import { LogTimeline } from "@/components/LogTimeline";
+import { UnifiedLogTimeline } from "@/components/UnifiedLogTimeline";
 import { DeleteShopPetPanel } from "@/components/DeleteShopPetPanel";
 import { MotionStagger } from "@/components/dashboard/DashboardMotion";
-import { serializeHealthLogs } from "@/lib/pet-serialize";
+import {
+  serializeHealthLogs,
+  serializeFoodLogs,
+  serializeActivityLogs,
+  serializeMedicationLogs,
+} from "@/lib/pet-serialize";
+import { buildUnifiedLogTimeline } from "@/lib/unified-logs";
 import { SEVERITY_META, Severity } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
@@ -56,6 +62,12 @@ export default async function AppPetQuickLogPage({
   if (!ctx) notFound();
 
   const logs = serializeHealthLogs(ctx.pet.logs);
+  const timeline = buildUnifiedLogTimeline({
+    health: logs,
+    food: serializeFoodLogs(ctx.pet.foodLogs),
+    activity: serializeActivityLogs(ctx.pet.activityLogs),
+    medication: serializeMedicationLogs(ctx.pet.medicationLogs ?? []),
+  });
 
   if (ctx.facility && !ctx.facilityActive) {
     return (
@@ -64,7 +76,7 @@ export default async function AppPetQuickLogPage({
           <Lock size={18} className="mt-0.5 shrink-0 text-slate-400" />
           <p>{t.facility.readonlyNotice}</p>
         </div>
-        <LogTimeline petId={ctx.pet.id} logs={logs} canDelete={false} canEdit={false} />
+        <UnifiedLogTimeline petId={ctx.pet.id} items={timeline} canDelete={false} canEdit={false} />
       </MotionStagger>
     );
   }
@@ -120,7 +132,7 @@ export default async function AppPetQuickLogPage({
         </Link>
       ) : null}
       {ctx.canLog ? <QuickAddLog petId={ctx.pet.id} /> : null}
-      <LogTimeline petId={ctx.pet.id} logs={logs} canDelete={false} canEdit={false} />
+      <UnifiedLogTimeline petId={ctx.pet.id} items={timeline} canDelete={false} canEdit={false} />
       {!ctx.facility && ctx.pet.notes ? (
         <div className="rounded-2xl border border-border bg-surface/90 p-4 shadow-soft backdrop-blur">
           <h3 className="text-sm font-semibold text-foreground">{t.petDetail.profileNotes}</h3>
