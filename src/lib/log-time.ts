@@ -1,18 +1,66 @@
 /** Natural-language time hints in freeform log notes → concrete Date. */
 
-function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+import { isValidTimezone, DEFAULT_TIMEZONE } from "@/lib/timezone/config";
+
+type ClockMatch = { h: number; min: number; meridiem?: string; score: number };
+
+const DURATION_AFTER =
+  /^\s*(minutes|minute|mins|min\b|hours|hour|hrs|hr\b|seconds|second|secs|sec\b|秒|分钟|小时|分)/i;
+
+/** UTC instant for a wall-clock time in an IANA timezone. */
+export function zonedTimeToUtc(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  timeZone: string,
+): Date {
+  const tz = isValidTimezone(timeZone) ? timeZone : DEFAULT_TIMEZONE;
+  let utc = Date.UTC(year, month - 1, day, hour, minute, 0);
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const want = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+
+  for (let i = 0; i < 3; i++) {
+    const parts = Object.fromEntries(fmt.formatToParts(new Date(utc)).map((p) => [p.type, p.value]));
+    const got = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+    if (got === want) return new Date(utc);
+    utc += ((hour - Number(parts.hour)) * 60 + (minute - Number(parts.minute))) * 60_000;
+  }
+  return new Date(utc);
 }
 
-function setClock(d: Date, hours: number, minutes: number): Date {
-  const x = new Date(d);
-  x.setHours(hours, minutes, 0, 0);
-  return x;
+function calendarDayInZone(d: Date, timeZone: string): [number, number, number] {
+  const s = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+  const [y, mo, day] = s.split("-").map(Number);
+  return [y, mo, day];
 }
 
-function parse12h(h: number, min: number, meridiem?: string): { hours: number; minutes: number } {
+function shiftCalendarDay(
+  y: number,
+  mo: number,
+  d: number,
+  delta: number,
+  timeZone: string,
+): [number, number, number] {
+  const anchor = zonedTimeToUtc(y, mo, d, 12, 0, timeZone);
+  return calendarDayInZone(new Date(anchor.getTime() + delta * 86400000), timeZone);
+}
+
+function parse12h(h: number, min: number, meridiem?: string, refHour = 12): { hours: number; minutes: number } {
   let hours = h;
   const minutes = min;
   const m = meridiem?.toLowerCase().replace(/\./g, "");
@@ -20,39 +68,77 @@ function parse12h(h: number, min: number, meridiem?: string): { hours: number; m
     if (hours < 12) hours += 12;
   } else if (m === "am" || m === "a") {
     if (hours === 12) hours = 0;
-  } else if (hours <= 12 && !meridiem) {
-    // ponytail: ambiguous bare hour (e.g. "at 11") → assume same half-day as now
-    const nowH = new Date().getHours();
-    if (hours === 12) hours = nowH >= 12 ? 12 : 0;
-    else if (nowH >= 12 && hours < 12) hours += 12;
+  } else if (hours <= 12) {
+    if (hours === 12) hours = refHour >= 12 ? 12 : 0;
+    else if (refHour >= 12 && hours < 12) hours += 12;
   }
   return { hours, minutes };
 }
 
-const TIME_RE =
-  /\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|am|pm)?\b/i;
+/** Pick the best clock-time mention; ignores durations like "20 minutes". */
+export function extractClockTime(text: string): ClockMatch | null {
+  const candidates: ClockMatch[] = [];
+
+  for (const m of text.matchAll(/\bat\s+(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b/gi)) {
+    candidates.push({ h: +m[1], min: m[2] ? +m[2] : 0, meridiem: m[3], score: 100 });
+  }
+
+  for (const m of text.matchAll(/\b(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?)?\b/gi)) {
+    const idx = m.index ?? 0;
+    const before = text.slice(Math.max(0, idx - 8), idx);
+    if (/\d\s*$/.test(before)) continue; // skip HH:MM inside dates
+    candidates.push({ h: +m[1], min: +m[2], meridiem: m[3], score: m[3] ? 90 : 70 });
+  }
+
+  for (const m of text.matchAll(/\b(\d{1,2})\s*(a\.?m\.?|p\.?m\.?)\b/gi)) {
+    candidates.push({ h: +m[1], min: 0, meridiem: m[2], score: 85 });
+  }
+
+  for (const m of text.matchAll(/\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b/gi)) {
+    const tail = text.slice((m.index ?? 0) + m[0].length);
+    if (DURATION_AFTER.test(tail)) continue;
+    if (!m[3] && +m[1] > 12) continue; // bare 13–24 without am/pm → likely not a time
+    candidates.push({
+      h: +m[1],
+      min: m[2] ? +m[2] : 0,
+      meridiem: m[3],
+      score: m[3] ? 80 : 40,
+    });
+  }
+
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0];
+}
+
 const ZH_TIME_RE = /(\d{1,2})\s*点(?:\s*(半|(\d{1,2})\s*分))?/;
 
 /**
- * Parse a time-of-day or relative date phrase from note text.
+ * Parse a time-of-day or relative date phrase from note text in the user's timezone.
  * Returns null when no time hint is found.
  */
 export function parseNaturalLogTime(
   text: string,
   ref: Date = new Date(),
+  timeZone: string = DEFAULT_TIMEZONE,
 ): Date | null {
   const t = text.trim();
   if (!t) return null;
 
-  let day = startOfDay(ref);
+  const tz = isValidTimezone(timeZone) ? timeZone : DEFAULT_TIMEZONE;
+  let [y, mo, d] = calendarDayInZone(ref, tz);
 
   if (/\byesterday\b/i.test(t) || /昨天/.test(t)) {
-    day = startOfDay(new Date(ref.getTime() - 86400000));
-  } else if (/\b(today|this morning|this afternoon|this evening|tonight)\b/i.test(t) || /今天|今早|今晨|今晚|今下午/.test(t)) {
-    day = startOfDay(ref);
+    [y, mo, d] = shiftCalendarDay(y, mo, d, -1, tz);
   }
 
-  // Fuzzy dayparts (only when no explicit clock time)
+  const refParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(ref);
+  const refHour = Number(refParts.find((p) => p.type === "hour")?.value ?? 12);
+
   const fuzzy =
     /\bthis morning\b/i.test(t) || /今早|今晨|早上/.test(t)
       ? { h: 8, m: 0 }
@@ -62,12 +148,10 @@ export function parseNaturalLogTime(
           ? { h: 19, m: 0 }
           : null;
 
-  const en = t.match(TIME_RE);
+  const en = extractClockTime(t);
   if (en) {
-    const h = parseInt(en[1], 10);
-    const min = en[2] ? parseInt(en[2], 10) : 0;
-    const { hours, minutes } = parse12h(h, min, en[3]);
-    return setClock(day, hours, minutes);
+    const { hours, minutes } = parse12h(en.h, en.min, en.meridiem, refHour);
+    return zonedTimeToUtc(y, mo, d, hours, minutes, tz);
   }
 
   const zh = t.match(ZH_TIME_RE);
@@ -76,21 +160,52 @@ export function parseNaturalLogTime(
     const min = zh[2] === "半" ? 30 : zh[3] ? parseInt(zh[3], 10) : 0;
     if (/下午|晚上|今晚/.test(t) && h <= 12 && h !== 12) h += 12;
     if (/早上|上午|今早/.test(t) && h === 12) h = 0;
-    return setClock(day, h, min);
+    return zonedTimeToUtc(y, mo, d, h, min, tz);
   }
 
-  if (fuzzy) return setClock(day, fuzzy.h, fuzzy.m);
+  if (fuzzy) return zonedTimeToUtc(y, mo, d, fuzzy.h, fuzzy.m, tz);
 
-  // Date-only hints (yesterday/today without clock) → keep ref time on that day
   if (/\byesterday\b/i.test(t) || /昨天/.test(t)) {
-    return setClock(day, ref.getHours(), ref.getMinutes());
+    const refMin = Number(
+      new Intl.DateTimeFormat("en-US", { timeZone: tz, minute: "numeric" }).format(ref),
+    );
+    return zonedTimeToUtc(y, mo, d, refHour, refMin, tz);
   }
 
   return null;
+}
+
+/** Parse `<input type="datetime-local">` value as wall time in the user's timezone. */
+export function parseDatetimeLocalValue(raw: string, timeZone: string): Date | null {
+  const v = raw.trim();
+  const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  return zonedTimeToUtc(+m[1], +m[2], +m[3], +m[4], +m[5], timeZone);
 }
 
 /** Value for `<input type="datetime-local">` in local browser time. */
 export function toDatetimeLocalValue(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ponytail: dev-only sanity check — fails if duration minutes steal the clock parse
+if (process.env.NODE_ENV !== "production") {
+  const probe = parseNaturalLogTime(
+    "Walked 20 minutes at 11 am",
+    new Date("2026-07-05T06:00:00.000Z"),
+    "Asia/Shanghai",
+  );
+  const h = probe
+    ? Number(
+        new Intl.DateTimeFormat("en-US", {
+          timeZone: "Asia/Shanghai",
+          hour: "numeric",
+          hour12: false,
+        }).format(probe),
+      )
+    : -1;
+  if (h !== 11) {
+    console.warn("[log-time] expected 11am for 'Walked 20 minutes at 11 am', got hour", h);
+  }
 }

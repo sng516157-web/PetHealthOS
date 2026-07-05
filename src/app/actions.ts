@@ -46,7 +46,9 @@ import {
   hasAI,
   type OrgWardTriageResult,
 } from "@/lib/ai";
-import { parseNaturalLogTime } from "@/lib/log-time";
+import { parseNaturalLogTime, parseDatetimeLocalValue } from "@/lib/log-time";
+import { getTimezone } from "@/lib/timezone/server";
+import { isValidTimezone } from "@/lib/timezone/config";
 import { heuristicClassifyQuickLog } from "@/lib/quick-log-classify";
 import { getLocale } from "@/lib/i18n/server";
 import { isLocale, type Locale } from "@/lib/i18n/config";
@@ -325,10 +327,31 @@ export async function addPet(formData: FormData) {
   return { id: pet.id };
 }
 
+async function resolvePetOccurredFromForm(
+  formData: FormData,
+  naturalText?: string,
+): Promise<{ date: Date } | { error: typeof VErr.DATE_INVALID | typeof VErr.DATE_FUTURE }> {
+  const tzRaw = String(formData.get("timeZone") || "");
+  const timeZone = isValidTimezone(tzRaw) ? tzRaw : await getTimezone();
+  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
+
+  if (naturalText?.trim()) {
+    const natural = parseNaturalLogTime(naturalText, new Date(), timeZone);
+    if (natural) return resolveLogOccurredAt(natural.toISOString());
+  }
+
+  if (occurredAtRaw && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(occurredAtRaw)) {
+    const parsed = parseDatetimeLocalValue(occurredAtRaw, timeZone);
+    if (!parsed) return { error: VErr.DATE_INVALID };
+    return resolveLogOccurredAt(parsed.toISOString());
+  }
+
+  return resolveLogOccurredAt(occurredAtRaw);
+}
+
 export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
   if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
-  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
   const hasText = Boolean(text);
 
   // Optional photo/video. Images inform the AI only when there's a written note
@@ -375,10 +398,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
 
   const locale = await resolveLocale(String(formData.get("locale") || ""));
 
-  const naturalTime = hasText ? parseNaturalLogTime(text) : null;
-  const occurredResolved = resolveLogOccurredAt(
-    naturalTime?.toISOString() ?? occurredAtRaw,
-  );
+  const occurredResolved = await resolvePetOccurredFromForm(formData, hasText ? text : undefined);
   if ("error" in occurredResolved) return { error: occurredResolved.error };
   const occurredAt = occurredResolved.date;
 
@@ -634,8 +654,7 @@ export async function addFoodLogEntry(petId: string, formData: FormData) {
   const logger = await resolveFacilityLogger(petId);
   if ("error" in logger) return { error: logger.error };
 
-  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
-  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  const occurredResolved = await resolvePetOccurredFromForm(formData);
   if ("error" in occurredResolved) return { error: occurredResolved.error };
 
   await prisma.foodLogEntry.create({
@@ -691,8 +710,7 @@ export async function addActivityLogEntry(petId: string, formData: FormData) {
   const logger = await resolveFacilityLogger(petId);
   if ("error" in logger) return { error: logger.error };
 
-  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
-  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  const occurredResolved = await resolvePetOccurredFromForm(formData);
   if ("error" in occurredResolved) return { error: occurredResolved.error };
 
   await prisma.activityLogEntry.create({
@@ -743,8 +761,7 @@ export async function addMedicationLogEntry(petId: string, formData: FormData) {
   const logger = await resolveFacilityLogger(petId);
   if ("error" in logger) return { error: logger.error };
 
-  const occurredAtRaw = String(formData.get("occurredAt") || "") || undefined;
-  const occurredResolved = resolveLogOccurredAt(occurredAtRaw);
+  const occurredResolved = await resolvePetOccurredFromForm(formData);
   if ("error" in occurredResolved) return { error: occurredResolved.error };
 
   await prisma.medicationLogEntry.create({

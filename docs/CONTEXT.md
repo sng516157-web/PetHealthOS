@@ -265,6 +265,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 ## Decision log
 
+- **2026-07-05** — **Quick-log time parse fix.** Natural-time parser no longer treats
+  duration numbers (`20 minutes`) as clock hours; prefers explicit `at 11 am` matches
+  and interprets wall times in the user's IANA timezone (cookie / form `timeZone`).
+
 - **2026-07-05** — **Unified quick log + medication tab.** Quick Log merges health, food,
   activity, and medication entries in one timeline with bucket badges; freeform notes are
   AI/heuristic-routed to the right table (`FoodLogEntry`, `ActivityLogEntry`,

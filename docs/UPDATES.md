@@ -7,6 +7,8 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-07-05 — Quick-log time fix.** Notes like "Walked 20 minutes at 11 am" now log at 11 am (not 8 PM) using your timezone.
+
 - **2026-07-05 — Unified logs + medication tab.** Quick Log shows all food, activity, medication, and health entries together; notes auto-route to the right category and parse times like "11 am"; each category form has date/time; new Medication tab.
 
 - **2026-07-01 — Transparent logo mark.** In-app logo uses the background-free paw mark on the paper tile; favicons keep the cream squircle.
