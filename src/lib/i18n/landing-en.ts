@@ -69,6 +69,7 @@ export const landingEn = {
       desc: "The shop workspace tracks every pet in your care, flags what needs attention, and prepares a tamper-evident passport when the pet goes to a new owner.",
       bullets: [
         "Overview stats — pets in care, attention items, due reminders",
+        "Quick Log: one natural-language note → structured food, walks, meds, and health entries",
         "Import CSV + PDFs from your old app or paper records",
         "Workspace AI across your whole roster — e.g. “Which dogs should I keep an eye on?”",
         "Attention feed for high-severity logs and under-observation pets",
@@ -367,6 +368,7 @@ export const landingEn = {
       "Scan a breeder or shelter passport QR at handover",
       "Inherit vaccines, weights, documents, and care notes",
       "Set reminders, log health, and store files in one place",
+      "Quick Log: one note → food, walks, meds, and symptoms — structured automatically",
     ],
     pathsOwnerCta: "Create free owner account",
     pathsOwnerScan: "Scan a passport QR",
@@ -391,7 +393,10 @@ export const landingEn = {
       "Build the record before handover. Share one link or QR code. The new owner continues the same timeline.",
     solutionSteps: [
       { title: "Create a pet profile", desc: "Name, breed, intake date, and profile notes in your workspace." },
-      { title: "Add health & care records", desc: "Vaccines, weights, deworming, daily notes, and milestones over time." },
+      {
+        title: "Add health & care records",
+        desc: "Quick Log turns one natural-language note into structured food, activity, medication, and health entries — with times extracted automatically.",
+      },
       { title: "Attach documents", desc: "Vaccine certificates, registration papers, lab results, and photos." },
       { title: "Share by QR code", desc: "Buyer scans at handover — no app required to view." },
       { title: "Transfer to the owner", desc: "History freezes at issue; the owner claims and continues the record." },
@@ -424,6 +429,52 @@ export const landingEn = {
     dashboardSubtitle:
       "Shops track pets before handover; owners see every pet, reminder, and inherited passport in one home.",
     dashboardHint: "Switch shop or owner — click around; nothing is saved.",
+    quickLogFeature: {
+      eyebrow: "Smart logging",
+      title: "One note, four structured logs",
+      subtitle:
+        "Write naturally in Quick Log — PawSure splits your note into food, activity, medication, and health entries, each with the right time.",
+      inputLabel: "What you type",
+      exampleNote:
+        "My dog took a walk at 9 am today, and ate his breakfast at 11 am, then took his medication at 11:30 am, he seems to be limping",
+      structuringLabel: "Structured automatically",
+      bullets: [
+        "One sentence can create several logs — walks, meals, meds, and symptoms",
+        "Extracts times like “9 am” and “11:30” for each event",
+        "Standardizes titles and fields — not just pasted raw text",
+        "Shows in Quick Log and each category tab; AI assistant sees all of them",
+      ],
+      outputs: [
+        {
+          bucket: "activity",
+          label: "Activity",
+          title: "Walk",
+          time: "9:00 AM",
+          summary: "Walk recorded — moderate intensity",
+        },
+        {
+          bucket: "food",
+          label: "Food",
+          title: "Breakfast",
+          time: "11:00 AM",
+          summary: "Breakfast — normal appetite",
+        },
+        {
+          bucket: "medication",
+          label: "Medication",
+          title: "Medication dose",
+          time: "11:30 AM",
+          summary: "Oral medication recorded",
+        },
+        {
+          bucket: "health",
+          label: "Health",
+          title: "Limping observed",
+          time: "Just now",
+          summary: "Seems to be limping — medium severity",
+        },
+      ],
+    },
     foundingEyebrow: "Limited early breeder offer",
     foundingOffersTitle: "Founding breeder lifetime deals",
     foundingOffersSubtitle:

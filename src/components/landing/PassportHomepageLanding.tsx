@@ -21,6 +21,7 @@ import {
 import { PassportHeroMockup } from "@/components/landing/PassportHeroMockup";
 import { SamplePetPassport } from "@/components/landing/SamplePetPassport";
 import { LandingMiniDashboards } from "@/components/landing/LandingMiniDashboards";
+import { QuickLogFeatureSection } from "@/components/landing/QuickLogFeatureSection";
 import { FoundingBreederHomepageOffers } from "@/components/landing/FoundingBreederHomepageOffers";
 import {
   AuroraOrbs,
@@ -248,6 +249,8 @@ export function PassportHomepageLanding({ locale, t, previewBanner, founding }: 
           </MotionReveal>
         </div>
       </section>
+
+      <QuickLogFeatureSection copy={h.quickLogFeature} />
 
       <section className="border-y border-border bg-sand/25 py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-5 md:px-8">

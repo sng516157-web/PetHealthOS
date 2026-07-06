@@ -63,6 +63,7 @@ export const landingZh: typeof landingEn = {
       desc: "商家工作区追踪照护中的每只宠物，标记需关注事项，并在宠物交给新主人时准备防篡改护照。",
       bullets: [
         "总览数据——照护中宠物、需关注项、到期提醒",
+        "快速记录：一条自然语言备注 → 结构化饮食、散步、用药与健康条目",
         "从旧应用或纸质记录导入 CSV 与 PDF",
         "工作区 AI 覆盖整个名单——例如「哪些狗需要重点关注？」",
         "高严重度记录与观察中宠物的关注 feed",
@@ -324,6 +325,7 @@ export const landingZh: typeof landingEn = {
       "交接时扫描繁育者或救助机构的护照二维码",
       "继承疫苗、体重、文件与护理备注",
       "在一处设置提醒、记录健康并保存文件",
+      "快速记录：一条备注 → 饮食、散步、用药与症状，自动结构化",
     ],
     pathsOwnerCta: "免费创建主人账户",
     pathsOwnerScan: "扫描护照二维码",
@@ -346,7 +348,7 @@ export const landingZh: typeof landingEn = {
     solutionSubtitle: "交接前建立记录。分享一个链接或二维码。新主人延续同一条时间线。",
     solutionSteps: [
       { title: "创建宠物档案", desc: "名称、品种、入档日期与备注，都在您的工作区。" },
-      { title: "添加健康与护理记录", desc: "疫苗、体重、驱虫、日常备注与里程碑。" },
+      { title: "添加健康与护理记录", desc: "快速记录可将一条自然语言备注拆分为饮食、活动、用药与健康条目，并自动提取各事件时间。" },
       { title: "附加文件", desc: "疫苗证明、血统证书、化验结果与照片。" },
       { title: "二维码分享", desc: "买家交接时扫码——查看无需安装应用。" },
       { title: "转移给主人", desc: "签发时历史冻结；主人认领后继续记录。" },
@@ -368,6 +370,52 @@ export const landingZh: typeof landingEn = {
     dashboardTitle: "在一处管理护照",
     dashboardSubtitle: "商家追踪交接前的宠物；主人在同一主页查看宠物、提醒与继承的护照。",
     dashboardHint: "可切换商家或主人——点击体验；不会保存数据。",
+    quickLogFeature: {
+      eyebrow: "智能记录",
+      title: "一条备注，四条结构化记录",
+      subtitle:
+        "在快速记录中用自然语言书写即可——宠诺会拆分为饮食、活动、用药与健康条目，并为每个事件提取正确时间。",
+      inputLabel: "你输入的内容",
+      exampleNote:
+        "狗狗今天上午 9 点散步，11 点吃了早餐，11:30 服了药，好像有点跛行",
+      structuringLabel: "自动结构化",
+      bullets: [
+        "一句话可生成多条记录——散步、进食、用药与症状",
+        "为每个事件提取时间，如「9 点」「11:30」",
+        "生成标准化标题与字段，而非仅粘贴原文",
+        "显示在快速记录与各分类标签页；AI 助手可读取全部记录",
+      ],
+      outputs: [
+        {
+          bucket: "activity",
+          label: "活动",
+          title: "散步",
+          time: "上午 9:00",
+          summary: "已记录散步——中等强度",
+        },
+        {
+          bucket: "food",
+          label: "饮食",
+          title: "早餐",
+          time: "上午 11:00",
+          summary: "早餐——食欲正常",
+        },
+        {
+          bucket: "medication",
+          label: "用药",
+          title: "服药",
+          time: "上午 11:30",
+          summary: "已记录口服用药",
+        },
+        {
+          bucket: "health",
+          label: "健康",
+          title: "观察到跛行",
+          time: "刚刚",
+          summary: "似乎有点跛行——中等严重程度",
+        },
+      ],
+    },
     foundingEyebrow: "限时创始繁育者优惠",
     foundingOffersTitle: "创始繁育者终身优惠",
     foundingOffersSubtitle:

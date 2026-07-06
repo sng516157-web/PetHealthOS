@@ -7,6 +7,8 @@ This is surfaced in the `/admin` page so the team can see what's changed at a gl
 Agents: append a bullet here in the **same commit** as any user-facing change (see
 `AGENTS.md`). Keep entries short; deeper rationale lives in `docs/CONTEXT.md`.
 
+- **2026-07-06 — Homepage smart logging.** Landing page highlights one-note multi-entry Quick Log with a visual before/after example.
+
 - **2026-07-06 — Multi-entry quick log + Health tab.** One note can create several structured logs (food, activity, medication, health) with correct times; new Health tab for symptoms; AI assistant now sees all log types.
 
 - **2026-07-06 — Waffo verification.** Homepage includes the Waffo domain-verify meta tag for payment onboarding.

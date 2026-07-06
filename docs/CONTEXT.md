@@ -265,6 +265,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 
 ## Decision log
 
+- **2026-07-06** — **Homepage Quick Log feature section.** Marketing block on `/` shows
+  one-note → multi-entry parsing (food, activity, medication, health) with example times;
+  owner/shop bullets and solution step updated to mention smart logging.
+
 - **2026-07-06** — **Multi-entry quick log + Health tab + AI context fix.** One natural-language
   note can split into several structured entries (food, activity, medication, health) with
   per-clause times (e.g. walk 9 am, breakfast 11 am, meds 11:30, limping → health). AI/heuristic
