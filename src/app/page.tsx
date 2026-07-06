@@ -6,12 +6,17 @@ import { PassportHomepageLanding } from "@/components/landing/PassportHomepageLa
 import { pageMetadata } from "@/lib/seo";
 import { getFoundingBreederOffersAvailability } from "@/lib/founding-breeder-lifetime";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Digital Pet Health Passports",
-  description:
-    "Pet health records and QR passports — owners scan at handover; breeders, shelters, and shops build the record before transfer.",
-  path: "/",
-});
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: "Digital Pet Health Passports",
+    description:
+      "Pet health records and QR passports — owners scan at handover; breeders, shelters, and shops build the record before transfer.",
+    path: "/",
+  }),
+  other: {
+    "waffo-verify": "c8597952f5254f27a0cfacf28c99297d",
+  },
+};
 
 export default async function HomePage() {
   const user = await getCurrentUser();

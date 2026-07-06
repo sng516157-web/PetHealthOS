@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-07-05
+Last updated: 2026-07-06
 
 ---
 
@@ -264,6 +264,10 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 ---
 
 ## Decision log
+
+- **2026-07-06** — **Waffo domain verification meta tag.** Added
+  `<meta name="waffo-verify" content="c8597952f5254f27a0cfacf28c99297d">` to homepage
+  metadata (`src/app/page.tsx`) for Waffo merchant/domain verification.
 
 - **2026-07-05** — **Quick-log time parse fix.** Natural-time parser no longer treats
   duration numbers (`20 minutes`) as clock hours; prefers explicit `at 11 am` matches
