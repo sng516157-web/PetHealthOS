@@ -80,7 +80,7 @@ Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
     `requireActiveOrg()` → redirects non-shop / logged-out users to `/shop`.
   - `/me/*` = owner workspace. `/passport/[token]` = public passport.
   - **Pet detail tabs** (owner `/me/pets/[id]/*`, shop/facility `/app/pets/[id]/*`):
-    major tabs — **Logs** (sub: Quick Log · Food · Activity), AI Assistant, Triage,
+    major tabs — **Logs** (sub: Quick Log · Health · Food · Activity · Medication), AI Assistant, Triage,
     Reminders, Weight, Documents; owners also get **Check-in**; shops get **Transfer**.
     Facility archived stays hide AI/Triage/Transfer. Reminders/weight/documents/check-in
     moved out of the old sidebar grid into dedicated routes.
@@ -264,6 +264,14 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
 ---
 
 ## Decision log
+
+- **2026-07-06** — **Multi-entry quick log + Health tab + AI context fix.** One natural-language
+  note can split into several structured entries (food, activity, medication, health) with
+  per-clause times (e.g. walk 9 am, breakfast 11 am, meds 11:30, limping → health). AI/heuristic
+  parser (`parseQuickLogNote` / `heuristicParseQuickLogNote`) standardizes titles/summaries
+  instead of storing raw text only. New **Health** sub-tab (`/health`) shows symptom/vet
+  `LogEntry` records. AI chat/triage context now includes food, activity, and medication logs
+  so the assistant no longer says "health log empty" when only category logs exist.
 
 - **2026-07-06** — **Waffo domain verification meta tag.** Added
   `<meta name="waffo-verify" content="c8597952f5254f27a0cfacf28c99297d">` to homepage

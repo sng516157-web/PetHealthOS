@@ -70,6 +70,18 @@ export function PreviewPetTabPanels({
     return <PreviewFoodPanel fmt={fmt} />;
   }
 
+  if (mainTab === "logs" && logSubTab === "health") {
+    return (
+      <Card className="p-4">
+        <h2 className="text-sm font-semibold text-forest">{t.tabs.healthLog}</h2>
+        <p className="mt-0.5 text-xs text-muted">{t.timeline.noEntriesDesc}</p>
+        <div className="mt-4">
+          <LogTimeline petId="preview" logs={INITIAL_HEALTH} canEdit={false} canDelete={false} />
+        </div>
+      </Card>
+    );
+  }
+
   if (mainTab === "logs" && logSubTab === "activity") {
     return <PreviewActivityPanel fmt={fmt} />;
   }

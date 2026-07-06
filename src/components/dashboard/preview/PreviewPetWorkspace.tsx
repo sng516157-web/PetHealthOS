@@ -41,7 +41,9 @@ export function PreviewPetWorkspace({
         : `pethealthos.online/app/pets/${pet.name.toLowerCase()}`;
     if (mainTab === "logs") {
       onUrlChange(
-        logSubTab === "food"
+        logSubTab === "health"
+          ? `${base}/health`
+          : logSubTab === "food"
           ? `${base}/food`
           : logSubTab === "activity"
             ? `${base}/activity`

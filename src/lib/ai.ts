@@ -14,9 +14,9 @@ import {
   type AttachmentKind,
 } from "./constants";
 import {
-  heuristicClassifyQuickLog,
-  sanitizeQuickLogClassification,
-  type QuickLogClassification,
+  heuristicParseQuickLogNote,
+  sanitizeQuickLogEntries,
+  type ParsedQuickLogEntry,
 } from "./quick-log-classify";
 import { formatDateTime, petAge } from "./format";
 import { fetchStoredFileBytes, isVisionMime } from "./uploads";
@@ -148,6 +148,14 @@ export type ActivityLogLike = {
   notes?: string | null;
 };
 
+export type MedicationLogLike = {
+  occurredAt: Date;
+  medicationName: string;
+  dose?: string | null;
+  route?: string | null;
+  notes?: string | null;
+};
+
 export type AttachmentLike = {
   kind: string;
   label: string;
@@ -184,6 +192,7 @@ export function buildPetContext(
   opts: BuildContextOpts & {
     foodLogs?: FoodLogLike[];
     activityLogs?: ActivityLogLike[];
+    medicationLogs?: MedicationLogLike[];
   } = {},
 ): string {
   const header = petSummaryLine(pet);
@@ -235,6 +244,17 @@ export function buildPetContext(
     })
     .join("\n");
 
+  const medicationLogs = opts.medicationLogs ?? [];
+  const medicationLines = medicationLogs
+    .slice()
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .map((m) => {
+      const date = formatDateTime(m.occurredAt, fmtOpts);
+      const bits = [m.medicationName, m.dose, m.route ? `route:${m.route}` : null, m.notes].filter(Boolean);
+      return `- ${date} · ${bits.join(" · ")}`;
+    })
+    .join("\n");
+
   const docLines = attachments
     .slice()
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -253,11 +273,14 @@ export function buildPetContext(
   const activityBlock = activityLines
     ? `\n\nACTIVITY / WALKS LOG (most recent first):\n${activityLines}`
     : "";
+  const medicationBlock = medicationLines
+    ? `\n\nMEDICATION LOG (most recent first):\n${medicationLines}`
+    : "";
   const crossHint =
-    foodLines || activityLines
-      ? "\n\nWhen assessing this pet, cross-reference health symptoms with recent appetite changes and activity levels where relevant."
+    foodLines || activityLines || medicationLines
+      ? "\n\nWhen assessing this pet, cross-reference health symptoms with recent appetite, activity, and medication records where relevant."
       : "";
-  return `PET PROFILE\n${header}${notes}\n\nHEALTH LOG (most recent first):\n${logLines || "(no entries yet)"}${foodBlock}${activityBlock}${docsBlock}${crossHint}`;
+  return `PET PROFILE\n${header}${notes}\n\nHEALTH LOG (symptoms, vet visits, observations — most recent first):\n${logLines || "(no entries yet)"}${foodBlock}${activityBlock}${medicationBlock}${docsBlock}${crossHint}`;
 }
 
 const MAX_VISION_ATTACHMENTS = 4;
@@ -393,8 +416,13 @@ export function heuristicStructure(raw: string): StructuredLogResult {
   };
 }
 
-const QuickLogSchema = z.object({
+const QuickLogEntryItemSchema = z.object({
   route: z.enum(["health", "food", "activity", "medication"]),
+  timeHint: z
+    .string()
+    .nullable()
+    .describe("When THIS specific event occurred as written, e.g. '9 am today', '11:30 am'"),
+  clause: z.string().optional().describe("The phrase from the note this entry came from"),
   mealType: z.enum(MEAL_TYPES).optional(),
   foodName: z.string().optional(),
   amount: z.string().nullable().optional(),
@@ -411,29 +439,40 @@ const QuickLogSchema = z.object({
   medNotes: z.string().nullable().optional(),
   type: z.enum(LOG_TYPES).optional(),
   severity: z.enum(SEVERITY).optional(),
-  title: z.string().optional(),
-  summary: z.string().optional(),
+  title: z.string().describe("Short standardized headline for this entry"),
+  summary: z.string().describe("One clear standardized sentence for this entry"),
   tags: z.array(z.string()).optional(),
 });
 
-/** Classify a freeform quick note into health / food / activity / medication buckets. */
-export async function classifyQuickLogEntry(
+const MultiQuickLogSchema = z.object({
+  entries: z
+    .array(QuickLogEntryItemSchema)
+    .min(1)
+    .max(8)
+    .describe("One entry per distinct event in the note (walk, meal, medication, symptom, etc.)"),
+});
+
+/** Parse a freeform quick note into one or more structured log entries. */
+export async function parseQuickLogNote(
   rawText: string,
   pet: PetLike,
   locale: Locale = DEFAULT_LOCALE,
   image?: LogImage,
-): Promise<QuickLogClassification> {
-  if (!hasAI()) return heuristicClassifyQuickLog(rawText);
+): Promise<ParsedQuickLogEntry[]> {
+  if (!hasAI()) return heuristicParseQuickLogNote(rawText);
   try {
     const system =
-      "You route a freeform pet-care note into exactly one bucket: health (symptoms, vet, observations), food (meals, appetite, treats), activity (walks, play, training), or medication (pills, doses, injections). Fill the fields for that bucket only. Be conservative on health severity. " +
+      "You parse a freeform pet-care note into one or more structured log entries. Each distinct event (walk, meal, medication dose, symptom like limping or vomiting) becomes its own entry with route health|food|activity|medication. " +
+      "For each entry provide a standardized title and summary (not the raw note). Extract timeHint per entry from the text (e.g. '9 am today', '11:30 am'). " +
+      "Health = symptoms, illness, limping, vomiting, vet visits. Food = meals/appetite. Activity = walks, play, training. Medication = pills, doses, injections. " +
+      "Be conservative on health severity. " +
       languageInstruction(locale);
     const promptText = `Pet: ${petSummaryLine(pet)}\n\nNote: "${rawText}"`;
 
     const { object } = image
       ? await generateObject({
           model: getModel({ vision: true }),
-          schema: QuickLogSchema,
+          schema: MultiQuickLogSchema,
           system,
           messages: [
             {
@@ -447,15 +486,26 @@ export async function classifyQuickLogEntry(
         })
       : await generateObject({
           model: getModel(),
-          schema: QuickLogSchema,
+          schema: MultiQuickLogSchema,
           system,
           prompt: promptText,
         });
-    return sanitizeQuickLogClassification(object);
+    return sanitizeQuickLogEntries(object.entries, rawText);
   } catch (e) {
-    console.error("classifyQuickLogEntry failed, using heuristic", e);
-    return heuristicClassifyQuickLog(rawText);
+    console.error("parseQuickLogNote failed, using heuristic", e);
+    return heuristicParseQuickLogNote(rawText);
   }
+}
+
+/** @deprecated Use parseQuickLogNote — kept for any single-entry callers */
+export async function classifyQuickLogEntry(
+  rawText: string,
+  pet: PetLike,
+  locale: Locale = DEFAULT_LOCALE,
+  image?: LogImage,
+): Promise<ParsedQuickLogEntry> {
+  const entries = await parseQuickLogNote(rawText, pet, locale, image);
+  return entries[0] ?? heuristicParseQuickLogNote(rawText)[0];
 }
 
 // ---------- Proactive health watch (the guardian) ----------
@@ -522,12 +572,13 @@ export async function generateTriage(
   opts: BuildContextOpts & {
     foodLogs?: FoodLogLike[];
     activityLogs?: ActivityLogLike[];
+    medicationLogs?: MedicationLogLike[];
   } = {},
 ): Promise<TriageResult> {
-  if (!hasAI()) return heuristicTriage(pet, logs, locale, opts.foodLogs, opts.activityLogs);
+  if (!hasAI()) return heuristicTriage(pet, logs, locale, opts.foodLogs, opts.activityLogs, opts.medicationLogs);
   const context = buildPetContext(pet, logs, attachments, { ...opts, locale });
   const system =
-    "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log, food/nutrition log, activity/walks log, and reference documents. Cross-reference the three log types when patterns are visible (e.g. lethargy + skipped meals + shorter walks). Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the logs or documents. " +
+    "You are a veterinary triage assistant. You DO NOT diagnose. You assess urgency and help an owner communicate clearly with a vet, based ONLY on the provided health log, food/nutrition log, activity/walks log, medication log, and reference documents. Cross-reference all log types when patterns are visible (e.g. lethargy + skipped meals + shorter walks). Be calm, practical, and clear. Always recommend professional veterinary care for anything concerning. Never invent data not present in the logs or documents. " +
     languageInstruction(locale);
   const prompt = `${context}\n\nProduce a triage assessment for communicating with a veterinarian.`;
   try {
@@ -562,7 +613,7 @@ export async function generateTriage(
     return object;
   } catch (e) {
     console.error("generateTriage failed, using heuristic", e);
-    return heuristicTriage(pet, logs, locale, opts.foodLogs, opts.activityLogs);
+    return heuristicTriage(pet, logs, locale, opts.foodLogs, opts.activityLogs, opts.medicationLogs);
   }
 }
 
@@ -572,6 +623,7 @@ function heuristicTriage(
   locale: Locale = DEFAULT_LOCALE,
   foodLogs: FoodLogLike[] = [],
   activityLogs: ActivityLogLike[] = [],
+  _medicationLogs: MedicationLogLike[] = [],
 ): TriageResult {
   const recent = logs
     .filter((l) => l.occurredAt.getTime() > Date.now() - 1000 * 60 * 60 * 24 * 14)
@@ -843,29 +895,64 @@ export function mockPetChatReply(
   attachments: AttachmentLike[],
   question: string,
   locale: Locale = DEFAULT_LOCALE,
+  extra: {
+    foodLogs?: FoodLogLike[];
+    activityLogs?: ActivityLogLike[];
+    medicationLogs?: MedicationLogLike[];
+  } = {},
 ): string {
-  const recent = logs.slice(0, 3);
+  const recentHealth = logs.slice(0, 3);
+  const recentFood = (extra.foodLogs ?? []).slice(0, 2);
+  const recentActivity = (extra.activityLogs ?? []).slice(0, 2);
+  const recentMed = (extra.medicationLogs ?? []).slice(0, 2);
   const docs = attachments.slice(0, 3);
   const lines: string[] = [];
   const zh = locale === "zh";
+  const hasAny =
+    recentHealth.length > 0 ||
+    recentFood.length > 0 ||
+    recentActivity.length > 0 ||
+    recentMed.length > 0;
+
   lines.push(
     zh
-      ? `以下是我在 ${pet.name} 的健康记录中看到的内容（演示模式 —— 未连接 AI 密钥）：\n`
-      : `Here's what I can see in ${pet.name}'s health log (demo mode — no AI key connected):\n`,
+      ? `以下是我在 ${pet.name} 的档案中看到的内容（演示模式 —— 未连接 AI 密钥）：\n`
+      : `Here's what I can see in ${pet.name}'s records (demo mode — no AI key connected):\n`,
   );
-  if (recent.length === 0) {
+
+  if (!hasAny) {
     lines.push(
       zh
-        ? `目前还没有记录。在『健康记录』标签页添加一些内容，我就能据此为你分析。`
-        : `There are no log entries yet. Add some notes on the Health Log tab and I'll be able to reason about them.`,
+        ? `目前还没有记录。在『快速记录』中添加内容，我就能据此为你分析。`
+        : `There are no log entries yet. Add notes via Quick Log and I'll be able to reason about them.`,
     );
   } else {
-    lines.push(zh ? `**最近的记录：**` : `**Recent entries:**`);
-    for (const l of recent) {
-      const tags = safeTags(l.tags);
-      lines.push(
-        `- ${l.occurredAt.toISOString().slice(0, 10)} · ${l.title || l.type} (severity ${l.severity})${tags.length ? ` — ${tags.join(", ")}` : ""}`,
-      );
+    if (recentHealth.length > 0) {
+      lines.push(zh ? `**健康记录：**` : `**Health:**`);
+      for (const l of recentHealth) {
+        const tags = safeTags(l.tags);
+        lines.push(
+          `- ${l.occurredAt.toISOString().slice(0, 10)} · ${l.title || l.type} (severity ${l.severity})${tags.length ? ` — ${tags.join(", ")}` : ""}`,
+        );
+      }
+    }
+    if (recentFood.length > 0) {
+      lines.push(zh ? `**饮食：**` : `**Food & nutrition:**`);
+      for (const f of recentFood) {
+        lines.push(`- ${f.occurredAt.toISOString().slice(0, 10)} · ${f.foodName ?? f.mealType}`);
+      }
+    }
+    if (recentActivity.length > 0) {
+      lines.push(zh ? `**活动：**` : `**Activity:**`);
+      for (const a of recentActivity) {
+        lines.push(`- ${a.occurredAt.toISOString().slice(0, 10)} · ${a.activityType}${a.durationMin ? ` (${a.durationMin} min)` : ""}`);
+      }
+    }
+    if (recentMed.length > 0) {
+      lines.push(zh ? `**用药：**` : `**Medication:**`);
+      for (const m of recentMed) {
+        lines.push(`- ${m.occurredAt.toISOString().slice(0, 10)} · ${m.medicationName}`);
+      }
     }
   }
   if (docs.length > 0) {

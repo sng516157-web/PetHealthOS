@@ -302,7 +302,7 @@ export const zh: Dictionary = {
   tabs: {
     logs: "记录",
     quickLog: "快速记录",
-    healthLog: "健康记录",
+    healthLog: "健康",
     aiAssistant: "AI 助手",
     triage: "分诊",
     transfer: "转交",
@@ -344,12 +344,13 @@ export const zh: Dictionary = {
   quickLog: {
     title: "记一条",
     aiStructures: "AI 会自动整理",
-    placeholder: "用自然语言书写即可 —— 例如『上午 11 点散步 30 分钟』或『早饭后给了抗生素』",
+    placeholder: "用自然语言书写即可 —— 一条记录可包含多个事件，例如『9 点散步，11 点吃早餐，11:30 服药，有点跛行』",
     saveHint: "⌘/Ctrl + Enter 保存",
     save: "保存记录",
     structuring: "整理中…",
     analyzingPhoto: "正在识别照片…",
     savedAs: "已保存并整理为：",
+    savedCount: (n: number) => `已保存 ${n} 条结构化记录：`,
     addMedia: "添加照片 / 视频",
     removeMedia: "移除",
     photoWillAnalyze: "AI 将识别这张照片",
@@ -816,10 +817,10 @@ export const zh: Dictionary = {
   },
   chat: {
     assistant: (name: string) => `${name} 的助手`,
-    grounded: "基于这只宠物的健康记录 + 通用繁育知识",
-    ownerGrounded: "基于这只宠物的健康、饮食与活动记录",
+    grounded: "基于这只宠物的健康、饮食、活动与用药记录 + 通用繁育知识",
+    ownerGrounded: "基于这只宠物的健康、饮食、活动与用药记录",
     askAnything: (name: string) => `关于 ${name}，尽管问`,
-    askDesc: (name: string) => `我会根据 ${name} 健康记录中的全部内容来回答。`,
+    askDesc: (name: string) => `我会根据 ${name} 的健康、饮食、活动与用药记录来回答。`,
     ownerStarters: [
       "下次看兽医时我该说什么？",
       "总结最近两周的健康记录",

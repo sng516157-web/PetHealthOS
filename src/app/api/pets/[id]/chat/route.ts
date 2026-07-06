@@ -59,15 +59,16 @@ export async function POST(
     locale: resolvedLocale,
     foodLogs: pet.foodLogs,
     activityLogs: pet.activityLogs,
+    medicationLogs: pet.medicationLogs,
   });
   const system = `You are the AI health assistant for ${pet.name}. ${audience}
 
 Two kinds of knowledge, and the distinction is strict:
-1. PET-SPECIFIC data: you may use ONLY ${pet.name}'s health log, food/nutrition log, activity/walks log, and reference documents below — never any other animal's records. If ${pet.name}'s records lack the info, say so plainly rather than guessing.
+1. PET-SPECIFIC data: you may use ONLY ${pet.name}'s health log (symptoms, vet visits), food/nutrition log, activity/walks log, medication log, and reference documents below — never any other animal's records. If ${pet.name}'s records lack the info, say so plainly rather than guessing.
 2. GENERAL knowledge: you may freely share general veterinary & breeding guidance (breed-typical care, neonate/litter care, weaning, nutrition, vaccination & deworming norms, what to watch for) — this general knowledge is not tied to any specific animal's private record.
 
 Rules:
-- Cross-reference health symptoms with recent appetite/meals and activity levels when answering — note simple connections (e.g. skipped meals + lethargy).
+- Cross-reference health symptoms with recent meals, activity, and medications when answering — note simple connections (e.g. skipped meals + lethargy).
 - Keep per-pet data isolated: never reveal or infer one animal's private records when discussing another.
 - Reference documents (vaccine certificates, lab results, pedigree, etc.) are part of ${pet.name}'s record — use their labels and any attached images/PDFs you can see.
 - You are NOT a veterinarian and must not give a definitive diagnosis. Explain possibilities, suggest what to monitor, flag urgency.
@@ -80,7 +81,11 @@ ${context}`;
   if (!hasAI()) {
     const last = messages[messages.length - 1]?.content ?? "";
     return plainTextStreamResponse(
-      mockPetChatReply(pet, pet.logs, pet.attachments, last, resolvedLocale),
+      mockPetChatReply(pet, pet.logs, pet.attachments, last, resolvedLocale, {
+        foodLogs: pet.foodLogs,
+        activityLogs: pet.activityLogs,
+        medicationLogs: pet.medicationLogs,
+      }),
     );
   }
 
@@ -130,6 +135,11 @@ ${context}`;
     pet.attachments,
     last,
     resolvedLocale,
+    {
+      foodLogs: pet.foodLogs,
+      activityLogs: pet.activityLogs,
+      medicationLogs: pet.medicationLogs,
+    },
   );
 
   const result = streamText({

@@ -9,6 +9,16 @@ import { LOG_TYPE_META, SEVERITY_META, LOG_BUCKET_META, LogType, Severity, LogBu
 import { useI18n } from "@/lib/i18n/client";
 import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
+type SavedEntry = {
+  route: LogBucket;
+  title: string;
+  type?: string;
+  severity?: string;
+  tags?: string[];
+  mealType?: string;
+  activityType?: string;
+};
+
 export function QuickAddLog({
   petId,
   ownerConfirm = false,
@@ -24,15 +34,7 @@ export function QuickAddLog({
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [lastResult, setLastResult] = useState<{
-    route: LogBucket;
-    title: string;
-    type?: string;
-    severity?: string;
-    tags?: string[];
-    mealType?: string;
-    activityType?: string;
-  } | null>(null);
+  const [lastResults, setLastResults] = useState<SavedEntry[]>([]);
 
   useBodyScrollLock(confirmOpen);
 
@@ -53,7 +55,6 @@ export function QuickAddLog({
     if (!text.trim() && !file) return;
     const fd = new FormData();
     fd.set("rawText", text);
-    // Server parses natural time from the note; omit client clock unless we add an override field later.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz) fd.set("timeZone", tz);
     fd.set("locale", locale);
@@ -61,31 +62,18 @@ export function QuickAddLog({
     start(async () => {
       const res = await addLogEntry(petId, fd);
       if (res?.ok) {
-        if (res.route === "health" && res.structured) {
-          setLastResult({
-            route: "health",
-            title: res.structured.title,
-            type: res.structured.type,
-            severity: res.structured.severity,
-            tags: res.structured.tags,
-          });
-        } else if (res.route === "food") {
-          setLastResult({
-            route: "food",
-            title: res.title ?? "",
-            mealType: res.mealType,
-          });
-        } else if (res.route === "activity") {
-          setLastResult({
-            route: "activity",
-            title: res.title ?? "",
-            activityType: res.activityType,
-          });
-        } else if (res.route === "medication") {
-          setLastResult({
-            route: "medication",
-            title: res.title ?? "",
-          });
+        if (res.entries?.length) {
+          setLastResults(res.entries);
+        } else if (res.route === "health" && res.structured) {
+          setLastResults([
+            {
+              route: "health",
+              title: res.structured.title,
+              type: res.structured.type,
+              severity: res.structured.severity,
+              tags: res.structured.tags,
+            },
+          ]);
         }
         setText("");
         clearFile();
@@ -192,39 +180,42 @@ export function QuickAddLog({
           </button>
         </div>
 
-        {lastResult && (
+        {lastResults.length > 0 && (
           <div className="mt-3 animate-fade-in rounded-xl border border-brand-100 bg-brand-50/60 p-3">
             <div className="flex items-center gap-2 text-xs text-brand-700">
-              <Sparkles size={13} /> {t.quickLog.savedAs}
+              <Sparkles size={13} />{" "}
+              {lastResults.length === 1
+                ? t.quickLog.savedAs
+                : t.quickLog.savedCount(lastResults.length)}
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge tone={LOG_BUCKET_META[lastResult.route].color as Tone}>
-                {LOG_BUCKET_META[lastResult.route].emoji}{" "}
-                {t.logBucket[lastResult.route]}
-              </Badge>
-              <span className="text-sm font-medium text-foreground">{lastResult.title}</span>
-              {lastResult.route === "health" && lastResult.type && (
-                <>
-                  <Badge tone="slate">
-                    {LOG_TYPE_META[lastResult.type as LogType].emoji}{" "}
-                    {t.logType[lastResult.type as LogType]}
+            <ul className="mt-2 space-y-2">
+              {lastResults.map((entry, i) => (
+                <li key={`${entry.route}-${entry.title}-${i}`} className="flex flex-wrap items-center gap-2">
+                  <Badge tone={LOG_BUCKET_META[entry.route].color as Tone}>
+                    {LOG_BUCKET_META[entry.route].emoji} {t.logBucket[entry.route]}
                   </Badge>
-                  {lastResult.severity && lastResult.severity !== "NONE" && (
-                    <Badge tone={SEVERITY_META[lastResult.severity as Severity].color as Tone}>
-                      {t.severity[lastResult.severity as Severity]}
+                  <span className="text-sm font-medium text-foreground">{entry.title}</span>
+                  {entry.route === "health" && entry.type && (
+                    <>
+                      <Badge tone="slate">
+                        {LOG_TYPE_META[entry.type as LogType].emoji}{" "}
+                        {t.logType[entry.type as LogType]}
+                      </Badge>
+                      {entry.severity && entry.severity !== "NONE" && (
+                        <Badge tone={SEVERITY_META[entry.severity as Severity].color as Tone}>
+                          {t.severity[entry.severity as Severity]}
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                  {entry.route === "food" && entry.mealType && (
+                    <Badge tone="amber">
+                      {t.mealType[entry.mealType as keyof typeof t.mealType]}
                     </Badge>
                   )}
-                  {lastResult.tags?.map((tag) => (
-                    <span key={tag} className="text-xs text-muted">
-                      #{tag}
-                    </span>
-                  ))}
-                </>
-              )}
-              {lastResult.route === "food" && lastResult.mealType && (
-                <Badge tone="amber">{t.mealType[lastResult.mealType as keyof typeof t.mealType]}</Badge>
-              )}
-            </div>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </Card>

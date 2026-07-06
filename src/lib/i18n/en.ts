@@ -316,7 +316,7 @@ export const en = {
   tabs: {
     logs: "Logs",
     quickLog: "Quick Log",
-    healthLog: "Health Log",
+    healthLog: "Health",
     aiAssistant: "AI Assistant",
     triage: "Triage",
     transfer: "Transfer",
@@ -358,12 +358,13 @@ export const en = {
   quickLog: {
     title: "Log a note",
     aiStructures: "AI structures it automatically",
-    placeholder: "Just write naturally — e.g. 'Walked 30 min at 11 am' or 'Gave antibiotic pill after breakfast'",
+    placeholder: "Write naturally — one note can cover several events, e.g. 'Walk at 9 am, breakfast at 11, medication at 11:30, seems to be limping'",
     saveHint: "⌘/Ctrl + Enter to save",
     save: "Save entry",
     structuring: "Structuring…",
     analyzingPhoto: "Reading photo…",
     savedAs: "Saved & structured as:",
+    savedCount: (n: number) => `Saved ${n} structured entries:`,
     addMedia: "Add photo / video",
     removeMedia: "Remove",
     photoWillAnalyze: "AI will read this photo",
@@ -835,10 +836,10 @@ export const en = {
   },
   chat: {
     assistant: (name: string) => `${name}'s assistant`,
-    grounded: "Grounded in this pet's health log + general breeding knowledge",
-    ownerGrounded: "Grounded in this pet's health log, food & activity records",
+    grounded: "Grounded in this pet's health, food, activity, and medication records + general breeding knowledge",
+    ownerGrounded: "Grounded in this pet's health, food, activity, and medication records",
     askAnything: (name: string) => `Ask anything about ${name}`,
-    askDesc: (name: string) => `I'll answer using everything in ${name}'s health log.`,
+    askDesc: (name: string) => `I'll answer using ${name}'s health, food, activity, and medication records.`,
     ownerStarters: [
       "What should I tell the vet at our next visit?",
       "Summarize the last two weeks of health logs",

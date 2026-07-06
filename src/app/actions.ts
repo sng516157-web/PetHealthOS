@@ -39,7 +39,7 @@ import {
 } from "@/lib/password-reset";
 import {
   structureLogEntry,
-  classifyQuickLogEntry,
+  parseQuickLogNote,
   generateTriage,
   generateOrgWardTriage,
   heuristicStructure,
@@ -49,7 +49,7 @@ import {
 import { parseNaturalLogTime, parseDatetimeLocalValue } from "@/lib/log-time";
 import { getTimezone } from "@/lib/timezone/server";
 import { isValidTimezone } from "@/lib/timezone/config";
-import { heuristicClassifyQuickLog } from "@/lib/quick-log-classify";
+import { heuristicParseQuickLogNote, type ParsedQuickLogEntry } from "@/lib/quick-log-classify";
 import { getLocale } from "@/lib/i18n/server";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import {
@@ -349,6 +349,141 @@ async function resolvePetOccurredFromForm(
   return resolveLogOccurredAt(occurredAtRaw);
 }
 
+function resolveEntryOccurredAt(
+  entry: ParsedQuickLogEntry,
+  timeZone: string,
+  fallback: Date,
+): Date {
+  const hint = [entry.timeHint, entry.clause].filter(Boolean).join(" ");
+  const parsed = hint ? parseNaturalLogTime(hint, new Date(), timeZone) : null;
+  if (parsed) {
+    const resolved = resolveLogOccurredAt(parsed.toISOString());
+    if ("date" in resolved) return resolved.date;
+  }
+  return fallback;
+}
+
+type SavedQuickEntry = {
+  route: ParsedQuickLogEntry["route"];
+  title: string;
+  type?: string;
+  severity?: string;
+  tags?: string[];
+  mealType?: string;
+  activityType?: string;
+};
+
+async function persistQuickLogEntries(opts: {
+  petId: string;
+  entries: ParsedQuickLogEntry[];
+  defaultOccurredAt: Date;
+  timeZone: string;
+  loggedByOrgId: string | null;
+  loggedByName: string | null;
+  imageUrl?: string | null;
+  imageMime?: string | null;
+  aiProcessed: boolean;
+}): Promise<SavedQuickEntry[]> {
+  const saved: SavedQuickEntry[] = [];
+  let imageAttached = false;
+
+  for (const entry of opts.entries) {
+    const occurredAt = resolveEntryOccurredAt(entry, opts.timeZone, opts.defaultOccurredAt);
+
+    if (entry.route === "food" && entry.food) {
+      const { food } = entry;
+      await prisma.foodLogEntry.create({
+        data: {
+          petId: opts.petId,
+          occurredAt,
+          mealType: food.mealType,
+          foodName: food.foodName,
+          amount: food.amount,
+          appetite: food.appetite,
+          notes: food.notes,
+          loggedByOrgId: opts.loggedByOrgId,
+          loggedByName: opts.loggedByName,
+        },
+      });
+      saved.push({ route: "food", title: food.foodName, mealType: food.mealType });
+      continue;
+    }
+
+    if (entry.route === "activity" && entry.activity) {
+      const { activity } = entry;
+      await prisma.activityLogEntry.create({
+        data: {
+          petId: opts.petId,
+          occurredAt,
+          activityType: activity.activityType,
+          durationMin: activity.durationMin,
+          distanceKm: activity.distanceKm,
+          intensity: activity.intensity,
+          notes: activity.notes,
+          loggedByOrgId: opts.loggedByOrgId,
+          loggedByName: opts.loggedByName,
+        },
+      });
+      saved.push({
+        route: "activity",
+        title: activity.notes ?? activity.activityType,
+        activityType: activity.activityType,
+      });
+      continue;
+    }
+
+    if (entry.route === "medication" && entry.medication) {
+      const { medication } = entry;
+      await prisma.medicationLogEntry.create({
+        data: {
+          petId: opts.petId,
+          occurredAt,
+          medicationName: medication.medicationName,
+          dose: medication.dose,
+          route: medication.route,
+          notes: medication.notes,
+          loggedByOrgId: opts.loggedByOrgId,
+          loggedByName: opts.loggedByName,
+        },
+      });
+      saved.push({ route: "medication", title: medication.medicationName });
+      continue;
+    }
+
+    if (entry.health) {
+      const structured = entry.health;
+      const attachImage = !imageAttached && opts.imageUrl;
+      if (attachImage) imageAttached = true;
+      await prisma.logEntry.create({
+        data: {
+          petId: opts.petId,
+          rawText: structured.summary,
+          occurredAt,
+          imageUrl: attachImage ? opts.imageUrl : null,
+          imageMime: attachImage ? opts.imageMime : null,
+          type: structured.type,
+          severity: structured.severity,
+          title: structured.title,
+          summary: structured.summary,
+          tags: JSON.stringify(structured.tags),
+          aiProcessed: opts.aiProcessed,
+          loggedByOrgId: opts.loggedByOrgId,
+          loggedByName: opts.loggedByName,
+        },
+      });
+      saved.push({
+        route: "health",
+        title: structured.title,
+        type: structured.type,
+        severity: structured.severity,
+        tags: structured.tags,
+      });
+    }
+  }
+
+  return saved;
+}
+
 export async function addLogEntry(petId: string, formData: FormData) {
   const text = String(formData.get("rawText") || "").trim();
   if (text.length > NOTE_MAX) return { error: VErr.NOTE_TOO_LONG };
@@ -398,9 +533,11 @@ export async function addLogEntry(petId: string, formData: FormData) {
 
   const locale = await resolveLocale(String(formData.get("locale") || ""));
 
-  const occurredResolved = await resolvePetOccurredFromForm(formData, hasText ? text : undefined);
-  if ("error" in occurredResolved) return { error: occurredResolved.error };
-  const occurredAt = occurredResolved.date;
+  const tzRaw = String(formData.get("timeZone") || "");
+  const timeZone = isValidTimezone(tzRaw) ? tzRaw : await getTimezone();
+  const defaultOccurredResolved = await resolvePetOccurredFromForm(formData);
+  if ("error" in defaultOccurredResolved) return { error: defaultOccurredResolved.error };
+  const defaultOccurredAt = defaultOccurredResolved.date;
 
   if (!hasText) {
     const photoTitle = locale === "zh" ? "照片记录" : "Photo log";
@@ -408,7 +545,7 @@ export async function addLogEntry(petId: string, formData: FormData) {
       data: {
         petId,
         rawText: locale === "zh" ? "📷 照片记录" : "📷 Photo log",
-        occurredAt,
+        occurredAt: defaultOccurredAt,
         imageUrl,
         imageMime,
         type: "OBSERVATION",
@@ -435,110 +572,25 @@ export async function addLogEntry(petId: string, formData: FormData) {
     ? { data: new Uint8Array(imageBytes), mediaType: imageMime ?? "image/jpeg" }
     : undefined;
 
-  const classified = hasAI()
-    ? await classifyQuickLogEntry(text, pet, locale, aiImage)
-    : heuristicClassifyQuickLog(text);
+  const parsed = hasAI()
+    ? await parseQuickLogNote(text, pet, locale, aiImage)
+    : heuristicParseQuickLogNote(text);
 
-  if (classified.route === "food") {
-    const { food } = classified;
-    await prisma.foodLogEntry.create({
-      data: {
-        petId,
-        occurredAt,
-        mealType: food.mealType,
-        foodName: food.foodName,
-        amount: food.amount,
-        appetite: food.appetite,
-        notes: food.notes ?? text,
-        loggedByOrgId,
-        loggedByName,
-      },
-    });
-    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
-    revalidatePetPaths(petId);
-    return { ok: true, route: "food" as const, title: food.foodName, mealType: food.mealType };
-  }
-
-  if (classified.route === "activity") {
-    const { activity } = classified;
-    await prisma.activityLogEntry.create({
-      data: {
-        petId,
-        occurredAt,
-        activityType: activity.activityType,
-        durationMin: activity.durationMin,
-        distanceKm: activity.distanceKm,
-        intensity: activity.intensity,
-        notes: activity.notes ?? text,
-        loggedByOrgId,
-        loggedByName,
-      },
-    });
-    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
-    revalidatePetPaths(petId);
-    return {
-      ok: true,
-      route: "activity" as const,
-      title: activity.activityType,
-      activityType: activity.activityType,
-    };
-  }
-
-  if (classified.route === "medication") {
-    const { medication } = classified;
-    await prisma.medicationLogEntry.create({
-      data: {
-        petId,
-        occurredAt,
-        medicationName: medication.medicationName,
-        dose: medication.dose,
-        route: medication.route,
-        notes: medication.notes ?? text,
-        loggedByOrgId,
-        loggedByName,
-      },
-    });
-    await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
-    revalidatePetPaths(petId);
-    return {
-      ok: true,
-      route: "medication" as const,
-      title: medication.medicationName,
-    };
-  }
-
-  let structured = classified.health;
-  let aiProcessed = hasAI();
-  if (hasAI()) {
-    try {
-      structured = await structureLogEntry(text, pet, locale, aiImage);
-    } catch (e) {
-      console.error("log structuring failed, using classification", e);
-      aiProcessed = false;
-    }
-  }
-
-  await prisma.logEntry.create({
-    data: {
-      petId,
-      rawText: text,
-      occurredAt,
-      imageUrl,
-      imageMime,
-      type: structured.type,
-      severity: structured.severity,
-      title: structured.title,
-      summary: structured.summary,
-      tags: JSON.stringify(structured.tags),
-      aiProcessed,
-      loggedByOrgId,
-      loggedByName,
-    },
+  const saved = await persistQuickLogEntries({
+    petId,
+    entries: parsed,
+    defaultOccurredAt,
+    timeZone,
+    loggedByOrgId,
+    loggedByName,
+    imageUrl,
+    imageMime,
+    aiProcessed: hasAI(),
   });
 
   await prisma.pet.update({ where: { id: petId }, data: { updatedAt: new Date() } });
   revalidatePetPaths(petId);
-  return { ok: true, route: "health" as const, structured, imageUrl };
+  return { ok: true, entries: saved, imageUrl };
 }
 
 export async function deleteLogEntry(petId: string, id: string) {
@@ -886,6 +938,7 @@ export async function generateTriageReport(petId: string, localeHint?: string) {
     locale,
     foodLogs: pet.foodLogs,
     activityLogs: pet.activityLogs,
+    medicationLogs: pet.medicationLogs,
   });
   const report = await prisma.triageReport.create({
     data: {
