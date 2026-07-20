@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/admin";
-import { parseImportFileNames, parseImportFileRefs } from "@/lib/data-import-shared";
+import { assertCanManageImport } from "@/lib/data-import-access";
+import {
+  isCsvFileName,
+  isImportDocFileName,
+  mimeFromImportFileName,
+  parseImportFileNames,
+  parseImportFileRefs,
+} from "@/lib/data-import-shared";
 import { readPrivateDocBytes } from "@/lib/private-doc";
 import { buildImportRowsFromCsv } from "@/lib/data-import-csv";
 import {
@@ -33,41 +39,36 @@ export type ImportWorkspacePayload = {
   fileNames: string[];
   state: DataImportProcessingState;
   existingPets: ImportWorkspacePet[];
+  asAdmin: boolean;
 };
 
-function mimeFromName(name: string): string {
-  const ext = (name.split(".").pop() || "").toLowerCase();
-  if (ext === "pdf") return "application/pdf";
-  if (ext === "csv") return "text/csv";
-  return "application/octet-stream";
-}
-
-function isPdfName(name: string): boolean {
-  return name.toLowerCase().endsWith(".pdf");
-}
-
-function isCsvName(name: string): boolean {
-  return name.toLowerCase().endsWith(".csv");
+function heuristicDocKind(fileName: string): AttachmentKind {
+  const n = fileName.toLowerCase();
+  if (/vacc|疫苗|免疫/.test(n)) return "VACCINE_CERT";
+  if (/pedigree|血统|系谱|registration/.test(n)) return "PEDIGREE";
+  if (/lab|血检|检测|titer|抗体/.test(n)) return "LAB_RESULT";
+  if (/\.(jpg|jpeg|png|webp)$/i.test(n)) return "PHOTO";
+  return "OTHER";
 }
 
 function mergeDocuments(
   fileNames: string[],
   saved: ImportDocumentState[],
 ): ImportDocumentState[] {
-  const pdfs = fileNames
+  const docs = fileNames
     .map((name, fileIndex) => ({ name, fileIndex }))
-    .filter(({ name }) => isPdfName(name));
+    .filter(({ name }) => isImportDocFileName(name));
 
-  return pdfs.map(({ name, fileIndex }) => {
+  return docs.map(({ name, fileIndex }) => {
     const prev = saved.find((d) => d.fileIndex === fileIndex);
     return (
       prev ?? {
         fileIndex,
         fileName: name,
-        mimeType: mimeFromName(name),
+        mimeType: mimeFromImportFileName(name),
         petId: null,
-        kind: "OTHER" as AttachmentKind,
-        label: name.replace(/\.pdf$/i, ""),
+        kind: heuristicDocKind(name),
+        label: name.replace(/\.[^.]+$/i, ""),
         status: "pending",
         attachmentId: null,
       }
@@ -78,7 +79,8 @@ function mergeDocuments(
 export async function loadImportWorkspace(
   importId: string,
 ): Promise<ImportWorkspacePayload | { error: string }> {
-  if (!(await isAdmin())) return { error: "FORBIDDEN" };
+  const access = await assertCanManageImport(importId);
+  if ("error" in access) return access;
 
   const row = await prisma.dataImportRequest.findUnique({
     where: { id: importId },
@@ -95,23 +97,23 @@ export async function loadImportWorkspace(
 
   let state = saved ?? emptyProcessingState();
 
-  const csvIndex = fileNames.findIndex(isCsvName);
-  if (csvIndex >= 0 && fileRefs[csvIndex]) {
+  const csvIndex = fileNames.findIndex(isCsvFileName);
+  if (csvIndex >= 0 && fileRefs[csvIndex] && state.rows.length === 0) {
     const buf = await readPrivateDocBytes(fileRefs[csvIndex]);
     if (buf) {
       const text = buf.toString("utf-8").replace(/^\uFEFF/, "");
       const built = buildImportRowsFromCsv(text, {
-        columnMapping: Object.keys(state.columnMapping).length ? state.columnMapping : undefined,
+        columnMapping: Object.keys(state.columnMapping).length
+          ? state.columnMapping
+          : undefined,
       });
       state.columnMapping = built.columnMapping;
-      if (state.rows.length === 0) {
-        state.rows = built.rows.map((r) => ({
-          ...r,
-          status: "pending",
-          petId: null,
-          skipReason: null,
-        }));
-      }
+      state.rows = built.rows.map((r) => ({
+        ...r,
+        status: "pending",
+        petId: null,
+        skipReason: null,
+      }));
     }
   }
 
@@ -150,6 +152,7 @@ export async function loadImportWorkspace(
     fileNames,
     state,
     existingPets,
+    asAdmin: access.asAdmin,
   };
 }
 
@@ -157,9 +160,8 @@ export async function persistImportWorkspaceState(
   importId: string,
   state: DataImportProcessingState,
 ): Promise<{ ok: true } | { error: string }> {
-  if (!(await isAdmin())) return { error: "FORBIDDEN" };
-  const row = await prisma.dataImportRequest.findUnique({ where: { id: importId } });
-  if (!row) return { error: "NOT_FOUND" };
+  const access = await assertCanManageImport(importId);
+  if ("error" in access) return access;
 
   await prisma.dataImportRequest.update({
     where: { id: importId },

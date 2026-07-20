@@ -144,7 +144,11 @@ export default async function Dashboard({
         foundingPromo={showFoundingPromo}
         pendingImport={
           pendingImportRow
-            ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }
+            ? {
+                id: pendingImportRow.id,
+                status: pendingImportRow.status,
+                submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }),
+              }
             : null
         }
         onboarding={onboarding}

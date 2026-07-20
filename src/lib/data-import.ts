@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { DATA_IMPORT_ACTIVE_STATUSES } from "@/lib/data-import-status";
 
 export {
   DATA_IMPORT_MAX_FILE_BYTES,
   DATA_IMPORT_MAX_PDFS,
+  DATA_IMPORT_MAX_DOCS,
   parseImportFileNames,
   parseImportFileRefs,
 } from "@/lib/data-import-shared";
@@ -15,9 +17,9 @@ export async function getPendingDataImport(opts: {
     where: {
       userId: opts.userId,
       orgId: opts.orgId,
-      status: "PENDING",
+      status: { in: [...DATA_IMPORT_ACTIVE_STATUSES] },
     },
     orderBy: { submittedAt: "desc" },
-    select: { id: true, submittedAt: true },
+    select: { id: true, submittedAt: true, status: true },
   });
 }

@@ -129,6 +129,20 @@ export default async function ShopLandingPage({
                   title={l.importTitle}
                   subtitle={l.importDesc}
                 />
+                <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {l.importSteps.map((step, i) => (
+                    <li
+                      key={step.title}
+                      className="rounded-2xl border border-border bg-surface p-4 text-sm"
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800">
+                        {i + 1}
+                      </span>
+                      <p className="mt-2 font-semibold text-forest">{step.title}</p>
+                      <p className="mt-1 text-xs text-ink/70">{step.desc}</p>
+                    </li>
+                  ))}
+                </ol>
                 <ul className="mt-4 space-y-2">
                   {l.importBullets.map((b) => (
                     <li key={b} className="flex items-start gap-2 text-sm text-ink/75">
@@ -137,6 +151,12 @@ export default async function ShopLandingPage({
                     </li>
                   ))}
                 </ul>
+                <Link
+                  href="#signup"
+                  className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-ps-button transition hover:bg-brand-700"
+                >
+                  {l.importCta} <ArrowRight size={15} />
+                </Link>
               </MotionReveal>
 
               <MotionReveal delay={160} className="mt-10">

@@ -62,7 +62,11 @@ export default async function MeHome({
         notifications={notifications}
         pendingImport={
           pendingImportRow
-            ? { submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }) }
+            ? {
+                id: pendingImportRow.id,
+                status: pendingImportRow.status,
+                submittedAt: formatDate(pendingImportRow.submittedAt, { timeZone, locale }),
+              }
             : null
         }
       />

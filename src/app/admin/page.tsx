@@ -117,7 +117,7 @@ export default async function AdminPage() {
   }));
 
   const importRowsRaw = await prisma.dataImportRequest.findMany({
-    where: { status: "PENDING" },
+    where: { status: { not: "COMPLETED" } },
     orderBy: { submittedAt: "desc" },
     include: {
       user: { select: { name: true, email: true, phone: true, orgId: true } },

@@ -24,7 +24,7 @@ Living list of shipped product capabilities with implementation dates where know
 | Facility stay QR check-in | 2026-06-09 | `stayToken`, admit/release |
 | Owner Plus billing (5 pets) | 2026-06-17 | Stripe subscriptions |
 | Memorial / deceased archive | 2026-06-15 | Read-only memorial tab |
-| Data import request | 2026-06-25 | PDF upload, admin processing |
+| Data import (semi-auto) | 2026-07-20 | CSV+photos → AI draft → user confirm at `/app/import/[id]` |
 
 ## Shop / breeder workspace
 

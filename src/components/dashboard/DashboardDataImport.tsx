@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileUp, Upload } from "lucide-react";
 import { submitDataImport } from "@/app/actions";
@@ -9,18 +10,25 @@ import { Button, Modal } from "@/components/pawsure";
 import { Card } from "@/components/ui";
 import { MotionPop } from "./DashboardMotion";
 
-type PendingImport = {
+type ActiveImport = {
+  id: string;
   submittedAt: string;
+  status: string;
 };
 
 export function DashboardDataImport({
   pendingImport,
   preview,
   className,
+  emphasize,
+  reviewHrefBase = "/app/import",
 }: {
-  pendingImport?: PendingImport | null;
+  pendingImport?: ActiveImport | null;
   preview?: boolean;
   className?: string;
+  /** Stronger empty-roster callout */
+  emphasize?: boolean;
+  reviewHrefBase?: "/app/import" | "/me/import";
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -73,17 +81,41 @@ export function DashboardDataImport({
   }
 
   if (pendingImport) {
+    const ready = pendingImport.status === "READY_FOR_REVIEW";
+    const drafting = pendingImport.status === "DRAFTING";
     return (
       <MotionPop index={0} className={className}>
         <Card className="border-brand-200 bg-brand-50/40 p-5">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 shadow-soft">
-              <FileUp size={18} />
-            </span>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-forest">{di.pendingTitle}</h2>
-              <p className="mt-1 text-sm text-muted">{di.pendingDesc}</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 shadow-soft">
+                <FileUp size={18} />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-forest">
+                  {ready
+                    ? di.readyTitle
+                    : drafting
+                      ? di.draftingTitle
+                      : di.pendingTitle}
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  {ready
+                    ? di.readyDesc
+                    : drafting
+                      ? di.draftingDesc
+                      : di.pendingDesc}
+                </p>
+              </div>
             </div>
+            {ready ? (
+              <Link
+                href={`${reviewHrefBase}/${pendingImport.id}`}
+                className="inline-flex shrink-0 items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-ps-button hover:bg-brand-700"
+              >
+                {di.readyCta}
+              </Link>
+            ) : null}
           </div>
         </Card>
       </MotionPop>
@@ -93,20 +125,30 @@ export function DashboardDataImport({
   return (
     <>
       <MotionPop index={0} className={className}>
-        <Card className="p-5">
+        <Card
+          className={
+            emphasize
+              ? "border-brand-200 bg-brand-50/50 p-5 ring-1 ring-brand-100"
+              : "p-5"
+          }
+        >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                 <FileUp size={18} />
               </span>
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-forest">{di.cardTitle}</h2>
-                <p className="mt-1 text-sm text-muted">{di.cardDesc}</p>
+                <h2 className="text-sm font-semibold text-forest">
+                  {emphasize ? di.emptyTitle : di.cardTitle}
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  {emphasize ? di.emptyDesc : di.cardDesc}
+                </p>
               </div>
             </div>
             <Button
               type="button"
-              variant="secondary"
+              variant={emphasize ? "primary" : "secondary"}
               className="w-full shrink-0 sm:w-auto"
               leftIcon={<Upload size={16} />}
               onClick={() => {
@@ -176,7 +218,7 @@ export function DashboardDataImport({
                 id="import-pdfs"
                 name="pdfs"
                 type="file"
-                accept=".pdf,application/pdf"
+                accept=".pdf,application/pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                 multiple
                 className="mt-2 block w-full text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700"
                 onChange={(e) => setPdfCount(e.target.files?.length ?? 0)}

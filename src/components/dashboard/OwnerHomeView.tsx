@@ -60,7 +60,7 @@ export function OwnerHomeView({
   memorialPets: OwnerPet[];
   memorialTab: boolean;
   notifications: OwnerNotif[];
-  pendingImport?: { submittedAt: string } | null;
+  pendingImport?: { id: string; submittedAt: string; status: string } | null;
   /** Landing preview — same layout, in-frame navigation only. */
   preview?: { onPetSelect: (petId: string) => void };
 }) {
@@ -158,7 +158,12 @@ export function OwnerHomeView({
       )}
 
       {!memorialTab && (
-        <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
+        <DashboardDataImport
+          pendingImport={pendingImport}
+          preview={!!preview}
+          reviewHrefBase="/me/import"
+          className="mt-8"
+        />
       )}
 
       {!memorialTab && !preview && (

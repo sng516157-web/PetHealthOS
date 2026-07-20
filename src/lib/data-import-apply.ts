@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/admin";
+import { assertCanManageImport } from "@/lib/data-import-access";
 import { assignShopPetSlot } from "@/lib/org-slots";
 import { parseImportFileRefs } from "@/lib/data-import-shared";
 import { publishPrivateDocBytes } from "@/lib/private-doc";
@@ -18,20 +18,21 @@ function actionId(): string {
 }
 
 async function loadImportRow(importId: string) {
-  const row = await prisma.dataImportRequest.findUnique({
-    where: { id: importId },
-    select: {
-      id: true,
-      orgId: true,
-      userId: true,
-      fileRefs: true,
-      processingState: true,
+  const access = await assertCanManageImport(importId);
+  if ("error" in access) return access;
+
+  const state = parseProcessingState(access.processingState);
+  if (!state) return { error: "NOT_FOUND" as const };
+
+  return {
+    row: {
+      id: access.importId,
+      orgId: access.orgId,
+      userId: access.userId,
+      fileRefs: access.fileRefs,
     },
-  });
-  if (!row) return null;
-  const state = parseProcessingState(row.processingState) ?? null;
-  if (!state) return null;
-  return { row, state };
+    state,
+  };
 }
 
 async function saveState(importId: string, state: DataImportProcessingState) {
@@ -76,10 +77,8 @@ export async function applyImportRowPet(
   rowId: string,
   options?: { includeLogs?: boolean; includeWeight?: boolean },
 ): Promise<{ petId: string } | { error: string }> {
-  if (!(await isAdmin())) return { error: "FORBIDDEN" };
-
   const loaded = await loadImportRow(importId);
-  if (!loaded) return { error: "NOT_FOUND" };
+  if ("error" in loaded) return loaded;
 
   const { row, state } = loaded;
   const idx = state.rows.findIndex((r) => r.rowId === rowId);
@@ -163,8 +162,18 @@ export async function applyImportRowPet(
     petId: pet.id,
   };
 
+  // Auto-link documents that still need a pet when label/file hints match this name
+  for (let d = 0; d < state.documents.length; d++) {
+    const doc = state.documents[d];
+    if (doc.petId || doc.status !== "pending") continue;
+    const hay = `${doc.label} ${doc.fileName}`.toLowerCase();
+    if (hay.includes(pet.name.trim().toLowerCase())) {
+      state.documents[d] = { ...doc, petId: pet.id };
+    }
+  }
+
   await saveState(importId, state);
-  revalidateImportPaths(row.orgId);
+  revalidateImportPaths(row.orgId, importId);
   return { petId: pet.id };
 }
 
@@ -172,10 +181,8 @@ export async function applyImportDocument(
   importId: string,
   fileIndex: number,
 ): Promise<{ attachmentId: string } | { error: string }> {
-  if (!(await isAdmin())) return { error: "FORBIDDEN" };
-
   const loaded = await loadImportRow(importId);
-  if (!loaded) return { error: "NOT_FOUND" };
+  if ("error" in loaded) return loaded;
 
   const { row, state } = loaded;
   const docIdx = state.documents.findIndex((d) => d.fileIndex === fileIndex);
@@ -186,12 +193,7 @@ export async function applyImportDocument(
     return { attachmentId: doc.attachmentId };
   }
 
-  const refs = parseImportFileRefs(
-    (await prisma.dataImportRequest.findUnique({
-      where: { id: importId },
-      select: { fileRefs: true },
-    }))!.fileRefs,
-  );
+  const refs = parseImportFileRefs(row.fileRefs);
   const ref = refs[fileIndex];
   if (!ref) return { error: "FILE_NOT_FOUND" };
 
@@ -225,7 +227,7 @@ export async function applyImportDocument(
   };
 
   await saveState(importId, state);
-  revalidateImportPaths(row.orgId);
+  revalidateImportPaths(row.orgId, importId);
   revalidatePath(`/app/pets/${doc.petId}`);
   revalidatePath(`/me/pets/${doc.petId}`);
   return { attachmentId: attachment.id };
@@ -236,9 +238,8 @@ export async function skipImportRow(
   rowId: string,
   reason?: string,
 ): Promise<{ ok: true } | { error: string }> {
-  if (!(await isAdmin())) return { error: "FORBIDDEN" };
   const loaded = await loadImportRow(importId);
-  if (!loaded) return { error: "NOT_FOUND" };
+  if ("error" in loaded) return loaded;
 
   const { state } = loaded;
   const idx = state.rows.findIndex((r) => r.rowId === rowId);
@@ -253,9 +254,49 @@ export async function skipImportRow(
   return { ok: true };
 }
 
-function revalidateImportPaths(orgId: string | null) {
+export async function requestImportHumanHelp(
+  importId: string,
+): Promise<{ ok: true } | { error: string }> {
+  const access = await assertCanManageImport(importId);
+  if ("error" in access) return access;
+  if (access.status === "COMPLETED") return { error: "NOT_FOUND" };
+
+  await prisma.dataImportRequest.update({
+    where: { id: importId },
+    data: { status: "PENDING" },
+  });
+  revalidateImportPaths(access.orgId, importId);
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+export async function finishUserImport(
+  importId: string,
+): Promise<{ ok: true } | { error: string }> {
+  const access = await assertCanManageImport(importId);
+  if ("error" in access) return access;
+  if (access.status === "COMPLETED") return { ok: true };
+
+  await prisma.dataImportRequest.update({
+    where: { id: importId },
+    data: {
+      status: "COMPLETED",
+      completedAt: new Date(),
+    },
+  });
+  revalidateImportPaths(access.orgId, importId);
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+function revalidateImportPaths(orgId: string | null, importId?: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/imports");
+  if (importId) {
+    revalidatePath(`/admin/imports/${importId}`);
+    revalidatePath(`/app/import/${importId}`);
+    revalidatePath(`/me/import/${importId}`);
+  }
   if (orgId) {
     revalidatePath("/app");
     revalidatePath("/app/pets");

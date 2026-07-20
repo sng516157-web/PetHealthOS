@@ -27,6 +27,14 @@ import {
   saveImportWorkspaceState,
   skipImportRowAction,
 } from "@/app/admin/imports/actions";
+import {
+  finishImportAction,
+  requestImportHelpAction,
+  saveImportStateAction,
+  applyImportRowAction as applyImportRowUser,
+  applyImportDocumentAction as applyImportDocumentUser,
+  skipImportRowAction as skipImportRowUser,
+} from "@/app/import/actions";
 import { useI18n } from "@/lib/i18n/client";
 import { Button } from "@/components/pawsure";
 
@@ -123,7 +131,13 @@ function RowEditor({
   );
 }
 
-export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePayload }) {
+export function ImportWorkspace({
+  workspace,
+  mode = "admin",
+}: {
+  workspace: ImportWorkspacePayload;
+  mode?: "admin" | "user";
+}) {
   const { t } = useI18n();
   const w = t.admin.importWorkspace;
   const router = useRouter();
@@ -132,6 +146,12 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [adminNote, setAdminNote] = useState("");
+
+  const homeHref = workspace.accountType === "shop" ? "/app" : "/me";
+  const fileBase =
+    mode === "admin"
+      ? `/api/admin/data-import/${workspace.id}/file`
+      : `/api/import/${workspace.id}/file`;
 
   useEffect(() => {
     setState(workspace.state);
@@ -143,10 +163,11 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
     (next: DataImportProcessingState) => {
       setState(next);
       start(async () => {
-        await saveImportWorkspaceState(workspace.id, next);
+        if (mode === "admin") await saveImportWorkspaceState(workspace.id, next);
+        else await saveImportStateAction(workspace.id, next);
       });
     },
-    [workspace.id],
+    [workspace.id, mode],
   );
 
   function updateRow(rowId: string, patch: Partial<ImportRowState>) {
@@ -168,11 +189,18 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
   function applyRow(rowId: string) {
     setError(null);
     start(async () => {
-      await saveImportWorkspaceState(workspace.id, state);
-      const res = await applyImportRowAction(workspace.id, rowId, {
-        includeLogs: true,
-        includeWeight: true,
-      });
+      if (mode === "admin") await saveImportWorkspaceState(workspace.id, state);
+      else await saveImportStateAction(workspace.id, state);
+      const res =
+        mode === "admin"
+          ? await applyImportRowAction(workspace.id, rowId, {
+              includeLogs: true,
+              includeWeight: true,
+            })
+          : await applyImportRowUser(workspace.id, rowId, {
+              includeLogs: true,
+              includeWeight: true,
+            });
       if (res && "error" in res && res.error) {
         setError(res.error);
         return;
@@ -184,7 +212,10 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
   function skipRow(rowId: string) {
     setError(null);
     start(async () => {
-      const res = await skipImportRowAction(workspace.id, rowId);
+      const res =
+        mode === "admin"
+          ? await skipImportRowAction(workspace.id, rowId)
+          : await skipImportRowUser(workspace.id, rowId);
       if (res && "error" in res && res.error) {
         setError(res.error);
         return;
@@ -196,8 +227,12 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
   function applyDoc(fileIndex: number) {
     setError(null);
     start(async () => {
-      await saveImportWorkspaceState(workspace.id, state);
-      const res = await applyImportDocumentAction(workspace.id, fileIndex);
+      if (mode === "admin") await saveImportWorkspaceState(workspace.id, state);
+      else await saveImportStateAction(workspace.id, state);
+      const res =
+        mode === "admin"
+          ? await applyImportDocumentAction(workspace.id, fileIndex)
+          : await applyImportDocumentUser(workspace.id, fileIndex);
       if (res && "error" in res && res.error) {
         setError(res.error);
         return;
@@ -218,31 +253,68 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
     });
   }
 
+  function finishUser() {
+    setError(null);
+    start(async () => {
+      const res = await finishImportAction(workspace.id);
+      if (res && "error" in res && res.error) {
+        setError(res.error);
+        return;
+      }
+      router.push(homeHref);
+    });
+  }
+
+  function requestHelp() {
+    setError(null);
+    start(async () => {
+      const res = await requestImportHelpAction(workspace.id);
+      if (res && "error" in res && res.error) {
+        setError(res.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   const tabCls = (id: Tab) =>
     `rounded-lg px-3 py-1.5 text-sm font-medium transition ${
       tab === id ? "bg-brand-50 text-brand-700" : "text-muted hover:text-forest"
     }`;
 
+  const showAdminComplete =
+    mode === "admin" && workspace.status !== "COMPLETED";
+  const showUserActions =
+    mode === "user" && workspace.status !== "COMPLETED";
+
   return (
     <div className="mx-auto w-full min-w-0 max-w-6xl px-5 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] md:px-8">
       <Link
-        href="/admin"
+        href={mode === "admin" ? "/admin" : homeHref}
         className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-forest"
       >
-        <ArrowLeft size={14} /> {w.backAdmin}
+        <ArrowLeft size={14} /> {mode === "admin" ? w.backAdmin : w.backHome}
       </Link>
 
       <header className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-forest">{w.title}</h1>
-          <p className="mt-1 text-sm text-muted">
-            {workspace.submitterName}
-            {workspace.submitterEmail ? ` · ${workspace.submitterEmail}` : ""}
-            {workspace.orgName ? ` · ${workspace.orgName}` : ""}
-          </p>
-          <p className="text-xs text-muted">
-            {w.accountType(workspace.accountType)} · {workspace.status}
-          </p>
+          <h1 className="text-xl font-bold text-forest">
+            {mode === "user" ? w.userTitle : w.title}
+          </h1>
+          {mode === "admin" ? (
+            <>
+              <p className="mt-1 text-sm text-muted">
+                {workspace.submitterName}
+                {workspace.submitterEmail ? ` · ${workspace.submitterEmail}` : ""}
+                {workspace.orgName ? ` · ${workspace.orgName}` : ""}
+              </p>
+              <p className="text-xs text-muted">
+                {w.accountType(workspace.accountType)} · {workspace.status}
+              </p>
+            </>
+          ) : (
+            <p className="mt-1 text-sm text-muted">{w.userSubtitle}</p>
+          )}
           {workspace.note && (
             <p className="mt-2 text-sm text-slate-600">
               <span className="font-medium">{w.userNote}: </span>
@@ -253,8 +325,8 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
         <div className="flex flex-wrap gap-2">
           {workspace.fileNames.map((name, i) => (
             <a
-              key={name}
-              href={`/api/admin/data-import/${workspace.id}/file/${i}`}
+              key={`${name}-${i}`}
+              href={`${fileBase}/${i}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
@@ -502,7 +574,7 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
         </div>
       )}
 
-      {workspace.status === "PENDING" && (
+      {showAdminComplete && (
         <div className="mt-10 rounded-2xl border border-border bg-brand-50/30 p-5">
           <h2 className="text-sm font-semibold text-forest">{w.completeTitle}</h2>
           <p className="mt-1 text-xs text-muted">{w.completeHint}</p>
@@ -516,6 +588,34 @@ export function ImportWorkspace({ workspace }: { workspace: ImportWorkspacePaylo
           <Button className="mt-3" loading={pending} onClick={markComplete}>
             {w.markComplete}
           </Button>
+        </div>
+      )}
+
+      {showUserActions && (
+        <div className="mt-10 space-y-4 rounded-2xl border border-border bg-brand-50/30 p-5">
+          <div>
+            <h2 className="text-sm font-semibold text-forest">{w.userFinishTitle}</h2>
+            <p className="mt-1 text-xs text-muted">{w.userFinishHint}</p>
+            <Button className="mt-3" loading={pending} onClick={finishUser}>
+              {w.userFinish}
+            </Button>
+          </div>
+          {workspace.status !== "PENDING" && (
+            <div className="border-t border-border pt-4">
+              <p className="text-xs text-muted">{w.userHelpHint}</p>
+              <Button
+                className="mt-2"
+                variant="secondary"
+                loading={pending}
+                onClick={requestHelp}
+              >
+                {w.userHelp}
+              </Button>
+            </div>
+          )}
+          {workspace.status === "PENDING" && (
+            <p className="text-sm text-muted">{w.userHelpPending}</p>
+          )}
         </div>
       )}
     </div>

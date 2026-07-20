@@ -5,7 +5,7 @@
 > decision or code change, update the relevant section and append to the
 > Decision log below.
 
-Last updated: 2026-07-06
+Last updated: 2026-07-20
 
 ---
 
@@ -25,7 +25,8 @@ Last updated: 2026-07-06
   childish, or generic-SaaS styling.
 
 Deeper product/strategy docs: `docs/PRD.md`, `docs/competitive-landscape.md`,
-`docs/wtp-interview-script.md` (+ `.zh.md`).
+`docs/wtp-interview-script.md` (+ `.zh.md`). Local breeder outreach materials live only in
+the gitignored `outreach/` folder.
 
 ---
 
@@ -256,14 +257,67 @@ alternative proof and be **approved by the PawSure team** before issuing passpor
   validation.
 - Live Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) when ready. WeChat/Alipay
   deferred until incorporation — see `docs/PAYMENTS_WALLETS_DEFERRED.md`.
-- **Automated data import (AI).** v1 manual queue shipped; **admin import workspace** at
-  `/admin/imports/[id]` parses CSV, maps columns (incl. 宠舍管家-style headers), applies rows
-  → pets/logs/weight and PDFs → attachments; `processingState` JSON is the stable plan shape for
-  future AI. Next: AI column-mapping suggestions + doc classification.
+- **Breeder outreach.** All outreach-only materials are isolated in the gitignored,
+  self-contained local `outreach/` folder, not the webapp. It contains docs, CSV data,
+  send logs, suppressions, `sender.mjs`, `.env.example`, and local `.env.local`.
+  `outreach/sender.mjs` uses only Node built-ins, reads/writes under `outreach/data`,
+  loads secrets from `outreach/.env.local`, sends only approved direct-email rows, skips
+  contact-form/already-contacted/suppressed leads, and defaults Canada out unless
+  explicitly included. Email 1 was sent on 2026-07-13 to BL-0001, BL-0002, BL-0005,
+  and BL-0006. Daily Codex automation
+  `PawSure breeder outreach daily` targets only `outreach/`: it may send approved initial
+  outreach, check IMAP replies with `outreach/reply-checker.mjs`, send due follow-ups,
+  and queue researched lead discoveries. Reply detection requires `OUTREACH_IMAP_HOST`,
+  `OUTREACH_IMAP_PORT`, `OUTREACH_IMAP_USER`, and `OUTREACH_IMAP_PASS` in
+  `outreach/.env.local`; as of setup, only `RESEND_API_KEY` was visible there. Current
+  outreach identity: `steven@pethealthos.online`.
+  Current user boundary: outreach materials stay in `outreach/`; the 2026-07-13 webapp
+  freeze was lifted 2026-07-20 for product work (semi-auto import, etc.).
+- **Automated data import (AI / semi-auto).** Users upload CSV + PDF/photos → status
+  `DRAFTING` → AI/deterministic draft into `processingState` → `READY_FOR_REVIEW`.
+  Breeders confirm at `/app/import/[id]` (owners `/me/import/[id]`); admin workspace remains
+  for `PENDING` (request help) and support. Landing + `/shop` advertise Upload → Confirm → Pets appear.
+  Next: richer competitor log timelines / POS sync (still deferred).
 
 ---
 
 ## Decision log
+
+- **2026-07-20** — **Semi-auto data import + advertising.** Why (user): breeders have records
+  scattered elsewhere; adoption friction. Extended the CSV/PDF queue: AI drafts column maps +
+  doc classification after upload; breeder reviews/applies at `/app/import/[id]`; photos allowed;
+  admin fallback via “ask for help”. Homepage/`/shop`/empty roster CTA push Upload → Confirm →
+  Pets appear. Lifted the outreach-only webapp freeze in `AGENTS.md` for this product work.
+
+- **2026-07-13** — **Daily breeder outreach automation created.** Added local-only
+  follow-up handling to `outreach/sender.mjs`, a discovery queue CSV, and
+  `outreach/AUTOMATION.md`. Created Codex automation `PawSure breeder outreach daily`
+  against the ignored `outreach/` folder only: it may send approved initial outreach and
+  due follow-ups, queue new researched leads, and report that reply notifications require
+  inbound mailbox/API/webhook access before they can be reliable. Royalworth Kennel
+  (BL-0006) was verified as active and approved for initial send.
+
+- **2026-07-13** — **IMAP reply checker added to outreach automation.** Added
+  `outreach/reply-checker.mjs` and `data/BREEDER_REPLY_LOG.csv`; the checker uses only
+  Node built-ins, reads inbox headers via IMAP, matches replies by sender email against
+  the sent log, writes reply records, and sets `reply_status=replied_untriaged` to stop
+  automated follow-ups. Updated the daily automation to run reply checking before sends.
+  The isolated `outreach/.env.local` now has the `OUTREACH_IMAP_*` keys; the first check
+  found 0 matched replies.
+
+- **2026-07-13** — **Royalworth initial outreach sent.** After validating IMAP access and
+  confirming no due follow-ups/replies, sent approved initial outreach to Royalworth Kennel
+  (BL-0006) through the isolated outreach sender; Resend message id
+  `b9793801-a8f0-4028-b2fc-6f9c2e170d81`.
+
+- **2026-07-13** — **Breeder outreach isolated locally.** Moved outreach-only assets into
+  the gitignored, self-contained `outreach/` folder: docs, lead/draft/send/suppression CSVs,
+  `sender.mjs`, README, `.env.example`, and local `.env.local`. Removed the active root
+  outreach interface: no root `docs/BREEDER_*`, no root outreach sender script, no root npm
+  outreach commands, and no root outreach env examples. The sender now works from inside
+  `outreach/` without depending on the webapp package or source tree. Current send state:
+  Email 1 sent to BL-0001, BL-0002, and BL-0005 on 2026-07-13; wait 3-4 days before
+  additional cold outreach unless replies require action.
 
 - **2026-07-06** — **Homepage Quick Log feature section.** Marketing block on `/` shows
   one-note → multi-entry parsing (food, activity, medication, health) with example times;

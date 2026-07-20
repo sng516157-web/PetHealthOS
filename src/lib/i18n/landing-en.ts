@@ -14,14 +14,20 @@ export const landingEn = {
     "Clear care history",
     "Tamper-evident handover",
   ],
-  importEyebrow: "Switching from another tool?",
-  importTitle: "Bring records from competitor apps or your own files",
+  importEyebrow: "Already have records elsewhere?",
+  importTitle: "Upload what you have — confirm the draft — pets appear in PawSure",
   importDesc:
-    "Upload a CSV roster plus PDFs — vaccine cards, shop exports, or scanned notebooks. We'll organize pets, documents, and care records in your PawSure workspace so you don't start from zero.",
+    "Bring a CSV from 宠舍管家 or your spreadsheet, plus vaccine cards and photos. We draft pets, documents, and care notes; you confirm before anything is saved. No starting from zero.",
+  importCta: "Import my records",
+  importSteps: [
+    { title: "Upload", desc: "CSV roster plus PDFs or photos of cards and notebooks." },
+    { title: "Confirm", desc: "Review the draft pets and records — edit or skip anything." },
+    { title: "Pets appear", desc: "Applied rows land in your workspace, ready for passports." },
+  ],
   importBullets: [
     "CSV from 宠舍管家, spreadsheets, or shop POS exports",
-    "PDF vaccine cards, lab results, and handwritten logs",
-    "Pets, documents, and daily records organized for you",
+    "PDF or photo vaccine cards, lab results, and handwritten logs",
+    "You confirm every pet before it is created — nothing auto-saves unchecked",
     "Keep using your old tool in parallel while you transition",
   ],
   howEyebrow: "How PawSure works",
@@ -68,9 +74,9 @@ export const landingEn = {
       title: "Record care before handover, issue passports at sale",
       desc: "The shop workspace tracks every pet in your care, flags what needs attention, and prepares a tamper-evident passport when the pet goes to a new owner.",
       bullets: [
+        "Import existing records: upload CSV + photos, confirm the draft, pets appear",
         "Overview stats — pets in care, attention items, due reminders",
         "Quick Log: one natural-language note → structured food, walks, meds, and health entries",
-        "Import CSV + PDFs from your old app or paper records",
         "Workspace AI across your whole roster — e.g. “Which dogs should I keep an eye on?”",
         "Attention feed for high-severity logs and under-observation pets",
         "Issue a passport QR that freezes your records at handover",
@@ -215,7 +221,7 @@ export const landingEn = {
     whyEyebrow: "Why shops and breeders use PawSure",
     whyTitle: "Prove care — don't just claim it",
     whyItems: [
-      "Import existing records from competitor apps or your own files",
+      "Import existing records: upload CSV + photos, confirm the draft, pets appear",
       "Build buyer trust before purchase",
       "Workspace AI across all pets in care — prioritize who needs attention",
       "Keep vaccines, weights, and documents organized",
@@ -347,6 +353,9 @@ export const landingEn = {
     heroTitle: "Pet health records and QR passports — for breeders and owners",
     heroSubtitle:
       "Owners scan a passport at handover and inherit vaccines, weights, and documents. Breeders, shelters, and shops build that record before the pet goes to a new home.",
+    rolePickerPrompt: "I am a…",
+    roleBreeder: "Breeder, shelter, or shop",
+    roleOwner: "Pet owner",
     heroPrimary: "Create your first 5 pet passports free",
     heroSecondary: "View sample passport",
     heroOwnerPrimary: "Create free owner account",
@@ -392,15 +401,18 @@ export const landingEn = {
     solutionSubtitle:
       "Build the record before handover. Share one link or QR code. The new owner continues the same timeline.",
     solutionSteps: [
-      { title: "Create a pet profile", desc: "Name, breed, intake date, and profile notes in your workspace." },
       {
-        title: "Add health & care records",
-        desc: "Quick Log turns one natural-language note into structured food, activity, medication, and health entries — with times extracted automatically.",
+        title: "Build the record",
+        desc: "Create a pet profile, log care with Quick Log, and attach vaccine papers and photos.",
       },
-      { title: "Attach documents", desc: "Vaccine certificates, registration papers, lab results, and photos." },
-      { title: "Share by QR code", desc: "Buyer scans at handover — no app required to view." },
-      { title: "Transfer to the owner", desc: "History freezes at issue; the owner claims and continues the record." },
-      { title: "Owner continues for life", desc: "Reminders, logs, and documents stay in one place after adoption." },
+      {
+        title: "Share at handover",
+        desc: "Buyer scans the QR at pickup — no app required to view the passport.",
+      },
+      {
+        title: "Owner continues for life",
+        desc: "History transfers at issue; the new owner claims it and keeps logging reminders and documents.",
+      },
     ],
     useCasesEyebrow: "Who it's for",
     useCasesTitle: "Built for handovers — and the owners who receive them",

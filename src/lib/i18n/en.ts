@@ -234,42 +234,53 @@ export const en = {
     },
   },
   dataImport: {
-    button: "Import data",
+    button: "Import my records",
     cardTitle: "Bring your existing records",
     cardDesc:
-      "Switching from another app or your own spreadsheets? Upload a CSV roster plus PDFs and we'll organize everything in your workspace.",
-    pendingTitle: "Import in progress",
+      "Upload a CSV roster plus vaccine cards or photos. We draft pets and records — you confirm, then they land in your workspace.",
+    emptyTitle: "Start by importing what you already have",
+    emptyDesc:
+      "Switching from 宠舍管家 or spreadsheets? Upload your roster and documents — confirm the draft and skip retyping everything.",
+    draftingTitle: "Drafting your import…",
+    draftingDesc:
+      "We're reading your CSV and documents. This usually takes a minute — refresh shortly to review and confirm.",
+    readyTitle: "Draft ready — confirm to import",
+    readyDesc:
+      "Review the suggested pets, logs, and documents, then apply what looks right.",
+    readyCta: "Review & confirm",
+    pendingTitle: "Our team is helping with your import",
     pendingDesc:
-      "We're processing your files. You'll see new pets, documents, and records appear in your workspace as they're ready — most imports finish within a few hours.",
+      "You asked for human help. We'll finish organizing messy or handwritten files — usually within a few hours.",
     modalTitle: "Import your records",
     modalDesc:
-      "Upload a pet roster (CSV) and any supporting PDFs — vaccine cards, competitor exports, or scanned notebooks.",
+      "Upload a pet roster (CSV) and any supporting PDFs or photos — vaccine cards, competitor exports, or scanned notebooks.",
     csvLabel: "Pet roster (CSV)",
     csvHint:
       "Export from your current app (e.g. 宠舍管家), a spreadsheet, or any table with pet names and basics.",
-    pdfsLabel: "Documents (PDF, optional)",
+    pdfsLabel: "Documents (PDF or photos, optional)",
     pdfsHint:
       "Vaccine cards, lab results, handwritten log scans, or anything that isn't in the CSV.",
     noteLabel: "Notes (optional)",
     notePlaceholder: "Where this data came from, pet names to prioritize, anything we should know…",
     slaNote:
-      "Clear exports are usually ready within a few hours. Messy or handwritten documents may take up to 24 hours.",
-    submit: "Submit for import",
+      "Clear CSVs are usually ready to confirm in about a minute. Messy handwriting may need team help (up to 24 hours).",
+    submit: "Upload & draft",
     cancel: "Cancel",
     close: "Done",
-    successTitle: "Submitted — we're on it",
+    successTitle: "Uploaded — drafting now",
     successDesc:
-      "Your files are in the queue. Most imports finish within a few hours; messy or handwritten documents can take up to 24 hours. New pets and records will appear in your workspace as they're processed.",
+      "We're preparing a draft of pets and records. When it's ready, open Review & confirm on your dashboard to apply them.",
     selectedFile: (name: string) => `Selected: ${name}`,
-    selectedCount: (n: number) => `${n} PDF${n === 1 ? "" : "s"} selected`,
+    selectedCount: (n: number) =>
+      `${n} file${n === 1 ? "" : "s"} selected`,
     errors: {
       generic: "Couldn't submit — please try again.",
       CSV_REQUIRED: "Please attach a CSV roster file.",
       CSV_INVALID: "The roster file must be a .csv file.",
-      PDF_INVALID: "Supporting documents must be PDF files.",
+      PDF_INVALID: "Supporting documents must be PDF or image files (JPEG, PNG, WebP).",
       FILE_TOO_BIG: "Each file must be 15 MB or smaller.",
-      TOO_MANY_FILES: "You can attach up to 20 PDFs.",
-      IMPORT_PENDING: "You already have an import in progress. We'll notify you when it's done.",
+      TOO_MANY_FILES: "You can attach up to 20 documents.",
+      IMPORT_PENDING: "You already have an import in progress. Finish or wait for it before starting another.",
       FORBIDDEN: "Please sign in and try again.",
     },
   },
@@ -1290,7 +1301,7 @@ export const en = {
     deathClaimEmpty: "No memorial claims waiting for review.",
     dataImportTitle: "Data imports",
     dataImportDesc:
-      "Review uploaded CSV rosters and PDFs. Add pets, documents, and log entries in the workspace, then mark complete.",
+      "Open uploads (CSV + PDF/photos). Drafts are AI-assisted; help when status is PENDING or the user asks.",
     dataImportEmpty: "No data imports waiting.",
     dataImportMarkComplete: "Mark import complete",
     dataImportAdminNote: "Internal note (optional)",
@@ -1298,7 +1309,11 @@ export const en = {
     dataImportOpenWorkspace: "Open import workspace",
     importWorkspace: {
       title: "Import workspace",
+      userTitle: "Confirm your import",
+      userSubtitle:
+        "Review the draft, edit anything wrong, then create pets and attach documents. Nothing is saved until you apply.",
       backAdmin: "Back to admin",
+      backHome: "Back to dashboard",
       accountType: (kind: "shop" | "owner"): string =>
         kind === "shop" ? "Shop account" : "Owner account",
       userNote: "User note",
@@ -1314,8 +1329,8 @@ export const en = {
       viewPet: "View pet",
       suggestedLogs: "Logs to create with this row",
       documentsHint:
-        "Assign each PDF to a pet (new or existing), pick a document type, then apply. Files are copied into the pet’s Documents tab.",
-      noDocuments: "No PDF files in this import.",
+        "Assign each PDF or photo to a pet (new or existing), pick a document type, then apply. Files are copied into the pet’s Documents tab.",
+      noDocuments: "No supporting documents in this import.",
       assignPet: "Pet",
       selectPet: "Select pet…",
       docKind: "Document type",
@@ -1327,6 +1342,14 @@ export const en = {
         "When all rows and documents are handled, mark the import complete so the user can submit again if needed.",
       completeNotePlaceholder: "Internal note (optional)",
       markComplete: "Mark import complete",
+      userFinishTitle: "Done reviewing?",
+      userFinishHint:
+        "Mark this import finished when you've applied (or skipped) what you need. You can upload again later.",
+      userFinish: "Finish import",
+      userHelp: "Ask the team for help",
+      userHelpHint:
+        "Stuck on messy handwriting or unclear files? We'll take over from the admin queue.",
+      userHelpPending: "Help requested — our team will continue from here.",
     },
     grantTitle: "Grant entitlement",
     grantDesc:

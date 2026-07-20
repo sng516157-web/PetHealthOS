@@ -519,8 +519,9 @@ model PetDeathClaim {
   @@index([userId])
 }
 
-// User-submitted bulk import (CSV roster + PDF/scanned records). Processed by the
-// team until automated AI import ships; files stored as private doc refs.
+// User-submitted bulk import (CSV roster + PDF/image docs). Semi-auto AI drafts
+// processingState; user confirms at /app/import/[id] (or /me/…). status:
+// DRAFTING | READY_FOR_REVIEW | PENDING (human help) | COMPLETED.
 model DataImportRequest {
   id          String    @id @default(cuid())
   status      String    @default("PENDING") // PENDING | COMPLETED

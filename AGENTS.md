@@ -18,6 +18,10 @@ Be collaborative and consultative, not just an order-taker:
    then the subsystem checklists from [Tests/change-impact.md](Tests/change-impact.md) for everything you
    touched. For UI, check on `localhost` (`/brand` for design system). Billing changes: read `docs/BILLING.md`
    first and run [07-billing-payments.md](Tests/07-billing-payments.md).
+6. **Outreach isolation still applies to cold-email assets** — local `outreach/` stays
+   gitignored and self-contained. The prior **webapp freeze (2026-07-13) is lifted**
+   (2026-07-20) so product work (e.g. semi-auto data import) may edit `src/**` again.
+   Do not mix outreach send scripts into the webapp package.
 
 ## Keep the docs alive (required)
 

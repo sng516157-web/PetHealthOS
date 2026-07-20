@@ -174,7 +174,7 @@ function parseWeight(raw: string): number {
   return Math.min(n, 200);
 }
 
-function buildSuggestedLogs(mapped: ImportPetMapped): ImportSuggestedLog[] {
+export function buildSuggestedLogs(mapped: ImportPetMapped): ImportSuggestedLog[] {
   const logs: ImportSuggestedLog[] = [];
   if (mapped.lastVaccineDate || mapped.lastVaccineNotes) {
     const text = [

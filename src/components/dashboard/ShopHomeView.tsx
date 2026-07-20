@@ -65,7 +65,7 @@ export function ShopHomeView({
   attention: ShopPet[];
   reminders: ShopReminder[];
   foundingPromo?: boolean;
-  pendingImport?: { submittedAt: string } | null;
+  pendingImport?: { id: string; submittedAt: string; status: string } | null;
   onboarding?: ShopOnboardingProgress;
   preview?: { onPetSelect: (petId: string) => void; onOrgAiOpen?: () => void };
 }) {
@@ -75,6 +75,7 @@ export function ShopHomeView({
     (r) => new Date(r.dueAt).getTime() - now < 1000 * 60 * 60 * 24 * 7,
   );
   const totalLogs = pets.reduce((s, p) => s + p.logCount, 0);
+  const emptyRoster = pets.length === 0;
 
   return (
     <DashboardCanvas className="w-full">
@@ -100,6 +101,15 @@ export function ShopHomeView({
           )}
         </MotionPop>
       </header>
+
+      {emptyRoster && !preview && (
+        <DashboardDataImport
+          pendingImport={pendingImport}
+          emphasize
+          reviewHrefBase="/app/import"
+          className="mt-8"
+        />
+      )}
 
       <div className="mt-8 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardStatCard
@@ -146,7 +156,14 @@ export function ShopHomeView({
         </div>
       )}
 
-      <DashboardDataImport pendingImport={pendingImport} preview={!!preview} className="mt-8" />
+      {!emptyRoster || preview ? (
+        <DashboardDataImport
+          pendingImport={pendingImport}
+          preview={!!preview}
+          reviewHrefBase="/app/import"
+          className="mt-8"
+        />
+      ) : null}
 
       <OrgAiPromoCard
         facility={false}
